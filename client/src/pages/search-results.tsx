@@ -118,12 +118,12 @@ export default function SearchResults() {
       <Header />
       
       {/* Search Summary */}
-      <section className="bg-white border-b border-gray-200 py-6">
+      <section className="bg-white border-b border-gray-200 py-4 md:py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Cruise Search Results</h1>
-              <div className="flex flex-wrap gap-2 mt-2 text-sm text-gray-600">
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900">Cruise Search Results</h1>
+              <div className="flex flex-wrap gap-2 mt-2 text-xs md:text-sm text-gray-600">
                 {searchCriteria.destination && (
                   <span className="bg-ocean-100 text-ocean-800 px-2 py-1 rounded-full">
                     {searchCriteria.destination}
@@ -152,8 +152,8 @@ export default function SearchResults() {
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
+        <div className="flex flex-col lg:flex-row gap-4 md:gap-8">
           
           {/* Filter Sidebar */}
           <div className="lg:w-1/4">
@@ -162,8 +162,8 @@ export default function SearchResults() {
 
           {/* Main Results */}
           <div className="lg:w-3/4">
-            <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
-              <p className="text-gray-600 mb-4 sm:mb-0" data-testid="results-count">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 gap-4">
+              <p className="text-sm md:text-base text-gray-600" data-testid="results-count">
                 {isLoading ? (
                   <Skeleton className="h-4 w-32" />
                 ) : error ? (

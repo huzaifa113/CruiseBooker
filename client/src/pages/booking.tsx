@@ -257,22 +257,22 @@ export default function Booking() {
       <Header />
       
       {/* Cruise Summary Header */}
-      <section className="bg-white border-b border-gray-200 py-6">
+      <section className="bg-white border-b border-gray-200 py-4 md:py-6">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
             <img
               src={cruise.imageUrl}
               alt={cruise.name}
-              className="w-20 h-20 object-cover rounded-lg"
+              className="w-full sm:w-20 sm:h-20 h-32 object-cover rounded-lg"
             />
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900" data-testid="cruise-name">
+            <div className="flex-1">
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900" data-testid="cruise-name">
                 {cruise.name}
               </h1>
-              <p className="text-gray-600" data-testid="cruise-details">
+              <p className="text-sm md:text-base text-gray-600" data-testid="cruise-details">
                 {cruise.ship} • {cruise.duration} Days • {cruise.destination}
               </p>
-              <p className="text-sm text-gray-500" data-testid="departure-date">
+              <p className="text-xs md:text-sm text-gray-500" data-testid="departure-date">
                 Departing {new Date(cruise.departureDate).toLocaleDateString()}
               </p>
             </div>
@@ -280,11 +280,11 @@ export default function Booking() {
         </div>
       </section>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 lg:py-16">
         <BookingProgress currentStep={currentStep} steps={steps} />
         
-        <Card className="shadow-sm border border-gray-200">
-          <CardContent className="p-8">
+        <Card className="shadow-sm border border-gray-200 mt-6">
+          <CardContent className="p-4 md:p-6 lg:p-8">
             {currentStep === 1 && (
               <CabinSelection
                 cabinTypes={cabinTypes || []}
