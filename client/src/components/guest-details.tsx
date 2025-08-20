@@ -1,0 +1,375 @@
+import { useState } from "react";
+import { Plus, Minus, User, Users } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import type { GuestInfo } from "@/lib/types";
+
+const guestSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  dateOfBirth: z.string().min(1, "Date of birth is required"),
+  passportNumber: z.string().optional(),
+  passportCountry: z.string().optional(),
+  passportExpiry: z.string().optional(),
+  specialNeeds: z.string().optional(),
+  isChild: z.boolean(),
+  isSenior: z.boolean()
+});
+
+const guestDetailsSchema = z.object({
+  primaryGuestName: z.string().min(1, "Primary guest name is required"),
+  primaryGuestEmail: z.string().email("Valid email is required"),
+  primaryGuestPhone: z.string().optional(),
+  specialRequests: z.string().optional(),
+  guests: z.array(guestSchema).min(1, "At least one guest is required")
+});
+
+type GuestDetailsForm = z.infer<typeof guestDetailsSchema>;
+
+interface GuestDetailsProps {
+  adultCount: number;
+  childCount: number;
+  seniorCount: number;
+  onGuestCountChange: (adults: number, children: number, seniors: number) => void;
+  formData: Partial<GuestDetailsForm>;
+  onFormDataChange: (data: Partial<GuestDetailsForm>) => void;
+  onContinue: () => void;
+  onBack: () => void;
+}
+
+export default function GuestDetails({
+  adultCount,
+  childCount, 
+  seniorCount,
+  onGuestCountChange,
+  formData,
+  onFormDataChange,
+  onContinue,
+  onBack
+}: GuestDetailsProps) {
+  const totalGuests = adultCount + childCount + seniorCount;
+  
+  const { register, formState: { errors }, handleSubmit, watch } = useForm<GuestDetailsForm>({
+    resolver: zodResolver(guestDetailsSchema),
+    defaultValues: {
+      primaryGuestName: formData.primaryGuestName || "",
+      primaryGuestEmail: formData.primaryGuestEmail || "",
+      primaryGuestPhone: formData.primaryGuestPhone || "",
+      specialRequests: formData.specialRequests || "",
+      guests: formData.guests || Array(totalGuests).fill(null).map((_, index) => ({
+        firstName: "",
+        lastName: "",
+        dateOfBirth: "",
+        passportNumber: "",
+        passportCountry: "",
+        passportExpiry: "",
+        specialNeeds: "",
+        isChild: index >= adultCount && index < adultCount + childCount,
+        isSenior: index >= adultCount + childCount
+      }))
+    }
+  });
+
+  const onSubmit = (data: GuestDetailsForm) => {
+    onFormDataChange(data);
+    onContinue();
+  };
+
+  const updateGuestCount = (type: 'adults' | 'children' | 'seniors', change: number) => {
+    const newCounts = {
+      adults: type === 'adults' ? Math.max(1, adultCount + change) : adultCount,
+      children: type === 'children' ? Math.max(0, childCount + change) : childCount,
+      seniors: type === 'seniors' ? Math.max(0, seniorCount + change) : seniorCount
+    };
+    onGuestCountChange(newCounts.adults, newCounts.children, newCounts.seniors);
+  };
+
+  return (
+    <div className="space-y-8" data-testid="guest-details">
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Guest Details</h2>
+        
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+          {/* Guest Count Selection */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Users className="w-5 h-5 mr-2" />
+                Number of Guests
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                  <div>
+                    <div className="font-medium text-gray-900">Adults</div>
+                    <div className="text-sm text-gray-600">Ages 18+</div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateGuestCount('adults', -1)}
+                      disabled={adultCount <= 1}
+                      className="w-8 h-8 p-0"
+                      data-testid="button-decrease-adults"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </Button>
+                    <span className="w-8 text-center font-medium" data-testid="count-adults">{adultCount}</span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateGuestCount('adults', 1)}
+                      className="w-8 h-8 p-0"
+                      data-testid="button-increase-adults"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                  <div>
+                    <div className="font-medium text-gray-900">Children</div>
+                    <div className="text-sm text-gray-600">Ages 2-17</div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateGuestCount('children', -1)}
+                      disabled={childCount <= 0}
+                      className="w-8 h-8 p-0"
+                      data-testid="button-decrease-children"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </Button>
+                    <span className="w-8 text-center font-medium" data-testid="count-children">{childCount}</span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateGuestCount('children', 1)}
+                      className="w-8 h-8 p-0"
+                      data-testid="button-increase-children"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                  <div>
+                    <div className="font-medium text-gray-900">Seniors</div>
+                    <div className="text-sm text-gray-600">Ages 55+</div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateGuestCount('seniors', -1)}
+                      disabled={seniorCount <= 0}
+                      className="w-8 h-8 p-0"
+                      data-testid="button-decrease-seniors"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </Button>
+                    <span className="w-8 text-center font-medium" data-testid="count-seniors">{seniorCount}</span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateGuestCount('seniors', 1)}
+                      className="w-8 h-8 p-0"
+                      data-testid="button-increase-seniors"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Primary Contact Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <User className="w-5 h-5 mr-2" />
+                Primary Contact Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="primaryGuestName">Full Name *</Label>
+                  <Input
+                    id="primaryGuestName"
+                    {...register("primaryGuestName")}
+                    className={errors.primaryGuestName ? "border-red-500" : ""}
+                    data-testid="input-primary-name"
+                  />
+                  {errors.primaryGuestName && (
+                    <p className="text-red-500 text-sm mt-1">{errors.primaryGuestName.message}</p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="primaryGuestEmail">Email Address *</Label>
+                  <Input
+                    id="primaryGuestEmail"
+                    type="email"
+                    {...register("primaryGuestEmail")}
+                    className={errors.primaryGuestEmail ? "border-red-500" : ""}
+                    data-testid="input-primary-email"
+                  />
+                  {errors.primaryGuestEmail && (
+                    <p className="text-red-500 text-sm mt-1">{errors.primaryGuestEmail.message}</p>
+                  )}
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="primaryGuestPhone">Phone Number</Label>
+                <Input
+                  id="primaryGuestPhone"
+                  {...register("primaryGuestPhone")}
+                  data-testid="input-primary-phone"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Individual Guest Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Guest Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {Array(totalGuests).fill(null).map((_, index) => {
+                const isChild = index >= adultCount && index < adultCount + childCount;
+                const isSenior = index >= adultCount + childCount;
+                const guestType = isChild ? "Child" : isSenior ? "Senior" : "Adult";
+                
+                return (
+                  <div key={index} className="p-4 border border-gray-200 rounded-lg">
+                    <h4 className="font-medium text-gray-900 mb-4" data-testid={`guest-header-${index}`}>
+                      Guest {index + 1} ({guestType})
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor={`guests.${index}.firstName`}>First Name *</Label>
+                        <Input
+                          {...register(`guests.${index}.firstName`)}
+                          data-testid={`input-guest-firstname-${index}`}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`guests.${index}.lastName`}>Last Name *</Label>
+                        <Input
+                          {...register(`guests.${index}.lastName`)}
+                          data-testid={`input-guest-lastname-${index}`}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`guests.${index}.dateOfBirth`}>Date of Birth *</Label>
+                        <Input
+                          type="date"
+                          {...register(`guests.${index}.dateOfBirth`)}
+                          data-testid={`input-guest-dob-${index}`}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`guests.${index}.passportNumber`}>Passport Number</Label>
+                        <Input
+                          {...register(`guests.${index}.passportNumber`)}
+                          data-testid={`input-guest-passport-${index}`}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`guests.${index}.passportCountry`}>Passport Country</Label>
+                        <Select>
+                          <SelectTrigger data-testid={`select-guest-country-${index}`}>
+                            <SelectValue placeholder="Select country" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="US">United States</SelectItem>
+                            <SelectItem value="TH">Thailand</SelectItem>
+                            <SelectItem value="UK">United Kingdom</SelectItem>
+                            <SelectItem value="CA">Canada</SelectItem>
+                            <SelectItem value="AU">Australia</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor={`guests.${index}.passportExpiry`}>Passport Expiry</Label>
+                        <Input
+                          type="date"
+                          {...register(`guests.${index}.passportExpiry`)}
+                          data-testid={`input-guest-passport-expiry-${index}`}
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label htmlFor={`guests.${index}.specialNeeds`}>Special Needs/Dietary Requirements</Label>
+                        <Textarea
+                          {...register(`guests.${index}.specialNeeds`)}
+                          placeholder="Please specify any special requirements, medical needs, or dietary restrictions"
+                          data-testid={`textarea-guest-special-needs-${index}`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+
+          {/* Special Requests */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Special Requests</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Label htmlFor="specialRequests">Additional Requests</Label>
+              <Textarea
+                id="specialRequests"
+                {...register("specialRequests")}
+                placeholder="Any special requests, celebrations, or additional information"
+                data-testid="textarea-special-requests"
+              />
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-between">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onBack}
+              className="text-gray-600 hover:text-gray-800"
+              data-testid="button-back-guests"
+            >
+              Back to Extras
+            </Button>
+            <Button
+              type="submit"
+              className="bg-ocean-600 text-white hover:bg-ocean-700 font-semibold px-8 py-3"
+              data-testid="button-continue-guests"
+            >
+              Continue to Payment
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,190 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(210 25% 7.8431%);
+  --card: hsl(180 6.6667% 97.0588%);
+  --card-foreground: hsl(210 25% 7.8431%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(210 25% 7.8431%);
+  --primary: hsl(203.8863 88.2845% 53.1373%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(210 25% 7.8431%);
+  --secondary-foreground: hsl(0 0% 100%);
+  --muted: hsl(240 1.9608% 90%);
+  --muted-foreground: hsl(210 25% 7.8431%);
+  --accent: hsl(211.5789 51.3514% 92.7451%);
+  --accent-foreground: hsl(203.8863 88.2845% 53.1373%);
+  --destructive: hsl(356.3033 90.5579% 54.3137%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(201.4286 30.4348% 90.9804%);
+  --input: hsl(200 23.0769% 97.4510%);
+  --ring: hsl(202.8169 89.1213% 53.1373%);
+  --chart-1: hsl(203.8863 88.2845% 53.1373%);
+  --chart-2: hsl(159.7826 100% 36.0784%);
+  --chart-3: hsl(42.0290 92.8251% 56.2745%);
+  --chart-4: hsl(147.1429 78.5047% 41.9608%);
+  --chart-5: hsl(341.4894 75.2000% 50.9804%);
+  --sidebar: hsl(180 6.6667% 97.0588%);
+  --sidebar-foreground: hsl(210 25% 7.8431%);
+  --sidebar-primary: hsl(203.8863 88.2845% 53.1373%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(211.5789 51.3514% 92.7451%);
+  --sidebar-accent-foreground: hsl(203.8863 88.2845% 53.1373%);
+  --sidebar-border: hsl(205.0000 25.0000% 90.5882%);
+  --sidebar-ring: hsl(202.8169 89.1213% 53.1373%);
+  --font-sans: 'Inter', sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+  --radius: 1.3rem;
+  --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-sm: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-md: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 2px 4px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-lg: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 4px 6px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 8px 10px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+  
+  /* Ocean Theme Colors */
+  --ocean-50: hsl(202 100% 97%);
+  --ocean-100: hsl(204 94% 94%);
+  --ocean-200: hsl(206 96% 87%);
+  --ocean-300: hsl(208 96% 78%);
+  --ocean-400: hsl(210 98% 66%);
+  --ocean-500: hsl(217 91% 60%);
+  --ocean-600: hsl(221 83% 53%);
+  --ocean-700: hsl(224 76% 48%);
+  --ocean-800: hsl(226 71% 40%);
+  --ocean-900: hsl(224 64% 33%);
+  
+  /* Coral Theme Colors */
+  --coral-50: hsl(33 100% 96%);
+  --coral-100: hsl(34 100% 92%);
+  --coral-200: hsl(32 98% 83%);
+  --coral-300: hsl(31 97% 72%);
+  --coral-400: hsl(27 96% 61%);
+  --coral-500: hsl(25 95% 53%);
+  --coral-600: hsl(21 90% 48%);
+  --coral-700: hsl(17 88% 40%);
+  --coral-800: hsl(15 79% 34%);
+  --coral-900: hsl(15 75% 28%);
+}
+
+.dark {
+  --background: hsl(0 0% 0%);
+  --foreground: hsl(200 6.6667% 91.1765%);
+  --card: hsl(228 9.8039% 10%);
+  --card-foreground: hsl(0 0% 85.0980%);
+  --popover: hsl(0 0% 0%);
+  --popover-foreground: hsl(200 6.6667% 91.1765%);
+  --primary: hsl(203.7736 87.6033% 52.5490%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(195.0000 15.3846% 94.9020%);
+  --secondary-foreground: hsl(210 25% 7.8431%);
+  --muted: hsl(0 0% 9.4118%);
+  --muted-foreground: hsl(210 3.3898% 46.2745%);
+  --accent: hsl(205.7143 70% 7.8431%);
+  --accent-foreground: hsl(203.7736 87.6033% 52.5490%);
+  --destructive: hsl(356.3033 90.5579% 54.3137%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(210 5.2632% 14.9020%);
+  --input: hsl(207.6923 27.6596% 18.4314%);
+  --ring: hsl(202.8169 89.1213% 53.1373%);
+  --chart-1: hsl(203.8863 88.2845% 53.1373%);
+  --chart-2: hsl(159.7826 100% 36.0784%);
+  --chart-3: hsl(42.0290 92.8251% 56.2745%);
+  --chart-4: hsl(147.1429 78.5047% 41.9608%);
+  --chart-5: hsl(341.4894 75.2000% 50.9804%);
+  --sidebar: hsl(228 9.8039% 10%);
+  --sidebar-foreground: hsl(0 0% 85.0980%);
+  --sidebar-primary: hsl(202.8169 89.1213% 53.1373%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(205.7143 70% 7.8431%);
+  --sidebar-accent-foreground: hsl(203.7736 87.6033% 52.5490%);
+  --sidebar-border: hsl(205.7143 15.7895% 26.0784%);
+  --sidebar-ring: hsl(202.8169 89.1213% 53.1373%);
+  --font-sans: 'Inter', sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+  --radius: 1.3rem;
+  --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-sm: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-md: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 2px 4px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-lg: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 4px 6px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 8px 10px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .ocean-gradient {
+    background: linear-gradient(135deg, var(--ocean-800), var(--ocean-600));
+  }
+  
+  .coral-gradient {
+    background: linear-gradient(135deg, var(--coral-500), var(--coral-600));
+  }
+  
+  .text-ocean-50 { color: var(--ocean-50); }
+  .text-ocean-100 { color: var(--ocean-100); }
+  .text-ocean-200 { color: var(--ocean-200); }
+  .text-ocean-300 { color: var(--ocean-300); }
+  .text-ocean-400 { color: var(--ocean-400); }
+  .text-ocean-500 { color: var(--ocean-500); }
+  .text-ocean-600 { color: var(--ocean-600); }
+  .text-ocean-700 { color: var(--ocean-700); }
+  .text-ocean-800 { color: var(--ocean-800); }
+  .text-ocean-900 { color: var(--ocean-900); }
+  
+  .bg-ocean-50 { background-color: var(--ocean-50); }
+  .bg-ocean-100 { background-color: var(--ocean-100); }
+  .bg-ocean-200 { background-color: var(--ocean-200); }
+  .bg-ocean-300 { background-color: var(--ocean-300); }
+  .bg-ocean-400 { background-color: var(--ocean-400); }
+  .bg-ocean-500 { background-color: var(--ocean-500); }
+  .bg-ocean-600 { background-color: var(--ocean-600); }
+  .bg-ocean-700 { background-color: var(--ocean-700); }
+  .bg-ocean-800 { background-color: var(--ocean-800); }
+  .bg-ocean-900 { background-color: var(--ocean-900); }
+  
+  .text-coral-400 { color: var(--coral-400); }
+  .text-coral-500 { color: var(--coral-500); }
+  .text-coral-600 { color: var(--coral-600); }
+  
+  .bg-coral-50 { background-color: var(--coral-50); }
+  .bg-coral-100 { background-color: var(--coral-100); }
+  .bg-coral-400 { background-color: var(--coral-400); }
+  .bg-coral-500 { background-color: var(--coral-500); }
+  .bg-coral-600 { background-color: var(--coral-600); }
+  
+  .border-ocean-300 { border-color: var(--ocean-300); }
+  .border-ocean-500 { border-color: var(--ocean-500); }
+  .border-ocean-600 { border-color: var(--ocean-600); }
+  .border-ocean-700 { border-color: var(--ocean-700); }
+  
+  .hover\:bg-ocean-200:hover { background-color: var(--ocean-200); }
+  .hover\:bg-ocean-700:hover { background-color: var(--ocean-700); }
+  .hover\:bg-coral-600:hover { background-color: var(--coral-600); }
+  .hover\:text-ocean-700:hover { color: var(--ocean-700); }
+  
+  .focus\:ring-ocean-500:focus { --tw-ring-color: var(--ocean-500); }
+  .focus\:border-ocean-500:focus { border-color: var(--ocean-500); }
+}
