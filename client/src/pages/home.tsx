@@ -8,6 +8,8 @@ import CruiseCard from "@/components/cruise-card";
 import ItineraryModal from "@/components/itinerary-modal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Star, Quote } from "lucide-react";
 import type { Cruise } from "@shared/schema";
 
 export default function Home() {
@@ -43,14 +45,14 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
       <Header />
       
       {/* Hero Section with Search */}
       <HeroSearch />
 
       {/* Featured Cruises Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-white/80 backdrop-blur-sm" id="destinations-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -133,7 +135,7 @@ export default function Home() {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-gradient-to-r from-blue-100 to-indigo-100" id="deals-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
@@ -164,6 +166,212 @@ export default function Home() {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">24/7 Support</h3>
               <p className="text-gray-600">Expert cruise consultants available around the clock to help you.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Customer Reviews Section */}
+      <section className="py-20 bg-white/90 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              What Our Travelers Say
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Read authentic reviews from thousands of satisfied customers who've sailed with us
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Review 1 */}
+            <Card className="p-8 bg-white shadow-lg hover:shadow-xl transition-shadow duration-300 border-0">
+              <CardContent className="p-0">
+                <div className="flex items-center mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+                <Quote className="w-8 h-8 text-blue-200 mb-4" />
+                <p className="text-gray-700 mb-6 leading-relaxed">
+                  "Our Mediterranean cruise was absolutely spectacular! The staff was incredibly attentive, 
+                  the ship was immaculate, and every port was a new adventure. Phoenix Vacation Group made 
+                  our dream vacation come true."
+                </p>
+                <div className="flex items-center">
+                  <Avatar className="w-12 h-12 mr-4">
+                    <AvatarImage src="https://images.unsplash.com/photo-1494790108755-2616b612b5bc?w=150&h=150&fit=crop&crop=face" alt="Sarah Johnson" />
+                    <AvatarFallback>SJ</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Sarah Johnson</h4>
+                    <p className="text-sm text-gray-500">Mediterranean Odyssey • July 2024</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Review 2 */}
+            <Card className="p-8 bg-white shadow-lg hover:shadow-xl transition-shadow duration-300 border-0">
+              <CardContent className="p-0">
+                <div className="flex items-center mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+                <Quote className="w-8 h-8 text-blue-200 mb-4" />
+                <p className="text-gray-700 mb-6 leading-relaxed">
+                  "The Alaska cruise exceeded all expectations! Watching glaciers calve while enjoying 
+                  world-class dining was unforgettable. The booking process was seamless and the customer 
+                  service was outstanding."
+                </p>
+                <div className="flex items-center">
+                  <Avatar className="w-12 h-12 mr-4">
+                    <AvatarImage src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face" alt="Michael Chen" />
+                    <AvatarFallback>MC</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Michael Chen</h4>
+                    <p className="text-sm text-gray-500">Alaska Wilderness • September 2024</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Review 3 */}
+            <Card className="p-8 bg-white shadow-lg hover:shadow-xl transition-shadow duration-300 border-0">
+              <CardContent className="p-0">
+                <div className="flex items-center mb-4">
+                  {[1, 2, 3, 4].map((star) => (
+                    <Star key={star} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                  ))}
+                  <Star className="w-5 h-5 text-gray-300" />
+                </div>
+                <Quote className="w-8 h-8 text-blue-200 mb-4" />
+                <p className="text-gray-700 mb-6 leading-relaxed">
+                  "Family vacation of a lifetime! The kids loved the activities, parents enjoyed the 
+                  relaxation, and grandparents appreciated the accessibility. Great value for money 
+                  and memories we'll treasure forever."
+                </p>
+                <div className="flex items-center">
+                  <Avatar className="w-12 h-12 mr-4">
+                    <AvatarImage src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face" alt="Emily Rodriguez" />
+                    <AvatarFallback>ER</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Emily Rodriguez</h4>
+                    <p className="text-sm text-gray-500">Caribbean Paradise • August 2024</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Review 4 */}
+            <Card className="p-8 bg-white shadow-lg hover:shadow-xl transition-shadow duration-300 border-0">
+              <CardContent className="p-0">
+                <div className="flex items-center mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+                <Quote className="w-8 h-8 text-blue-200 mb-4" />
+                <p className="text-gray-700 mb-6 leading-relaxed">
+                  "The Norwegian fjords were breathtaking! Every morning brought new stunning views. 
+                  The ship was luxurious and the excursions were well-organized. Definitely booking 
+                  our next cruise with Phoenix!"
+                </p>
+                <div className="flex items-center">
+                  <Avatar className="w-12 h-12 mr-4">
+                    <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" alt="David Thompson" />
+                    <AvatarFallback>DT</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">David Thompson</h4>
+                    <p className="text-sm text-gray-500">Norwegian Fjords • June 2024</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Review 5 */}
+            <Card className="p-8 bg-white shadow-lg hover:shadow-xl transition-shadow duration-300 border-0">
+              <CardContent className="p-0">
+                <div className="flex items-center mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+                <Quote className="w-8 h-8 text-blue-200 mb-4" />
+                <p className="text-gray-700 mb-6 leading-relaxed">
+                  "First time cruising and it won't be our last! Phoenix made everything so easy from 
+                  booking to boarding. The staff went above and beyond to make our honeymoon special. 
+                  Thank you for the perfect start to our marriage!"
+                </p>
+                <div className="flex items-center">
+                  <Avatar className="w-12 h-12 mr-4">
+                    <AvatarImage src="https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=150&h=150&fit=crop&crop=face" alt="Lisa Park" />
+                    <AvatarFallback>LP</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Lisa Park</h4>
+                    <p className="text-sm text-gray-500">Mediterranean Romance • May 2024</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Review 6 */}
+            <Card className="p-8 bg-white shadow-lg hover:shadow-xl transition-shadow duration-300 border-0">
+              <CardContent className="p-0">
+                <div className="flex items-center mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+                <Quote className="w-8 h-8 text-blue-200 mb-4" />
+                <p className="text-gray-700 mb-6 leading-relaxed">
+                  "Exceptional service from start to finish. The dining was incredible, 
+                  entertainment was top-notch, and our suite was absolutely perfect. 
+                  Phoenix Vacation Group delivers on their promise of luxury experiences."
+                </p>
+                <div className="flex items-center">
+                  <Avatar className="w-12 h-12 mr-4">
+                    <AvatarImage src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face" alt="Robert Wilson" />
+                    <AvatarFallback>RW</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Robert Wilson</h4>
+                    <p className="text-sm text-gray-500">Caribbean Luxury • October 2024</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Review Stats */}
+          <div className="mt-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
+              <div>
+                <div className="text-4xl font-bold mb-2">4.8</div>
+                <div className="flex items-center justify-center mb-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="w-5 h-5 fill-yellow-300 text-yellow-300" />
+                  ))}
+                </div>
+                <div className="text-blue-100">Average Rating</div>
+              </div>
+              <div>
+                <div className="text-4xl font-bold mb-2">15,000+</div>
+                <div className="text-blue-100">Happy Travelers</div>
+              </div>
+              <div>
+                <div className="text-4xl font-bold mb-2">98%</div>
+                <div className="text-blue-100">Customer Satisfaction</div>
+              </div>
+              <div>
+                <div className="text-4xl font-bold mb-2">25+</div>
+                <div className="text-blue-100">Years of Excellence</div>
+              </div>
             </div>
           </div>
         </div>

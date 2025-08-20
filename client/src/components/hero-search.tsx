@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, Users, Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import type { SearchFormData } from "@/lib/types";
 
@@ -19,11 +21,29 @@ export default function HeroSearch() {
     guestCount: "",
     departurePort: ""
   });
+  
+  const [guestDetails, setGuestDetails] = useState({
+    adults: 2,
+    children: 0,
+    seniors: 0
+  });
+  
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+
+  const totalGuests = guestDetails.adults + guestDetails.children + guestDetails.seniors;
+  
+  const updateGuestCount = (type: 'adults' | 'children' | 'seniors', increment: boolean) => {
+    setGuestDetails(prev => {
+      const newValue = increment ? prev[type] + 1 : Math.max(0, prev[type] - 1);
+      if (type === 'adults' && newValue < 1) return prev; // At least 1 adult required
+      return { ...prev, [type]: newValue };
+    });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.destination || !formData.departureDate || !formData.returnDate || !formData.guestCount) {
+    if (!formData.destination || !formData.departureDate || !formData.returnDate || totalGuests === 0) {
       toast({
         title: "Required fields missing",
         description: "Please fill in all required fields to search for cruises.",
@@ -36,7 +56,10 @@ export default function HeroSearch() {
       destination: formData.destination,
       departureDate: formData.departureDate,
       returnDate: formData.returnDate,
-      guestCount: formData.guestCount,
+      guestCount: totalGuests.toString(),
+      adults: guestDetails.adults.toString(),
+      children: guestDetails.children.toString(),
+      seniors: guestDetails.seniors.toString(),
       ...(formData.departurePort && { departurePort: formData.departurePort })
     });
 
@@ -44,12 +67,12 @@ export default function HeroSearch() {
   };
 
   return (
-    <section className="relative ocean-gradient">
-      <div className="absolute inset-0 bg-black bg-opacity-30"></div>
+    <section className="relative bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
+      <div className="absolute inset-0 bg-black bg-opacity-40"></div>
       <div 
-        className="absolute inset-0 bg-cover bg-center"
+        className="absolute inset-0 bg-cover bg-center opacity-60"
         style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80')"
+          backgroundImage: "url('https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=2070&h=1080&fit=crop&crop=center')"
         }}
       />
       
@@ -116,34 +139,192 @@ export default function HeroSearch() {
                 <Label htmlFor="guests" className="block text-sm font-medium text-gray-700 mb-2">
                   Guests
                 </Label>
-                <Select value={formData.guestCount} onValueChange={(value) => setFormData(prev => ({ ...prev, guestCount: value }))}>
-                  <SelectTrigger data-testid="select-guests">
-                    <SelectValue placeholder="Select guests" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="2">2 Adults</SelectItem>
-                    <SelectItem value="3">2 Adults, 1 Child</SelectItem>
-                    <SelectItem value="4">2 Adults, 2 Children</SelectItem>
-                    <SelectItem value="4adults">4 Adults</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full justify-between text-left font-normal h-10 px-3 py-2"
+                      data-testid="button-guests"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <Users className="w-4 h-4 text-gray-500" />
+                        <span>
+                          {totalGuests} Guest{totalGuests !== 1 ? 's' : ''}
+                          {guestDetails.children > 0 && ` (${guestDetails.children} Child${guestDetails.children > 1 ? 'ren' : ''})`}
+                        </span>
+                      </div>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80" align="start">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-sm font-medium">Adults</span>
+                          <p className="text-xs text-gray-500">Ages 18+</p>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => updateGuestCount('adults', false)}
+                            disabled={guestDetails.adults <= 1}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Minus className="w-4 h-4" />
+                          </Button>
+                          <span className="text-sm font-medium w-6 text-center">{guestDetails.adults}</span>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => updateGuestCount('adults', true)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-sm font-medium">Children</span>
+                          <p className="text-xs text-gray-500">Ages 2-17</p>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => updateGuestCount('children', false)}
+                            disabled={guestDetails.children <= 0}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Minus className="w-4 h-4" />
+                          </Button>
+                          <span className="text-sm font-medium w-6 text-center">{guestDetails.children}</span>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => updateGuestCount('children', true)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-sm font-medium">Seniors</span>
+                          <p className="text-xs text-gray-500">Ages 65+</p>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => updateGuestCount('seniors', false)}
+                            disabled={guestDetails.seniors <= 0}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Minus className="w-4 h-4" />
+                          </Button>
+                          <span className="text-sm font-medium w-6 text-center">{guestDetails.seniors}</span>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => updateGuestCount('seniors', true)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
             
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <Button
-                type="button"
-                variant="ghost"
-                className="text-ocean-600 font-medium hover:text-ocean-700 transition-colors flex items-center"
-                data-testid="button-advanced-filters"
-              >
-                <SlidersHorizontal className="w-4 h-4 mr-2" />
-                Advanced Filters
-              </Button>
+              <Sheet open={showAdvancedFilters} onOpenChange={setShowAdvancedFilters}>
+                <SheetTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="text-blue-600 font-medium hover:text-blue-700 transition-colors flex items-center"
+                    data-testid="button-advanced-filters"
+                  >
+                    <SlidersHorizontal className="w-4 h-4 mr-2" />
+                    Advanced Filters
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-96">
+                  <SheetHeader>
+                    <SheetTitle>Advanced Search Filters</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-6 space-y-6">
+                    <div>
+                      <Label htmlFor="priceRange" className="text-sm font-medium">Price Range (USD)</Label>
+                      <div className="mt-2 space-y-2">
+                        <Input placeholder="Minimum price" type="number" />
+                        <Input placeholder="Maximum price" type="number" />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="duration" className="text-sm font-medium">Duration</Label>
+                      <Select>
+                        <SelectTrigger className="mt-2">
+                          <SelectValue placeholder="Select duration" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="3-5">3-5 days</SelectItem>
+                          <SelectItem value="6-8">6-8 days</SelectItem>
+                          <SelectItem value="9-14">9-14 days</SelectItem>
+                          <SelectItem value="15+">15+ days</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="cruiseLine" className="text-sm font-medium">Cruise Line</Label>
+                      <Select>
+                        <SelectTrigger className="mt-2">
+                          <SelectValue placeholder="Select cruise line" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="royal-caribbean">Royal Caribbean</SelectItem>
+                          <SelectItem value="celebrity">Celebrity Cruises</SelectItem>
+                          <SelectItem value="norwegian">Norwegian Cruise Line</SelectItem>
+                          <SelectItem value="princess">Princess Cruises</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="departurePort" className="text-sm font-medium">Departure Port</Label>
+                      <Input 
+                        className="mt-2"
+                        placeholder="e.g., Miami, Barcelona"
+                        value={formData.departurePort}
+                        onChange={(e) => setFormData(prev => ({ ...prev, departurePort: e.target.value }))}
+                      />
+                    </div>
+                    <Button 
+                      className="w-full bg-blue-600 hover:bg-blue-700"
+                      onClick={() => setShowAdvancedFilters(false)}
+                    >
+                      Apply Filters
+                    </Button>
+                  </div>
+                </SheetContent>
+              </Sheet>
               <Button
                 type="submit"
                 size="lg"
-                className="w-full sm:w-auto bg-coral-500 text-white hover:bg-coral-600 transition-colors font-semibold"
+                className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl"
                 data-testid="button-search-cruises"
               >
                 <Search className="w-4 h-4 mr-2" />
