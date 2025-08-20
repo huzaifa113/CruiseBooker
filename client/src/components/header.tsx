@@ -2,31 +2,13 @@ import { Link, useLocation } from "wouter";
 import { Ship, Phone, Globe, Menu, MapPin, Tag, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useState, createContext, useContext } from "react";
-import { Language, useTranslation } from "@/lib/language";
-
-// Language Context
-const LanguageContext = createContext<{
-  language: Language;
-  setLanguage: (lang: Language) => void;
-}>({
-  language: 'EN',
-  setLanguage: () => {},
-});
-
-export const useLanguageContext = () => useContext(LanguageContext);
+import { useState } from "react";
+import { useLanguageContext } from "@/components/language-provider";
 
 export default function Header() {
   const [location] = useLocation();
-  const [language, setLanguage] = useState<Language>("EN");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const t = useTranslation(language);
-
-  const handleLanguageChange = (lang: Language) => {
-    setLanguage(lang);
-    // Store language preference in localStorage
-    localStorage.setItem('language', lang);
-  };
+  const { language, setLanguage, t } = useLanguageContext();
 
   const handleDestinationsClick = () => {
     // Scroll to destinations section or navigate to destinations page
@@ -55,13 +37,13 @@ export default function Header() {
                 <Ship className="text-white text-sm md:text-xl" />
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-lg md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                <h1 className="text-base md:text-xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                   Phoenix Vacation Group
                 </h1>
                 <p className="text-xs md:text-sm text-gray-500 font-medium">Luxury Cruise Experiences</p>
               </div>
               <div className="sm:hidden">
-                <h1 className="text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                <h1 className="text-base font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                   Phoenix
                 </h1>
               </div>
@@ -99,7 +81,7 @@ export default function Header() {
           </nav>
           
           {/* Right side actions */}
-          <div className="flex items-center space-x-2 md:space-x-4 lg:space-x-6">
+          <div className="flex items-center space-x-1 md:space-x-3 lg:space-x-4">
             {/* Phone number - hidden on mobile */}
             <div className="hidden lg:flex items-center space-x-2 text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
               <Phone className="w-4 h-4 text-blue-600" />
@@ -111,7 +93,7 @@ export default function Header() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => handleLanguageChange("EN")}
+                onClick={() => setLanguage("EN")}
                 className={`px-2 md:px-3 py-1 md:py-2 text-xs md:text-sm font-medium transition-all ${
                   language === "EN"
                     ? "bg-blue-600 text-white shadow-md"
@@ -125,7 +107,7 @@ export default function Header() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => handleLanguageChange("TH")}
+                onClick={() => setLanguage("TH")}
                 className={`px-2 md:px-3 py-1 md:py-2 text-xs md:text-sm font-medium transition-all ${
                   language === "TH"
                     ? "bg-blue-600 text-white shadow-md"
