@@ -15,9 +15,40 @@ import { z } from "zod";
 // });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check endpoint
+  app.get("/api/health", async (req, res) => {
+    try {
+      console.log("Health check called");
+      const dbConnected = !!process.env.DATABASE_URL;
+      
+      // Simple database test
+      const cruiseCount = await storage.getCruises();
+      
+      res.json({
+        status: "ok",
+        timestamp: new Date().toISOString(),
+        database: {
+          connected: dbConnected,
+          cruiseCount: cruiseCount.length
+        },
+        environment: process.env.NODE_ENV || 'development'
+      });
+    } catch (error: any) {
+      console.error("Health check failed:", error);
+      res.status(500).json({
+        status: "error",
+        error: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   // Get all cruises with optional filtering
   app.get("/api/cruises", async (req, res) => {
     try {
+      console.log("API: /api/cruises called");
+      console.log("DATABASE_URL exists:", !!process.env.DATABASE_URL);
+      
       const filters = {
         destination: req.query.destination as string,
         departurePort: req.query.departurePort as string,
@@ -36,10 +67,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Remove undefined values
       Object.keys(filters).forEach(key => filters[key as keyof typeof filters] === undefined && delete filters[key as keyof typeof filters]);
       
+      console.log("Filters applied:", filters);
       const cruises = await storage.getCruises(filters);
+      console.log("Cruises found:", cruises.length);
+      
       res.json(cruises);
     } catch (error: any) {
-      res.status(500).json({ message: "Error fetching cruises: " + error.message });
+      console.error("Error in /api/cruises:", error);
+      res.status(500).json({ 
+        message: "Error fetching cruises: " + error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
     }
   });
 
