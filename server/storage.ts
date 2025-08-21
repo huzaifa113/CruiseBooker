@@ -1,4 +1,4 @@
-import { cruises, cabinTypes, bookings, extras, type Cruise, type CabinType, type Booking, type Extra, type InsertCruise, type InsertCabinType, type InsertBooking, type InsertExtra } from "@shared/schema";
+import { cruises, cabinTypes, bookings, extras, users, type Cruise, type CabinType, type Booking, type Extra, type User, type UpsertUser, type InsertCruise, type InsertCabinType, type InsertBooking, type InsertExtra } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, lte, ilike, sql, desc, asc } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -19,6 +19,10 @@ export interface SearchFilters {
 }
 
 export interface IStorage {
+  // User operations (required for Replit Auth)
+  getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
+  
   // Cruises
   getCruises(filters?: SearchFilters): Promise<Cruise[]>;
   getCruise(id: string): Promise<Cruise | undefined>;
@@ -42,6 +46,26 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  // User operations (required for Replit Auth)
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
   async getCruises(filters?: SearchFilters): Promise<Cruise[]> {
     let query = db.select().from(cruises);
     

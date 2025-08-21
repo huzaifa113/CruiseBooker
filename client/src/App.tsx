@@ -4,7 +4,9 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/components/language-provider";
+import { useAuth } from "@/hooks/useAuth";
 import Home from "@/pages/home";
+import Landing from "@/pages/landing";
 import SearchResults from "@/pages/search-results";
 import Booking from "@/pages/booking";
 import Checkout from "@/pages/checkout";
@@ -13,14 +15,22 @@ import Reservations from "@/pages/reservations";
 import NotFound from "@/pages/not-found";
 
 function Router() {
+  const { isAuthenticated, isLoading } = useAuth();
+
   return (
     <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/search" component={SearchResults} />
-      <Route path="/booking/:cruiseId" component={Booking} />
-      <Route path="/checkout/:bookingId" component={Checkout} />
-      <Route path="/confirmation/:confirmationNumber" component={Confirmation} />
-      <Route path="/reservations" component={Reservations} />
+      {isLoading || !isAuthenticated ? (
+        <Route path="/" component={Landing} />
+      ) : (
+        <>
+          <Route path="/" component={Home} />
+          <Route path="/search" component={SearchResults} />
+          <Route path="/booking/:cruiseId" component={Booking} />
+          <Route path="/checkout/:bookingId" component={Checkout} />
+          <Route path="/confirmation/:confirmationNumber" component={Confirmation} />
+          <Route path="/reservations" component={Reservations} />
+        </>
+      )}
       <Route component={NotFound} />
     </Switch>
   );

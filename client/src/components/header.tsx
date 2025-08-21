@@ -1,14 +1,25 @@
 import { Link, useLocation } from "wouter";
-import { Ship, Phone, Globe, Menu, MapPin, Tag, X } from "lucide-react";
+import { Ship, Phone, Globe, Menu, MapPin, Tag, X, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
 import { useLanguageContext } from "@/components/language-provider";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Header() {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { language, setLanguage, t } = useLanguageContext();
+  const { user, isAuthenticated } = useAuth();
 
   const handleDestinationsClick = () => {
     // Scroll to destinations section or navigate to destinations page
@@ -119,10 +130,53 @@ export default function Header() {
               </Button>
             </div>
             
-            {/* Sign In Button - hidden on small screens */}
-            <Button className="hidden md:flex bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 font-semibold px-4 lg:px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all text-sm lg:text-base" data-testid="button-signin">
-              {t('signIn')}
-            </Button>
+            {/* User Menu - hidden on small screens */}
+            {isAuthenticated && user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="hidden md:flex relative h-10 w-10 rounded-full" data-testid="button-user-menu">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={user.profileImageUrl || ''} alt={user.firstName || 'User'} />
+                      <AvatarFallback>
+                        {user.firstName ? user.firstName[0] : user.email ? user.email[0].toUpperCase() : 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/reservations" className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>My Reservations</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => window.location.href = '/api/logout'} className="cursor-pointer">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button 
+                className="hidden md:flex bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 font-semibold px-4 lg:px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all text-sm lg:text-base" 
+                onClick={() => window.location.href = '/api/login'}
+                data-testid="button-signin"
+              >
+                {t('signIn')}
+              </Button>
+            )}
             
             {/* Mobile menu */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>

@@ -1,7 +1,29 @@
 import { sql, relations } from "drizzle-orm";
-import { pgTable, text, varchar, integer, decimal, timestamp, boolean, json } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, decimal, timestamp, boolean, json, index, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// Session storage table for Replit Auth
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)],
+);
+
+// User storage table for Replit Auth
+export const users = pgTable("users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: varchar("email").unique(),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  profileImageUrl: varchar("profile_image_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 
 export const cruises = pgTable("cruises", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -47,6 +69,7 @@ export const cabinTypes = pgTable("cabin_types", {
 export const bookings = pgTable("bookings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   confirmationNumber: text("confirmation_number").notNull().unique(),
+  userId: varchar("user_id").references(() => users.id),
   cruiseId: varchar("cruise_id").notNull().references(() => cruises.id),
   cabinTypeId: varchar("cabin_type_id").notNull().references(() => cabinTypes.id),
   guestCount: integer("guest_count").notNull(),
@@ -142,7 +165,14 @@ export const insertExtraSchema = createInsertSchema(extras).omit({
   id: true
 });
 
+export const insertUserSchema = createInsertSchema(users).omit({
+  createdAt: true,
+  updatedAt: true
+});
+
 // Types
+export type User = typeof users.$inferSelect;
+export type UpsertUser = typeof users.$inferInsert;
 export type Cruise = typeof cruises.$inferSelect;
 export type InsertCruise = z.infer<typeof insertCruiseSchema>;
 export type CabinType = typeof cabinTypes.$inferSelect;
