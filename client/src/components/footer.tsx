@@ -90,10 +90,8 @@ export default function Footer() {
             <h4 className="text-white font-semibold mb-4">Support</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/reservations">
-                  <a className="hover:text-white transition-colors" data-testid="link-my-reservations">
-                    My Reservations
-                  </a>
+                <Link href="/reservations" className="hover:text-white transition-colors" data-testid="link-my-reservations">
+                  My Reservations
                 </Link>
               </li>
               <li>

@@ -7,6 +7,8 @@ This is a modern cruise booking platform built as a full-stack web application. 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Development environment: Uses both VS Code and Replit (compatible setup).
+Deployment target: Vercel for production hosting.
 
 ## System Architecture
 
@@ -84,3 +86,17 @@ The codebase includes placeholders for:
 **Progressive Enhancement**: The booking flow is designed as a multi-step process with state management to handle complex user interactions.
 
 **Responsive Design**: Mobile-first approach with Tailwind CSS breakpoints for optimal user experience across devices.
+
+## Recent Changes (August 2025)
+
+✅ **Fixed DOM Nesting Issue**: Resolved nested anchor tag warning in footer component by properly using Wouter Link components.
+
+✅ **Vercel Deployment Configuration**: 
+- Added `vercel.json` with proper build and routing configuration
+- Created `server/vercel.ts` for serverless function handling
+- Added environment variable examples in `.env.example`
+- Created comprehensive deployment guide in `DEPLOYMENT.md`
+
+✅ **VS Code Compatibility**: Confirmed full compatibility with VS Code development environment alongside Replit.
+
+✅ **Build Process**: Verified production build works correctly with both frontend and backend compilation.
