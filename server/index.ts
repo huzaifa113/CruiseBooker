@@ -68,4 +68,10 @@ app.use((req, res, next) => {
   }, () => {
     log(`serving on port ${port}`);
   });
+
 })();
+
+// Export for serverless functions (only when required by Vercel)
+if (process.env.VERCEL) {
+  module.exports = app;
+}
