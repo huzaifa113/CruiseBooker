@@ -38,7 +38,7 @@ The backend implements a layered architecture:
 - Database connection and schema management in `/server/db.ts`
 
 ### Data Storage Solutions
-- **Primary Database**: PostgreSQL hosted on Neon
+- **Primary Database**: PostgreSQL (migrating from Neon to AWS RDS/Aurora for better Vercel compatibility)
 - **ORM**: Drizzle ORM with migrations in `/migrations/`
 - **Schema**: Shared TypeScript schemas in `/shared/schema.ts`
 
