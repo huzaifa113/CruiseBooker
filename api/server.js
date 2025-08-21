@@ -21,11 +21,16 @@ module.exports = async (req, res) => {
     // Health check endpoint
     if (req.url === "/api/health") {
       try {
-        const { neon } = await import("@neondatabase/serverless");
-        const sql = neon(process.env.DATABASE_URL);
+        const { Pool } = await import("pg");
+        const pool = new Pool({
+          connectionString: process.env.DATABASE_URL,
+          ssl: { rejectUnauthorized: false },
+          max: 1
+        });
         
-        const result = await sql`SELECT COUNT(*) as cruise_count FROM cruises`;
-        const cruiseCount = parseInt(result[0].cruise_count);
+        const result = await pool.query('SELECT COUNT(*) as cruise_count FROM cruises');
+        const cruiseCount = parseInt(result.rows[0].cruise_count);
+        await pool.end();
         
         res.status(200).json({
           status: "ok",
@@ -57,11 +62,15 @@ module.exports = async (req, res) => {
       console.log("Fetching cruises from Supabase...");
       
       try {
-        const { neon } = await import("@neondatabase/serverless");
-        const sql = neon(process.env.DATABASE_URL);
+        const { Pool } = await import("pg");
+        const pool = new Pool({
+          connectionString: process.env.DATABASE_URL,
+          ssl: { rejectUnauthorized: false },
+          max: 1
+        });
         
         // Query cruises from Supabase database
-        const cruises = await sql`
+        const result = await pool.query(`
           SELECT 
             id, name, ship, cruise_line, destination, 
             departure_port, duration, base_price, rating,
@@ -69,7 +78,10 @@ module.exports = async (req, res) => {
           FROM cruises 
           ORDER BY rating DESC NULLS LAST
           LIMIT 6
-        `;
+        `);
+        
+        const cruises = result.rows;
+        await pool.end();
         
         console.log("Found cruises:", cruises.length);
         

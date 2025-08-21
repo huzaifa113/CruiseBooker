@@ -12,7 +12,6 @@ interface CruiseCardProps {
 }
 
 export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, compact = false }: CruiseCardProps) {
-  console.log("CruiseCard rendering:", cruise.name, "compact:", compact);
   const formatPrice = (price: string) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -38,7 +37,6 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
             alt={cruise.name}
             className="w-full h-full object-cover rounded-t-lg"
             onError={(e) => {
-              console.error("Image failed to load:", cruise.imageUrl);
               e.currentTarget.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkNydWlzZSBJbWFnZTwvdGV4dD48L3N2Zz4=";
             }}
           />

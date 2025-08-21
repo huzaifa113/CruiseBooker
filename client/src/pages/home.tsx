@@ -17,25 +17,18 @@ export default function Home() {
   const [selectedCruise, setSelectedCruise] = useState<Cruise | null>(null);
   const [isItineraryModalOpen, setIsItineraryModalOpen] = useState(false);
 
-  console.log("Home component rendered");
-
   // Fetch featured cruises (limit to 6 for homepage)
   const { data: cruises, isLoading, error } = useQuery({
     queryKey: ["/api/cruises", "sortBy=rating&sortOrder=desc"],
     queryFn: async () => {
-      console.log("Frontend: Fetching cruises...");
       const response = await fetch("/api/cruises?sortBy=rating&sortOrder=desc", {
         credentials: "include"
       });
-      console.log("Frontend: Response status:", response.status);
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("Frontend: API Error:", errorText);
         throw new Error(`Failed to fetch cruises: ${response.status} ${errorText}`);
       }
       const data = await response.json();
-      console.log("Frontend: Received cruises:", data.length);
-      console.log("Frontend: Full cruise data:", data);
       return data.slice(0, 6); // Show only top 6 for featured section
     }
   });
@@ -54,9 +47,7 @@ export default function Home() {
     setLocation(`/booking/${cruise.id}`);
   };
 
-  // Debug logging
-  console.log("Query state:", { isLoading, error: error?.toString(), cruisesCount: cruises?.length });
-  console.log("Cruises data:", cruises);
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">

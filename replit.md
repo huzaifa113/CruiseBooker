@@ -38,8 +38,9 @@ The backend implements a layered architecture:
 - Database connection and schema management in `/server/db.ts`
 
 ### Data Storage Solutions
-- **Primary Database**: PostgreSQL (migrating from Neon to AWS RDS/Aurora for better Vercel compatibility)
-- **ORM**: Drizzle ORM with migrations in `/migrations/`
+- **Primary Database**: Supabase PostgreSQL (migrated from Neon for better Vercel compatibility)
+- **Connection**: Pooler connection for serverless function compatibility
+- **ORM**: Drizzle ORM with schema synchronization via `npm run db:push`
 - **Schema**: Shared TypeScript schemas in `/shared/schema.ts`
 
 Database schema includes:
@@ -108,3 +109,11 @@ The codebase includes placeholders for:
 - Enhanced error logging and debugging
 - Added health check endpoint for monitoring
 - Database now auto-populates with 4 sample cruises
+
+✅ **Successful Migration to Supabase** (August 21, 2025):
+- Migrated from Neon to Supabase PostgreSQL for better Vercel compatibility
+- Updated database configuration to use pooler connection for serverless functions
+- Successfully connected and populated with cruise data (4 sample cruises)
+- Removed all debugging console logs from frontend
+- Fixed Mediterranean Explorer cruise image display
+- Ready for production Vercel deployment
