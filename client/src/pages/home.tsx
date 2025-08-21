@@ -19,13 +19,20 @@ export default function Home() {
 
   // Fetch featured cruises (limit to 6 for homepage)
   const { data: cruises, isLoading, error } = useQuery({
-    queryKey: ["/api/cruises"],
+    queryKey: ["/api/cruises", "sortBy=rating&sortOrder=desc"],
     queryFn: async () => {
-      const response = await fetch("/api/cruises?sortBy=rating&sortOrder=desc");
+      console.log("Frontend: Fetching cruises...");
+      const response = await fetch("/api/cruises?sortBy=rating&sortOrder=desc", {
+        credentials: "include"
+      });
+      console.log("Frontend: Response status:", response.status);
       if (!response.ok) {
-        throw new Error("Failed to fetch cruises");
+        const errorText = await response.text();
+        console.error("Frontend: API Error:", errorText);
+        throw new Error(`Failed to fetch cruises: ${response.status} ${errorText}`);
       }
       const data = await response.json();
+      console.log("Frontend: Received cruises:", data.length);
       return data.slice(0, 6); // Show only top 6 for featured section
     }
   });
@@ -98,9 +105,17 @@ export default function Home() {
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Unable to Load Featured Cruises
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 mb-4">
                 We're experiencing technical difficulties. Please try again later or use the search above to find cruises.
               </p>
+              {process.env.NODE_ENV === 'development' && (
+                <details className="text-left max-w-md mx-auto">
+                  <summary className="text-sm text-gray-500 cursor-pointer">Debug Error</summary>
+                  <pre className="text-xs text-red-600 mt-2 p-2 bg-red-50 rounded overflow-auto">
+                    {error.toString()}
+                  </pre>
+                </details>
+              )}
             </div>
           )}
 
