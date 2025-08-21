@@ -140,13 +140,29 @@ export default function Home() {
             </div>
           )}
 
-          {/* Debug: Show raw data - only in development */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="mb-4 p-4 bg-yellow-100 rounded border-2 border-yellow-400">
-              <h4 className="font-bold text-sm">DEBUG INFO</h4>
-              <p className="text-xs">Loading: {isLoading ? 'YES' : 'NO'} | Error: {error ? 'YES' : 'NO'} | Count: {cruises?.length || 0}</p>
+          {/* Debug info for troubleshooting */}
+          <div className="mb-4 p-4 bg-blue-50 rounded border border-blue-200">
+            <h4 className="font-bold text-sm text-blue-800">🔍 DEBUG STATUS</h4>
+            <div className="text-xs text-blue-700 grid grid-cols-2 gap-2 mt-2">
+              <span>Loading: {isLoading ? '⏳ YES' : '✅ NO'}</span>
+              <span>Error: {error ? '❌ YES' : '✅ NO'}</span>
+              <span>Data loaded: {cruises ? '✅ YES' : '❌ NO'}</span>
+              <span>Count: {cruises?.length || 0} cruises</span>
             </div>
-          )}
+            {error && (
+              <details className="mt-2">
+                <summary className="text-xs font-semibold text-red-600 cursor-pointer">
+                  Click to see error details
+                </summary>
+                <pre className="text-xs text-red-600 mt-1 p-2 bg-red-50 rounded overflow-auto max-h-32">
+                  {error.toString()}
+                </pre>
+              </details>
+            )}
+            <div className="mt-2 text-xs text-gray-600">
+              <strong>Next steps if error:</strong> Check Vercel function logs and test /api/health endpoint
+            </div>
+          </div>
 
           {cruises && cruises.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
