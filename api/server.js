@@ -1,25 +1,5 @@
-// Vercel serverless function with proper database connection
-const { Pool } = require('pg');
-
-// Create connection pool outside handler for reuse
-let pool;
-
-function getPool() {
-  if (!pool) {
-    if (!process.env.DATABASE_URL) {
-      throw new Error('DATABASE_URL environment variable is required');
-    }
-    
-    pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-      max: 1, // Limit connections for serverless
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 2000,
-    });
-  }
-  return pool;
-}
+// Vercel serverless function with Supabase compatibility
+// Using dynamic imports for better Vercel compatibility
 
 module.exports = async (req, res) => {
   console.log("=== VERCEL FUNCTION START ===");
@@ -40,18 +20,20 @@ module.exports = async (req, res) => {
   try {
     // Health check endpoint
     if (req.url === "/api/health") {
-      const dbPool = getPool();
-      
       try {
-        const result = await dbPool.query('SELECT COUNT(*) as cruise_count FROM cruises');
-        const cruiseCount = parseInt(result.rows[0].cruise_count);
+        const { neon } = await import("@neondatabase/serverless");
+        const sql = neon(process.env.DATABASE_URL);
+        
+        const result = await sql`SELECT COUNT(*) as cruise_count FROM cruises`;
+        const cruiseCount = parseInt(result[0].cruise_count);
         
         res.status(200).json({
           status: "ok",
           timestamp: new Date().toISOString(),
           database: {
             connected: true,
-            cruise_count: cruiseCount
+            cruise_count: cruiseCount,
+            provider: "supabase"
           },
           environment: process.env.NODE_ENV || 'production'
         });
@@ -72,28 +54,48 @@ module.exports = async (req, res) => {
 
     // Handle cruise API
     if (req.url && req.url.startsWith("/api/cruises")) {
-      console.log("Fetching cruises from database...");
+      console.log("Fetching cruises from Supabase...");
       
-      const dbPool = getPool();
-      
-      // Query cruises from database
-      const query = `
-        SELECT 
-          id, name, ship, "cruiseLine", destination, 
-          "departurePort", duration, "basePrice", rating,
-          "imageUrl", "departureDate", "returnDate", itinerary
-        FROM cruises 
-        ORDER BY rating DESC NULLS LAST
-        LIMIT 6
-      `;
-      
-      const result = await dbPool.query(query);
-      const cruises = result.rows;
-      
-      console.log("Found cruises:", cruises.length);
-      
-      res.status(200).json(cruises);
-      return;
+      try {
+        const { neon } = await import("@neondatabase/serverless");
+        const sql = neon(process.env.DATABASE_URL);
+        
+        // Query cruises from Supabase database
+        const cruises = await sql`
+          SELECT 
+            id, name, ship, cruise_line, destination, 
+            departure_port, duration, base_price, rating,
+            image_url, departure_date, return_date, itinerary
+          FROM cruises 
+          ORDER BY rating DESC NULLS LAST
+          LIMIT 6
+        `;
+        
+        console.log("Found cruises:", cruises.length);
+        
+        // Transform to match frontend expectations
+        const transformedCruises = cruises.map(cruise => ({
+          id: cruise.id,
+          name: cruise.name,
+          ship: cruise.ship,
+          cruiseLine: cruise.cruise_line,
+          destination: cruise.destination,
+          departurePort: cruise.departure_port,
+          duration: cruise.duration,
+          basePrice: cruise.base_price,
+          rating: cruise.rating,
+          imageUrl: cruise.image_url,
+          departureDate: cruise.departure_date,
+          returnDate: cruise.return_date,
+          itinerary: cruise.itinerary
+        }));
+        
+        res.status(200).json(transformedCruises);
+        return;
+      } catch (dbError) {
+        console.error("Database query failed:", dbError);
+        throw dbError;
+      }
     }
 
     // Default 404
