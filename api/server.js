@@ -1,30 +1,74 @@
-// Vercel serverless function handler
+// Import the Express app configured for Vercel
+const express = require("express");
 const path = require('path');
 
-// Dynamic import for ES modules
-let app;
+// Create Express app
+const app = express();
 
-const getApp = async () => {
-  if (!app) {
-    try {
-      // Import the ES module
-      const serverModule = await import('../dist/index.js');
-      app = serverModule.default || serverModule;
-    } catch (error) {
-      console.error('Failed to load server:', error);
-      throw error;
-    }
+// Basic middleware
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
+
+// Add CORS headers for Vercel
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");  
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  
+  if (req.method === "OPTIONS") {
+    res.sendStatus(200);
+    return;
   }
-  return app;
-};
+  
+  next();
+});
+
+// Initialize the app with routes
+let initialized = false;
+
+async function initializeApp() {
+  if (initialized) return;
+  
+  try {
+    console.log("Initializing Vercel serverless function...");
+    
+    // Dynamic import for ES modules - import server components
+    const { registerRoutes } = await import("../server/routes.js");
+    const { seedDatabase } = await import("../server/seed.js");
+    
+    // Seed database on startup (only if empty)
+    try {
+      await seedDatabase();
+      console.log("Database seeded successfully");
+    } catch (seedError) {
+      console.error("Database seeding failed:", seedError);
+      // Continue even if seeding fails
+    }
+    
+    // Register routes
+    await registerRoutes(app);
+    console.log("Routes registered successfully");
+    
+    initialized = true;
+  } catch (error) {
+    console.error("Error initializing app:", error);
+    throw error;
+  }
+}
 
 // Export the async handler function for Vercel
 module.exports = async (req, res) => {
   try {
-    const serverApp = await getApp();
-    return serverApp(req, res);
+    await initializeApp();
+    
+    // Handle the request
+    app(req, res);
   } catch (error) {
     console.error('Handler error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ 
+      error: 'Internal server error',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
   }
 };

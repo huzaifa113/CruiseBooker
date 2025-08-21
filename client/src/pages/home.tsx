@@ -140,22 +140,13 @@ export default function Home() {
             </div>
           )}
 
-          {/* Debug: Show raw data */}
-          <div className="mb-4 p-4 bg-yellow-100 rounded border-4 border-green-500">
-            <h4 className="font-bold text-lg">🚨 DEBUG MODE ACTIVE 🚨</h4>
-            <p><strong>Data loaded:</strong> {cruises ? 'YES' : 'NO'}</p>
-            <p><strong>Loading:</strong> {isLoading ? 'YES' : 'NO'}</p>
-            <p><strong>Error:</strong> {error ? 'YES' : 'NO'}</p>
-            <p><strong>Cruise count:</strong> {cruises?.length || 0}</p>
-            {cruises && (
-              <div className="mt-2">
-                <p><strong>Cruise names:</strong></p>
-                <ul className="list-disc ml-4">
-                  {cruises.map(c => <li key={c.id}>{c.name} (ID: {c.id})</li>)}
-                </ul>
-              </div>
-            )}
-          </div>
+          {/* Debug: Show raw data - only in development */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="mb-4 p-4 bg-yellow-100 rounded border-2 border-yellow-400">
+              <h4 className="font-bold text-sm">DEBUG INFO</h4>
+              <p className="text-xs">Loading: {isLoading ? 'YES' : 'NO'} | Error: {error ? 'YES' : 'NO'} | Count: {cruises?.length || 0}</p>
+            </div>
+          )}
 
           {cruises && cruises.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

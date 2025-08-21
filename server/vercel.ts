@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
+import { seedDatabase } from "./seed";
 import { serveStatic, log } from "./vite";
 
 const app = express();
@@ -36,15 +37,29 @@ app.use((req, res, next) => {
   next();
 });
 
-// Setup routes and static files
-await registerRoutes(app);
+// Initialize app for Vercel
+async function initializeVercelApp() {
+  try {
+    // Seed database on startup (only if empty)
+    await seedDatabase();
+    console.log("Database seeded for Vercel");
+  } catch (error) {
+    console.error("Database seeding failed:", error);
+  }
+
+  // Setup routes
+  await registerRoutes(app);
+}
+
+// Initialize the app
+await initializeVercelApp();
 
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   const status = err.status || err.statusCode || 500;
   const message = err.message || "Internal Server Error";
-
+  
+  console.error("Server error:", err);
   res.status(status).json({ message });
-  throw err;
 });
 
 // Serve static files in production

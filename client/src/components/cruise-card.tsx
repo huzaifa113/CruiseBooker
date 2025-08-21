@@ -31,7 +31,7 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
 
   if (compact) {
     return (
-      <Card className="hover:shadow-xl transition-shadow border-2 border-red-500" data-testid={`cruise-card-${cruise.id}`}>
+      <Card className="hover:shadow-xl transition-shadow" data-testid={`cruise-card-${cruise.id}`}>
         <div className="relative h-48">
           <img
             src={cruise.imageUrl}
