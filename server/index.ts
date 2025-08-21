@@ -71,7 +71,5 @@ app.use((req, res, next) => {
 
 })();
 
-// Export for serverless functions (only when required by Vercel)
-if (process.env.VERCEL) {
-  module.exports = app;
-}
+// Export the app for ES modules (Vercel)
+export default app;
