@@ -17,6 +17,8 @@ export default function Home() {
   const [selectedCruise, setSelectedCruise] = useState<Cruise | null>(null);
   const [isItineraryModalOpen, setIsItineraryModalOpen] = useState(false);
 
+  console.log("Home component rendered");
+
   // Fetch featured cruises (limit to 6 for homepage)
   const { data: cruises, isLoading, error } = useQuery({
     queryKey: ["/api/cruises", "sortBy=rating&sortOrder=desc"],
@@ -33,6 +35,7 @@ export default function Home() {
       }
       const data = await response.json();
       console.log("Frontend: Received cruises:", data.length);
+      console.log("Frontend: Full cruise data:", data);
       return data.slice(0, 6); // Show only top 6 for featured section
     }
   });
@@ -50,6 +53,10 @@ export default function Home() {
     setIsItineraryModalOpen(false);
     setLocation(`/booking/${cruise.id}`);
   };
+
+  // Debug logging
+  console.log("Query state:", { isLoading, error: error?.toString(), cruisesCount: cruises?.length });
+  console.log("Cruises data:", cruises);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
@@ -133,17 +140,37 @@ export default function Home() {
             </div>
           )}
 
+          {/* Debug: Show raw data */}
+          <div className="mb-4 p-4 bg-yellow-100 rounded border-4 border-green-500">
+            <h4 className="font-bold text-lg">🚨 DEBUG MODE ACTIVE 🚨</h4>
+            <p><strong>Data loaded:</strong> {cruises ? 'YES' : 'NO'}</p>
+            <p><strong>Loading:</strong> {isLoading ? 'YES' : 'NO'}</p>
+            <p><strong>Error:</strong> {error ? 'YES' : 'NO'}</p>
+            <p><strong>Cruise count:</strong> {cruises?.length || 0}</p>
+            {cruises && (
+              <div className="mt-2">
+                <p><strong>Cruise names:</strong></p>
+                <ul className="list-disc ml-4">
+                  {cruises.map(c => <li key={c.id}>{c.name} (ID: {c.id})</li>)}
+                </ul>
+              </div>
+            )}
+          </div>
+
           {cruises && cruises.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {cruises.map((cruise: Cruise) => (
-                <CruiseCard
-                  key={cruise.id}
-                  cruise={cruise}
-                  onViewItinerary={handleViewItinerary}
-                  onSelectCruise={handleSelectCruise}
-                  compact={true}
-                />
-              ))}
+              {cruises.map((cruise: Cruise) => {
+                console.log("Rendering cruise:", cruise.name);
+                return (
+                  <CruiseCard
+                    key={cruise.id}
+                    cruise={cruise}
+                    onViewItinerary={handleViewItinerary}
+                    onSelectCruise={handleSelectCruise}
+                    compact={true}
+                  />
+                );
+              })}
             </div>
           )}
         </div>
