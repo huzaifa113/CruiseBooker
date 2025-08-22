@@ -188,3 +188,45 @@
   .focus\:ring-ocean-500:focus { --tw-ring-color: var(--ocean-500); }
   .focus\:border-ocean-500:focus { border-color: var(--ocean-500); }
 }
+/* Improved placeholder styling and mobile responsiveness */
+::placeholder {
+  color: hsl(210 12% 65%) !important;
+  opacity: 1;
+}
+
+::-webkit-input-placeholder {
+  color: hsl(210 12% 65%) !important;
+}
+
+::-moz-placeholder {
+  color: hsl(210 12% 65%) !important;
+  opacity: 1;
+}
+
+:-ms-input-placeholder {
+  color: hsl(210 12% 65%) !important;
+}
+
+/* Custom calendar styling */
+.rdp {
+  --rdp-cell-size: 40px;
+  --rdp-accent-color: hsl(203.8863 88.2845% 53.1373%);
+  --rdp-background-color: hsl(0 0% 100%);
+}
+
+/* Mobile responsive improvements */
+@media (max-width: 768px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  button, input, select, textarea {
+    min-height: 44px;
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}

@@ -8,12 +8,20 @@ export async function seedDatabase() {
 
     // Check if cruises already exist
     const existingCruises = await db.select().from(cruises).limit(1);
-    if (existingCruises.length > 0) {
+    if (existingCruises.length > 0 && !process.env.FORCE_SEED) {
       console.log("Database already seeded, skipping...");
       return;
     }
 
-    // Sample cruise data
+    // Clear existing data if force seeding
+    if (process.env.FORCE_SEED) {
+      console.log("Force seeding - clearing existing data...");
+      await db.delete(extras);
+      await db.delete(cabinTypes);
+      await db.delete(cruises);
+    }
+
+    // Enhanced cruise data with more destinations
     const sampleCruises = [
       {
         id: "cruise-1",
@@ -198,6 +206,98 @@ export async function seedDatabase() {
         maxGuests: 2850,
         availableCabins: 120,
         rating: "4.4"
+      },
+      {
+        id: "cruise-5",
+        name: "Norwegian Fjords Adventure",
+        ship: "Norwegian Epic",
+        cruiseLine: "Norwegian Cruise Line",
+        destination: "Norwegian Fjords",
+        departurePort: "Copenhagen, Denmark",
+        duration: 9,
+        basePrice: "1599.00",
+        departureDate: new Date("2025-02-10"),
+        returnDate: new Date("2025-02-19"),
+        itinerary: [
+          {
+            day: 1,
+            date: "2025-02-10",
+            port: "Copenhagen",
+            country: "Denmark",
+            arrival: null,
+            departure: "4:00 PM",
+            description: "Depart from historic Copenhagen"
+          },
+          {
+            day: 2,
+            date: "2025-02-11",
+            port: "At Sea",
+            country: "",
+            arrival: null,
+            departure: null,
+            description: "Sailing towards Norway"
+          },
+          {
+            day: 3,
+            date: "2025-02-12",
+            port: "Geiranger",
+            country: "Norway",
+            arrival: "6:00 AM",
+            departure: "1:00 PM",
+            description: "UNESCO World Heritage fjord"
+          }
+        ],
+        imageUrl: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800",
+        cruiseLineLogoUrl: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=200",
+        maxGuests: 4100,
+        availableCabins: 180,
+        rating: "4.6"
+      },
+      {
+        id: "cruise-6",
+        name: "Asia Explorer",
+        ship: "Celebrity Millennium",
+        cruiseLine: "Celebrity Cruises",
+        destination: "Asia",
+        departurePort: "Singapore",
+        duration: 12,
+        basePrice: "1899.00",
+        departureDate: new Date("2025-03-05"),
+        returnDate: new Date("2025-03-17"),
+        itinerary: [
+          {
+            day: 1,
+            date: "2025-03-05",
+            port: "Singapore",
+            country: "Singapore",
+            arrival: null,
+            departure: "6:00 PM",
+            description: "Depart from modern Singapore"
+          },
+          {
+            day: 2,
+            date: "2025-03-06",
+            port: "Kuala Lumpur",
+            country: "Malaysia",
+            arrival: "8:00 AM",
+            departure: "6:00 PM",
+            description: "Malaysia's vibrant capital city"
+          },
+          {
+            day: 3,
+            date: "2025-03-07",
+            port: "Bangkok",
+            country: "Thailand",
+            arrival: "7:00 AM",
+            departure: "11:00 PM",
+            description: "Cultural treasures and street food"
+          }
+        ],
+        imageUrl: "https://images.unsplash.com/photo-1552662932-3c5c7d9387db?w=800",
+        cruiseLineLogoUrl: "https://images.unsplash.com/photo-1552662932-3c5c7d9387db?w=200",
+        maxGuests: 2158,
+        availableCabins: 95,
+        rating: "4.3"
       }
     ];
 

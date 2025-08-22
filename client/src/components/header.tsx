@@ -22,18 +22,26 @@ export default function Header() {
   const { user, isAuthenticated } = useAuth();
 
   const handleDestinationsClick = () => {
-    // Scroll to destinations section or navigate to destinations page
-    const destinationsSection = document.getElementById('destinations-section');
-    if (destinationsSection) {
-      destinationsSection.scrollIntoView({ behavior: 'smooth' });
+    // Navigate to home page if not there, then scroll to destinations
+    if (location !== '/') {
+      window.location.href = '/#destinations-section';
+    } else {
+      const destinationsSection = document.getElementById('destinations-section');
+      if (destinationsSection) {
+        destinationsSection.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 
   const handleDealsClick = () => {
-    // Scroll to deals section or navigate to deals page
-    const dealsSection = document.getElementById('deals-section');
-    if (dealsSection) {
-      dealsSection.scrollIntoView({ behavior: 'smooth' });
+    // Navigate to home page if not there, then scroll to deals
+    if (location !== '/') {
+      window.location.href = '/#deals-section';
+    } else {
+      const dealsSection = document.getElementById('deals-section');
+      if (dealsSection) {
+        dealsSection.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 
@@ -62,15 +70,15 @@ export default function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex space-x-6 xl:space-x-8">
+          <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8">
               <Link href="/">
-                <div className={`${location === '/' ? 'text-blue-600 font-semibold border-b-2 border-blue-600 pb-2' : 'text-gray-700 hover:text-blue-600'} transition-all duration-200 cursor-pointer`} data-testid="link-cruises">
+                <div className={`${location === '/' ? 'text-blue-600 font-semibold border-b-2 border-blue-600 pb-2' : 'text-gray-700 hover:text-blue-600'} transition-all duration-200 cursor-pointer h-10 flex items-center`} data-testid="link-cruises">
                   {t('cruises')}
                 </div>
               </Link>
               <button
                 onClick={handleDestinationsClick}
-                className="text-gray-700 hover:text-blue-600 transition-all duration-200 flex items-center space-x-1"
+                className="text-gray-700 hover:text-blue-600 transition-all duration-200 flex items-center space-x-1 h-10"
                 data-testid="link-destinations"
               >
                 <MapPin className="w-4 h-4" />
@@ -78,14 +86,14 @@ export default function Header() {
               </button>
               <button
                 onClick={handleDealsClick}
-                className="text-gray-700 hover:text-blue-600 transition-all duration-200 flex items-center space-x-1"
+                className="text-gray-700 hover:text-blue-600 transition-all duration-200 flex items-center space-x-1 h-10"
                 data-testid="link-deals"
               >
                 <Tag className="w-4 h-4" />
                 <span>{t('deals')}</span>
               </button>
               <Link href="/reservations">
-                <div className={`${location === '/reservations' ? 'text-blue-600 font-semibold border-b-2 border-blue-600 pb-2' : 'text-gray-700 hover:text-blue-600'} transition-all duration-200 cursor-pointer`} data-testid="link-reservations">
+                <div className={`${location === '/reservations' ? 'text-blue-600 font-semibold border-b-2 border-blue-600 pb-2' : 'text-gray-700 hover:text-blue-600'} transition-all duration-200 cursor-pointer h-10 flex items-center`} data-testid="link-reservations">
                   {t('myReservations')}
                 </div>
               </Link>
@@ -136,9 +144,9 @@ export default function Header() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="hidden md:flex relative h-10 w-10 rounded-full" data-testid="button-user-menu">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={user.profileImageUrl || ''} alt={user.firstName || 'User'} />
+                      <AvatarImage src={(user as any)?.profileImageUrl || ''} alt={(user as any)?.firstName || 'User'} />
                       <AvatarFallback>
-                        {user.firstName ? user.firstName[0] : user.email ? user.email[0].toUpperCase() : 'U'}
+                        {(user as any)?.firstName ? (user as any).firstName[0] : (user as any)?.email ? (user as any).email[0].toUpperCase() : 'U'}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -147,10 +155,10 @@ export default function Header() {
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">
-                        {user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email}
+                        {(user as any)?.firstName && (user as any)?.lastName ? `${(user as any).firstName} ${(user as any).lastName}` : (user as any)?.email}
                       </p>
                       <p className="text-xs leading-none text-muted-foreground">
-                        {user.email}
+                        {(user as any)?.email}
                       </p>
                     </div>
                   </DropdownMenuLabel>

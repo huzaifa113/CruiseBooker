@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useAuth } from "@/hooks/useAuth";
 import type { GuestInfo } from "@/lib/types";
 
 const guestSchema = z.object({
@@ -17,7 +18,13 @@ const guestSchema = z.object({
   dateOfBirth: z.string().min(1, "Date of birth is required"),
   passportNumber: z.string().optional(),
   passportCountry: z.string().optional(),
-  passportExpiry: z.string().optional(),
+  passportExpiry: z.string().optional().refine((date) => {
+    if (!date) return true; // Optional field
+    const expiryDate = new Date(date);
+    const sixMonthsFromNow = new Date();
+    sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+    return expiryDate > sixMonthsFromNow;
+  }, "Passport must be valid for at least 6 months from travel date"),
   specialNeeds: z.string().optional(),
   isChild: z.boolean(),
   isSenior: z.boolean()
@@ -26,7 +33,7 @@ const guestSchema = z.object({
 const guestDetailsSchema = z.object({
   primaryGuestName: z.string().min(1, "Primary guest name is required"),
   primaryGuestEmail: z.string().email("Valid email is required"),
-  primaryGuestPhone: z.string().optional(),
+  primaryGuestPhone: z.string().regex(/^\+?[\d\s\-\(\)]+$/, "Please enter a valid phone number").optional().or(z.literal("")),
   specialRequests: z.string().optional(),
   guests: z.array(guestSchema).min(1, "At least one guest is required")
 });
@@ -54,13 +61,14 @@ export default function GuestDetails({
   onContinue,
   onBack
 }: GuestDetailsProps) {
+  const { user } = useAuth();
   const totalGuests = adultCount + childCount + seniorCount;
   
   const { register, formState: { errors }, handleSubmit, watch } = useForm<GuestDetailsForm>({
     resolver: zodResolver(guestDetailsSchema),
     defaultValues: {
-      primaryGuestName: formData.primaryGuestName || "",
-      primaryGuestEmail: formData.primaryGuestEmail || "",
+      primaryGuestName: formData.primaryGuestName || ((user as any)?.firstName && (user as any)?.lastName ? `${(user as any).firstName} ${(user as any).lastName}` : ""),
+      primaryGuestEmail: formData.primaryGuestEmail || (user as any)?.email || "",
       primaryGuestPhone: formData.primaryGuestPhone || "",
       specialRequests: formData.specialRequests || "",
       guests: formData.guests || Array(totalGuests).fill(null).map((_, index) => ({
@@ -218,7 +226,8 @@ export default function GuestDetails({
                   <Input
                     id="primaryGuestName"
                     {...register("primaryGuestName")}
-                    className={errors.primaryGuestName ? "border-red-500" : ""}
+                    placeholder="Enter full name"
+                    className={errors.primaryGuestName ? "border-red-500" : "placeholder:text-gray-400"}
                     data-testid="input-primary-name"
                   />
                   {errors.primaryGuestName && (
@@ -231,7 +240,8 @@ export default function GuestDetails({
                     id="primaryGuestEmail"
                     type="email"
                     {...register("primaryGuestEmail")}
-                    className={errors.primaryGuestEmail ? "border-red-500" : ""}
+                    placeholder="Enter email address"
+                    className={errors.primaryGuestEmail ? "border-red-500" : "placeholder:text-gray-400"}
                     data-testid="input-primary-email"
                   />
                   {errors.primaryGuestEmail && (
@@ -244,6 +254,8 @@ export default function GuestDetails({
                 <Input
                   id="primaryGuestPhone"
                   {...register("primaryGuestPhone")}
+                  placeholder="Enter phone number"
+                  className="placeholder:text-gray-400"
                   data-testid="input-primary-phone"
                 />
               </div>

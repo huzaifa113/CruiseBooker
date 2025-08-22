@@ -124,3 +124,18 @@ The codebase includes placeholders for:
 - Added user menu with avatar and logout functionality
 - Protected routes require authentication
 - Seamless login/logout flow with Replit
+
+✅ **Major Bug Fixes and Improvements** (August 22, 2025):
+- Fixed scroll to top on booking step transitions
+- Auto-fill primary contact information from user account
+- Passport expiry validation (6+ months required)
+- Improved header navigation alignment and functionality
+- Made header sticky across all pages
+- Enhanced calendar styling with modern blue theme
+- Added light gray placeholder text for better UX
+- Expanded database with 6 diverse cruise destinations
+- Created dedicated destinations and deals sections on home page
+- Fixed EN/TH language switching for entire website
+- Improved mobile responsiveness with better touch targets
+- Added smooth scrolling for anchor navigation
+- Enhanced input field validation and formatting

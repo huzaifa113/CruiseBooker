@@ -98,6 +98,8 @@ export default function Booking() {
   const handleStepContinue = () => {
     if (currentStep < steps.length) {
       setCurrentStep(prev => prev + 1);
+      // Scroll to top of page on step change
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       // Proceed to checkout/payment
       proceedToCheckout();
@@ -107,6 +109,8 @@ export default function Booking() {
   const handleStepBack = () => {
     if (currentStep > 1) {
       setCurrentStep(prev => prev - 1);
+      // Scroll to top of page on step change
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       // Go back to search results or cruise details
       setLocation('/search');

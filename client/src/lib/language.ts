@@ -76,7 +76,7 @@ export const translations: Record<Language, Translations> = {
     seniors: 'Seniors',
     departure: 'Departure',
     duration: 'Duration',
-    from: 'From',
+    from: 'from',
     perPerson: 'per person',
     bookNow: 'Book Now',
     viewDetails: 'View Details',
@@ -88,13 +88,13 @@ export const translations: Record<Language, Translations> = {
       selectCabin: 'Select Cabin',
       selectDining: 'Select Dining',
       addExtras: 'Add Extras',
-      guestDetails: 'Guest Details',
-    },
+      guestDetails: 'Guest Details'
+    }
   },
   TH: {
     // Navigation
-    cruises: 'เรือสำราญ',
-    destinations: 'จุดหมายปลายทาง',
+    cruises: 'ครูซ',
+    destinations: 'จุดหมาย',
     deals: 'โปรโมชั่น',
     myReservations: 'การจองของฉัน',
     signIn: 'เข้าสู่ระบบ',
@@ -108,10 +108,10 @@ export const translations: Record<Language, Translations> = {
     highestPrice: 'ราคาสูงสุด',
     
     // Home page
-    heroTitle: 'ค้นหาการผจญภัยครั้งต่อไปของคุณ',
-    heroSubtitle: 'สำรวจจุดหมายปลายทางที่สวยที่สุดในโลกบนเรือสำราญหรูหราของเรา',
-    searchForCruises: 'ค้นหาเรือสำราญ',
-    findYourPerfectCruise: 'ค้นหาเรือสำราญที่สมบูรณ์แบบของคุณ',
+    heroTitle: 'ค้นหาการผจญภัยครั้งต่อไป',
+    heroSubtitle: 'สำรวจจุดหมายปลายทางที่สวยงามที่สุดในโลกบนเรือครูซหรูหรา',
+    searchForCruises: 'ค้นหาครูซ',
+    findYourPerfectCruise: 'หาครูซที่สมบูรณ์แบบ',
     
     // Common
     guests: 'ผู้โดยสาร',
@@ -130,23 +130,35 @@ export const translations: Record<Language, Translations> = {
     // Booking
     bookingSteps: {
       selectCabin: 'เลือกห้องพัก',
-      selectDining: 'เลือกเวลาอาหาร',
-      addExtras: 'เพิ่มบริการ',
-      guestDetails: 'รายละเอียดผู้โดยสาร',
-    },
-  },
+      selectDining: 'เลือกการรับประทานอาหาร',
+      addExtras: 'เพิ่มบริการพิเศษ',
+      guestDetails: 'ข้อมูลผู้โดยสาร'
+    }
+  }
 };
 
-// Simple translation hook
 export function useTranslation(language: Language) {
-  return (key: keyof Translations | string): string => {
+  return (key: string) => {
     const keys = key.split('.');
     let value: any = translations[language];
     
     for (const k of keys) {
-      value = value?.[k];
+      if (value && typeof value === 'object' && k in value) {
+        value = value[k];
+      } else {
+        // Fallback to English if translation not found
+        value = translations['EN'];
+        for (const fallbackKey of keys) {
+          if (value && typeof value === 'object' && fallbackKey in value) {
+            value = value[fallbackKey];
+          } else {
+            return key; // Return key if no translation found
+          }
+        }
+        break;
+      }
     }
     
-    return value || key;
+    return typeof value === 'string' ? value : key;
   };
 }

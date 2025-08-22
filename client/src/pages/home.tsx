@@ -56,8 +56,67 @@ export default function Home() {
       {/* Hero Section with Search */}
       <HeroSearch />
 
-      {/* Featured Cruises Section */}
+      {/* Destinations Section */}
       <section className="py-16 bg-white/80 backdrop-blur-sm" id="destinations-section">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Popular Destinations
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Explore the world's most beautiful destinations with our carefully curated cruise experiences
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              {
+                name: "Caribbean",
+                image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400&h=300&fit=crop",
+                description: "Tropical paradise with crystal clear waters",
+                cruiseCount: "12+ cruises"
+              },
+              {
+                name: "Mediterranean",
+                image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop",
+                description: "Rich history and stunning coastal cities",
+                cruiseCount: "8+ cruises"
+              },
+              {
+                name: "Norwegian Fjords",
+                image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=300&fit=crop",
+                description: "Breathtaking natural beauty and wilderness",
+                cruiseCount: "6+ cruises"
+              },
+              {
+                name: "Alaska",
+                image: "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=400&h=300&fit=crop",
+                description: "Glaciers, wildlife, and pristine landscapes",
+                cruiseCount: "5+ cruises"
+              }
+            ].map((destination) => (
+              <Card key={destination.name} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+                <div className="relative h-48">
+                  <img
+                    src={destination.image}
+                    alt={destination.name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4 text-white">
+                    <h3 className="text-lg font-semibold">{destination.name}</h3>
+                    <p className="text-sm opacity-90">{destination.description}</p>
+                    <p className="text-xs mt-1 text-blue-200">{destination.cruiseCount}</p>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Cruises Section */}
+      <section className="py-16 bg-gradient-to-r from-blue-100 to-indigo-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -147,8 +206,61 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Special Deals Section */}
+      <section className="py-16 bg-gradient-to-r from-green-50 to-emerald-50" id="deals-section">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Special Deals & Offers
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Limited time offers and exclusive deals for our cruise experiences
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                title: "Early Bird Special",
+                description: "Book 6 months in advance and save up to 30%",
+                discount: "30% OFF",
+                validUntil: "Dec 31, 2024",
+                color: "bg-green-600"
+              },
+              {
+                title: "Last Minute Deals",
+                description: "Book within 30 days and enjoy significant savings",
+                discount: "25% OFF",
+                validUntil: "Limited time",
+                color: "bg-orange-600"
+              },
+              {
+                title: "Group Bookings",
+                description: "Special rates for groups of 8 or more guests",
+                discount: "20% OFF",
+                validUntil: "Year round",
+                color: "bg-blue-600"
+              }
+            ].map((deal, index) => (
+              <Card key={index} className="relative overflow-hidden hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <div className={`absolute top-4 right-4 ${deal.color} text-white px-3 py-1 rounded-full text-sm font-bold`}>
+                    {deal.discount}
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">{deal.title}</h3>
+                  <p className="text-gray-600 mb-4">{deal.description}</p>
+                  <div className="text-sm text-gray-500">
+                    Valid until: {deal.validUntil}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Benefits Section */}
-      <section className="py-16 bg-gradient-to-r from-blue-100 to-indigo-100" id="deals-section">
+      <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
