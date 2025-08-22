@@ -48,13 +48,15 @@ export default function Home() {
   };
 
   const handleDealClick = (deal: any) => {
-    // Navigate to search with applied filters or deals
+    // Navigate to search with applied filters or deals and scroll to top
     setLocation(`/search?deal=${encodeURIComponent(deal.title)}`);
+    setTimeout(() => window.scrollTo(0, 0), 100);
   };
 
   const handleDestinationClick = (destination: string) => {
-    // Navigate to search filtered by destination
+    // Navigate to search filtered by destination and scroll to top
     setLocation(`/search?destination=${encodeURIComponent(destination)}`);
+    setTimeout(() => window.scrollTo(0, 0), 100);
   };
 
 
@@ -253,16 +255,22 @@ export default function Home() {
               }
             ].map((deal, index) => (
               <Card key={index} className="relative overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => handleDealClick(deal)}>
-                <CardContent className="p-6">
+                <CardContent className="p-6 flex flex-col h-full">
                   <div className={`absolute top-4 right-4 ${deal.color} text-white px-3 py-1 rounded-full text-sm font-bold`}>
                     {deal.discount}
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">{deal.title}</h3>
-                  <p className="text-gray-600 mb-4">{deal.description}</p>
-                  <div className="text-sm text-gray-500">
+                  <p className="text-gray-600 mb-4 flex-1">{deal.description}</p>
+                  <div className="text-sm text-gray-500 mb-4">
                     Valid until: {deal.validUntil}
                   </div>
-                  <button className="mt-4 w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                  <button 
+                    className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDealClick(deal);
+                    }}
+                  >
                     Apply Deal
                   </button>
                 </CardContent>

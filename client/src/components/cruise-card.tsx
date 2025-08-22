@@ -40,9 +40,7 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
               e.currentTarget.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkNydWlzZSBJbWFnZTwvdGV4dD48L3N2Zz4=";
             }}
           />
-          <div className="absolute top-4 left-4">
-            <Badge variant="destructive">Hot Deal</Badge>
-          </div>
+
           <Button
             variant="ghost"
             size="sm"
@@ -107,9 +105,7 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
             alt={cruise.name}
             className="w-full h-48 lg:h-full object-cover"
           />
-          <div className="absolute top-4 left-4">
-            <Badge variant="destructive">Save 40%</Badge>
-          </div>
+
         </div>
         <div className="lg:w-2/3 p-6">
           <div className="flex justify-between items-start mb-4">

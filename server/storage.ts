@@ -73,7 +73,8 @@ export class DatabaseStorage implements IStorage {
       const conditions: any[] = [];
       
       if (filters.destination) {
-        conditions.push(ilike(cruises.destination, `%${filters.destination}%`));
+        // Use exact match for destination filtering (case-insensitive)
+        conditions.push(sql`LOWER(${cruises.destination}) = LOWER(${filters.destination})`);
       }
       
       if (filters.departurePort) {
