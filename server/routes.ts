@@ -226,6 +226,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get booking details for checkout (includes cruise and cabin info)
+  app.get("/api/bookings/:id/details", async (req, res) => {
+    try {
+      const booking = await storage.getBooking(req.params.id);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      // Get related cruise and cabin information
+      const cruise = await storage.getCruise(booking.cruiseId);
+      const cabinType = await storage.getCabinType(booking.cabinTypeId);
+      
+      res.json({
+        ...booking,
+        cruise,
+        cabinType
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching booking details: " + error.message });
+    }
+  });
+
   // Get booking details with cruise and cabin info
   app.get("/api/bookings/:id/details", async (req, res) => {
     try {

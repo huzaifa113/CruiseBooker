@@ -166,6 +166,11 @@ export class DatabaseStorage implements IStorage {
 
   async getCabinType(id: string): Promise<CabinType | undefined> {
     const [cabinType] = await db.select().from(cabinTypes).where(eq(cabinTypes.id, id));
+    return cabinType;
+  }
+
+  async getCabinType(id: string): Promise<CabinType | undefined> {
+    const [cabinType] = await db.select().from(cabinTypes).where(eq(cabinTypes.id, id));
     return cabinType || undefined;
   }
 

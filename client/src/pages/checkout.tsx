@@ -262,6 +262,68 @@ export default function Checkout() {
     enabled: !!bookingId
   });
 
+  // Create a demo booking for testing if no booking ID exists
+  const createDemoBooking = async () => {
+    const demoBooking = {
+      cruiseId: "cruise-1",
+      cabinTypeId: "",
+      adultCount: 2,
+      childCount: 0,
+      seniorCount: 0,
+      guestCount: 2,
+      totalAmount: "2500.00",
+      taxAmount: "300.00",
+      gratuityAmount: "375.00",
+      primaryGuestName: "John Doe",
+      primaryGuestEmail: "john@example.com",
+      guests: [
+        {
+          firstName: "John",
+          lastName: "Doe",
+          email: "john@example.com",
+          phone: "+1234567890",
+          dateOfBirth: "1990-01-01",
+          passportNumber: "AB123456",
+          passportExpiry: "2030-01-01",
+          passportCountry: "US"
+        },
+        {
+          firstName: "Jane",
+          lastName: "Doe",
+          email: "jane@example.com",
+          phone: "+1234567890",
+          dateOfBirth: "1992-05-15",
+          passportNumber: "CD789012",
+          passportExpiry: "2029-05-15",
+          passportCountry: "US"
+        }
+      ],
+      extras: []
+    };
+
+    try {
+      // Get cabin types for the cruise first
+      const cabinResponse = await fetch(`/api/cruises/${demoBooking.cruiseId}/cabins`);
+      const cabinTypes = await cabinResponse.json();
+      if (cabinTypes.length > 0) {
+        demoBooking.cabinTypeId = cabinTypes[0].id; // Use first available cabin type
+      }
+
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(demoBooking)
+      });
+      
+      if (response.ok) {
+        const booking = await response.json();
+        setLocation(`/checkout/${booking.id}`);
+      }
+    } catch (error) {
+      console.error('Error creating demo booking:', error);
+    }
+  };
+
   useEffect(() => {
     if (error) {
       toast({
@@ -279,9 +341,12 @@ export default function Checkout() {
         <Header />
         <div className="max-w-2xl mx-auto px-4 py-16">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Invalid Booking</h1>
-            <p className="text-gray-600 mb-8">No booking ID provided.</p>
-            <Button onClick={() => setLocation('/')} className="bg-blue-600 text-white">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Demo Checkout</h1>
+            <p className="text-gray-600 mb-8">Create a demo booking to test the checkout process.</p>
+            <Button onClick={createDemoBooking} className="bg-blue-600 text-white mr-4">
+              Create Demo Booking
+            </Button>
+            <Button onClick={() => setLocation('/')} variant="outline">
               Return Home
             </Button>
           </div>
@@ -366,7 +431,10 @@ export default function Checkout() {
           </p>
         </div>
 
-        <CheckoutForm booking={booking} totalAmount={totalAmount} />
+        <CheckoutForm 
+          booking={{...booking, cruise, cabinType}} 
+          totalAmount={totalAmount} 
+        />
       </div>
 
       <Footer />
