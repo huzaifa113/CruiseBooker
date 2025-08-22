@@ -11,17 +11,18 @@ import GuestDetails from "@/components/guest-details";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { useCruiseId } from "@/hooks/use-route-params";
 import type { CabinType, Extra } from "@shared/schema";
 import type { BookingFormData, BookingExtra } from "@/lib/types";
 
 export default function Booking() {
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const cruiseId = location.split('/')[2];
+  const cruiseId = useCruiseId();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [bookingData, setBookingData] = useState<Partial<BookingFormData>>({
-    cruiseId,
+    cruiseId: cruiseId || undefined,
     guestCount: 2,
     adultCount: 2,
     childCount: 0,
@@ -252,9 +253,9 @@ export default function Booking() {
   }
 
   // Show error state  
-  if (cruiseError || cabinsError || extrasError || !cruise) {
+  if (cruiseError || cabinsError || extrasError || !cruise || !cruiseId) {
     const errorMessage = cruiseError?.message || cabinsError?.message || extrasError?.message || 'Unknown error';
-    console.error('❌ Booking page error:', { cruiseError, cabinsError, extrasError, errorMessage });
+    console.error('❌ Booking page error:', { cruiseError, cabinsError, extrasError, errorMessage, cruiseId, location });
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
@@ -264,9 +265,19 @@ export default function Booking() {
               <i className="fas fa-exclamation-triangle text-4xl"></i>
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Cruise Not Found</h1>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-600 mb-4">
               The cruise you're looking for could not be found or is no longer available.
             </p>
+            {process.env.NODE_ENV === 'development' && (
+              <details className="text-left max-w-md mx-auto mb-8">
+                <summary className="text-sm text-gray-500 cursor-pointer">Debug Info</summary>
+                <pre className="text-xs text-red-600 mt-2 p-2 bg-red-50 rounded overflow-auto">
+                  Location: {typeof location === 'string' ? location : JSON.stringify(location)}
+                  Cruise ID: {cruiseId || 'null'}
+                  Error: {errorMessage}
+                </pre>
+              </details>
+            )}
             <button
               onClick={() => setLocation('/search')}
               className="bg-ocean-600 text-white px-6 py-3 rounded-lg hover:bg-ocean-700 transition-colors"

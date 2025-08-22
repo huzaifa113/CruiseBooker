@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from "@/hooks/use-toast";
+import { useBookingId } from "@/hooks/use-route-params";
 import { apiRequest } from '@/lib/queryClient';
 import PromotionsSection from '@/components/promotions-section';
 
@@ -253,11 +254,9 @@ const CheckoutForm = ({ booking, totalAmount }: { booking: any; totalAmount: num
 };
 
 export default function Checkout() {
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
-  
-  // Extract booking ID from URL
-  const bookingId = location.split('/checkout/')[1];
+  const bookingId = useBookingId();
   
   const { data: bookingDetails, isLoading, error } = useQuery({
     queryKey: [`/api/bookings/${bookingId}/details`],
