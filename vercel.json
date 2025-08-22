@@ -1,10 +1,10 @@
 {
   "functions": {
     "api/**/*.ts": {
-      "runtime": "@vercel/node"
+      "runtime": "@vercel/node@3.0.0"
     }
   },
-  "buildCommand": "vite build",
+  "buildCommand": "npm run build",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": null,
@@ -18,8 +18,5 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }
