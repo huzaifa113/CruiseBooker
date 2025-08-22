@@ -174,9 +174,9 @@ export default function MyReservations() {
                       <span className="font-semibold">Cruise Details</span>
                     </div>
                     <div className="text-gray-600 space-y-1">
-                      <div className="font-medium">{lookedUpBooking.cruise?.name}</div>
-                      <div>{lookedUpBooking.cruise?.ship} • {lookedUpBooking.cruise?.cruiseLine}</div>
-                      <div>{lookedUpBooking.cruise?.duration} days</div>
+                      <div className="font-medium">{lookedUpBooking.cruise?.name || 'Cruise Name Not Available'}</div>
+                      <div>{lookedUpBooking.cruise?.ship || 'Ship'} • {lookedUpBooking.cruise?.cruiseLine || 'Cruise Line'}</div>
+                      <div>{lookedUpBooking.cruise?.duration || 'N/A'} days</div>
                     </div>
                   </div>
 
@@ -186,9 +186,9 @@ export default function MyReservations() {
                       <span className="font-semibold">Travel Dates</span>
                     </div>
                     <div className="text-gray-600 space-y-1">
-                      <div>Departure: {new Date(lookedUpBooking.cruise?.departureDate).toLocaleDateString()}</div>
-                      <div>Return: {new Date(lookedUpBooking.cruise?.returnDate).toLocaleDateString()}</div>
-                      <div>From: {lookedUpBooking.cruise?.departurePort}</div>
+                      <div>Departure: {lookedUpBooking.cruise?.departureDate ? new Date(lookedUpBooking.cruise.departureDate).toLocaleDateString() : 'Date TBD'}</div>
+                      <div>Return: {lookedUpBooking.cruise?.returnDate ? new Date(lookedUpBooking.cruise.returnDate).toLocaleDateString() : 'Date TBD'}</div>
+                      <div>From: {lookedUpBooking.cruise?.departurePort || 'Port TBD'}</div>
                     </div>
                   </div>
 

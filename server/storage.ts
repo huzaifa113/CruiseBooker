@@ -179,6 +179,23 @@ export class DatabaseStorage implements IStorage {
     return booking || undefined;
   }
 
+  async getBookingWithDetails(bookingId: string): Promise<any> {
+    const [booking] = await db
+      .select()
+      .from(bookings)
+      .leftJoin(cruises, eq(bookings.cruiseId, cruises.id))
+      .leftJoin(cabinTypes, eq(bookings.cabinTypeId, cabinTypes.id))
+      .where(eq(bookings.id, bookingId));
+    
+    if (!booking) return null;
+    
+    return {
+      ...booking.bookings,
+      cruise: booking.cruises,
+      cabinType: booking.cabin_types
+    };
+  }
+
   async getBookingByConfirmation(confirmationNumber: string, lastName: string): Promise<Booking | undefined> {
     const [booking] = await db.select().from(bookings).where(
       and(
