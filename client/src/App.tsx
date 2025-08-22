@@ -22,6 +22,8 @@ function Router() {
       {isLoading || !isAuthenticated ? (
         <>
           <Route path="/" component={Landing} />
+          <Route path="/search" component={SearchResults} />
+          <Route path="/booking/:cruiseId" component={Booking} />
           <Route path="/checkout/:bookingId" component={Checkout} />
           <Route path="/checkout" component={Checkout} />
         </>
