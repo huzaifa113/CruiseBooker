@@ -119,6 +119,53 @@ export const extras = pgTable("extras", {
   imageUrl: text("image_url")
 });
 
+// Cabin inventory holds
+export const cabinHolds = pgTable("cabin_holds", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  cruiseId: varchar("cruise_id").notNull().references(() => cruises.id),
+  cabinTypeId: varchar("cabin_type_id").notNull().references(() => cabinTypes.id),
+  userId: varchar("user_id").references(() => users.id),
+  sessionId: varchar("session_id"), // For non-authenticated users
+  quantity: integer("quantity").notNull().default(1),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+// Promotions and discounts
+export const promotions = pgTable("promotions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  discountType: text("discount_type").notNull(), // "percentage", "fixed_amount"
+  discountValue: decimal("discount_value", { precision: 10, scale: 2 }).notNull(),
+  validFrom: timestamp("valid_from").notNull(),
+  validTo: timestamp("valid_to").notNull(),
+  maxUses: integer("max_uses"),
+  currentUses: integer("current_uses").notNull().default(0),
+  combinableWith: json("combinable_with").$type<string[]>(), // Array of promotion IDs
+  conditions: json("conditions").$type<{
+    minBookingAmount?: number;
+    cruiseLines?: string[];
+    destinations?: string[];
+    cabinTypes?: string[];
+  }>(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+// iCal calendar events
+export const calendarEvents = pgTable("calendar_events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  bookingId: varchar("booking_id").notNull().references(() => bookings.id),
+  eventType: text("event_type").notNull(), // "departure", "arrival", "port_call"
+  title: text("title").notNull(),
+  description: text("description"),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"),
+  location: text("location"),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
 // Relations
 export const cruisesRelations = relations(cruises, ({ many }) => ({
   cabinTypes: many(cabinTypes),

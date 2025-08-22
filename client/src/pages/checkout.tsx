@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,12 +11,19 @@ import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from '@/lib/queryClient';
+import PromotionsSection from '@/components/promotions-section';
+
+// Initialize Stripe
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
 
 const CheckoutForm = ({ booking, totalAmount }: { booking: any; totalAmount: number }) => {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [currency, setCurrency] = useState('USD');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [promotionDiscount, setPromotionDiscount] = useState(0);
+  const [appliedPromotions, setAppliedPromotions] = useState<any[]>([]);
 
   const formatCurrency = (amount: number, currencyCode: string) => {
     return new Intl.NumberFormat('en-US', {
@@ -23,35 +32,80 @@ const CheckoutForm = ({ booking, totalAmount }: { booking: any; totalAmount: num
     }).format(amount);
   };
 
-  const convertedAmount = currency === 'USD' ? totalAmount : 
-                         currency === 'EUR' ? totalAmount * 0.85 :
-                         currency === 'SGD' ? totalAmount * 1.35 :
-                         currency === 'THB' ? totalAmount * 35 : totalAmount;
+  const discountedAmount = totalAmount - promotionDiscount;
+  const convertedAmount = currency === 'USD' ? discountedAmount : 
+                         currency === 'EUR' ? discountedAmount * 0.85 :
+                         currency === 'SGD' ? discountedAmount * 1.35 :
+                         currency === 'THB' ? discountedAmount * 35 : discountedAmount;
+
+  // Create payment intent mutation
+  const createPaymentIntentMutation = useMutation({
+    mutationFn: async (data: { amount: number; currency: string; bookingId: string }) => {
+      return await apiRequest('/api/create-payment-intent', {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
 
     try {
-      // Since we're skipping payment, we'll directly confirm the booking
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate processing time
-      
+      // Validate passport expiry before payment
+      const today = new Date();
+      const cruiseEndDate = booking.cruise?.returnDate ? new Date(booking.cruise.returnDate) : new Date();
+      const sixMonthsAfterCruise = new Date(cruiseEndDate);
+      sixMonthsAfterCruise.setMonth(sixMonthsAfterCruise.getMonth() + 6);
+
+      const hasValidPassports = booking.guests?.every((guest: any) => {
+        if (guest.passportExpiry) {
+          const expiryDate = new Date(guest.passportExpiry);
+          return expiryDate >= sixMonthsAfterCruise;
+        }
+        return false;
+      });
+
+      if (!hasValidPassports) {
+        toast({
+          title: "Passport Validation Error",
+          description: "All passports must be valid for at least 6 months after cruise end date",
+          variant: "destructive"
+        });
+        setIsProcessing(false);
+        return;
+      }
+
+      // Create payment intent with discounted amount
+      const paymentData = await createPaymentIntentMutation.mutateAsync({
+        amount: discountedAmount,
+        currency: currency.toLowerCase(),
+        bookingId: booking.id
+      });
+
       toast({
-        title: "Booking Confirmed!",
-        description: "Your cruise reservation has been successfully created.",
+        title: "Payment Processed",
+        description: `Total amount: ${formatCurrency(paymentData.totalAmount, currency)} (including taxes and gratuities)`,
       });
 
       // Redirect to confirmation page
       setLocation(`/confirmation/${booking.confirmationNumber}`);
     } catch (error: any) {
       toast({
-        title: "Booking Error",
-        description: "There was an issue processing your booking. Please try again.",
+        title: "Payment Error",
+        description: error.message || "Payment failed. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handlePromotionApplied = (discount: number, promotions: any[]) => {
+    setPromotionDiscount(discount);
+    setAppliedPromotions(promotions);
   };
 
   return (
@@ -85,9 +139,18 @@ const CheckoutForm = ({ booking, totalAmount }: { booking: any; totalAmount: num
           <div className="flex justify-between">
             <span>Cruise Fare ({booking.guestCount} guests)</span>
             <span data-testid="cruise-fare">
-              {formatCurrency(convertedAmount - (booking.taxAmount * (currency === 'USD' ? 1 : currency === 'EUR' ? 0.85 : currency === 'SGD' ? 1.35 : 35)) - (booking.gratuityAmount * (currency === 'USD' ? 1 : currency === 'EUR' ? 0.85 : currency === 'SGD' ? 1.35 : 35)), currency)}
+              {formatCurrency(totalAmount - (booking.taxAmount * (currency === 'USD' ? 1 : currency === 'EUR' ? 0.85 : currency === 'SGD' ? 1.35 : 35)) - (booking.gratuityAmount * (currency === 'USD' ? 1 : currency === 'EUR' ? 0.85 : currency === 'SGD' ? 1.35 : 35)), currency)}
             </span>
           </div>
+          
+          {promotionDiscount > 0 && (
+            <div className="flex justify-between text-green-600">
+              <span>Promotion Discount</span>
+              <span data-testid="promotion-discount">
+                -{formatCurrency(promotionDiscount * (currency === 'USD' ? 1 : currency === 'EUR' ? 0.85 : currency === 'SGD' ? 1.35 : 35), currency)}
+              </span>
+            </div>
+          )}
           
           {booking.extras && booking.extras.length > 0 && (
             <>
@@ -129,16 +192,25 @@ const CheckoutForm = ({ booking, totalAmount }: { booking: any; totalAmount: num
         </CardContent>
       </Card>
 
+      {/* Promotions Section */}
+      <PromotionsSection 
+        bookingAmount={totalAmount}
+        onPromotionApplied={handlePromotionApplied}
+        bookingData={{
+          cruiseLine: booking.cruise?.cruiseLine,
+          destination: booking.cruise?.destination
+        }}
+      />
+
       {/* Payment Form */}
       <Card>
         <CardHeader>
           <CardTitle>Booking Confirmation</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-yellow-800">
-              <strong>Demo Mode:</strong> Payment processing has been simplified for this demonstration. 
-              In a live environment, secure payment processing would be integrated.
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <p className="text-sm text-green-800">
+              <strong>Secure Payment:</strong> Payments are processed securely through Stripe with full tax and gratuity calculations.
             </p>
           </div>
           

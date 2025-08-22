@@ -18,9 +18,31 @@ export default function ItineraryModal({ cruise, isOpen, onClose, onBookCruise }
     window.print();
   };
 
-  const handleExportCalendar = () => {
-    // TODO: Implement iCal export
-    console.log('Export to calendar functionality to be implemented');
+  const handleExportCalendar = async () => {
+    if (!cruise) return;
+    
+    try {
+      // For demo purposes, create a mock booking ID
+      // In real implementation, this would come from actual booking data
+      const mockBookingId = 'demo-booking-id';
+      
+      const response = await fetch(`/api/bookings/${mockBookingId}/calendar`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `cruise-itinerary-${cruise.name.replace(/\s+/g, '-').toLowerCase()}.ics`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      } else {
+        console.error('Failed to export calendar');
+      }
+    } catch (error) {
+      console.error('Error exporting calendar:', error);
+    }
   };
 
   return (

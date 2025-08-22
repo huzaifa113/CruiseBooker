@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { cruises, cabinTypes, extras } from "@shared/schema";
+import { cruises, cabinTypes, extras, promotions } from "@shared/schema";
 import { sql } from "drizzle-orm";
 
 export async function seedDatabase() {
@@ -401,6 +401,59 @@ export async function seedDatabase() {
 
     console.log("Inserting sample extras...");
     await db.insert(extras).values(sampleExtras);
+
+    // Seed promotions
+    console.log("Inserting sample promotions...");
+    const samplePromotions = [
+      {
+        id: 'promo-early-bird',
+        name: 'Early Bird Special',
+        description: 'Book 90 days in advance and save 15%',
+        discountType: 'percentage',
+        discountValue: '15.00',
+        validFrom: new Date('2024-01-01'),
+        validTo: new Date('2025-12-31'),
+        maxUses: 1000,
+        currentUses: 0,
+        conditions: {
+          minBookingAmount: 1000,
+          cruiseLines: ['Royal Caribbean', 'Celebrity']
+        },
+        isActive: true
+      },
+      {
+        id: 'promo-mediterranean',
+        name: 'Mediterranean Explorer Deal',
+        description: '$200 off Mediterranean cruises',
+        discountType: 'fixed_amount',
+        discountValue: '200.00',
+        validFrom: new Date('2024-01-01'),
+        validTo: new Date('2025-06-30'),
+        maxUses: 500,
+        currentUses: 0,
+        conditions: {
+          destinations: ['Mediterranean']
+        },
+        isActive: true
+      },
+      {
+        id: 'promo-group-discount',
+        name: 'Group Booking Discount',
+        description: '10% off for 4+ guests',
+        discountType: 'percentage',
+        discountValue: '10.00',
+        validFrom: new Date('2024-01-01'),
+        validTo: new Date('2025-12-31'),
+        maxUses: null,
+        currentUses: 0,
+        conditions: {
+          minBookingAmount: 2000
+        },
+        isActive: true
+      }
+    ];
+    
+    await db.insert(promotions).values(samplePromotions);
 
     console.log("Database seeding completed successfully!");
 

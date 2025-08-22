@@ -6,6 +6,64 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertBookingSchema } from "@shared/schema";
 import { z } from "zod";
 
+// iCal generation utility
+function generateICalendar(booking: any, cruise: any): string {
+  const now = new Date();
+  const startDate = new Date(cruise.departureDate);
+  const endDate = new Date(cruise.returnDate);
+  
+  let icalContent = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Phoenix Vacation Group//Cruise Booking//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH'
+  ];
+  
+  // Add main cruise event
+  icalContent.push(
+    'BEGIN:VEVENT',
+    `UID:cruise-${booking.id}-main@phoenixvacationgroup.com`,
+    `DTSTAMP:${now.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+    `DTSTART:${startDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+    `DTEND:${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+    `SUMMARY:${cruise.name} - ${cruise.cruiseLine}`,
+    `DESCRIPTION:Cruise booking confirmation ${booking.confirmationNumber}\\nShip: ${cruise.ship}\\nDuration: ${cruise.duration} days`,
+    `LOCATION:${cruise.departurePort}`,
+    'STATUS:CONFIRMED',
+    'END:VEVENT'
+  );
+  
+  // Add port calls if itinerary exists
+  if (cruise.itinerary) {
+    cruise.itinerary.forEach((day: any) => {
+      if (day.port !== 'At Sea' && day.arrival) {
+        const arrivalTime = day.arrival ? `${day.arrival}:00` : '09:00:00';
+        const departureTime = day.departure ? `${day.departure}:00` : '17:00:00';
+        
+        const eventStart = new Date(`${day.date}T${arrivalTime}`);
+        const eventEnd = new Date(`${day.date}T${departureTime}`);
+        
+        icalContent.push(
+          'BEGIN:VEVENT',
+          `UID:cruise-${booking.id}-port-${day.day}@phoenixvacationgroup.com`,
+          `DTSTAMP:${now.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+          `DTSTART:${eventStart.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+          `DTEND:${eventEnd.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+          `SUMMARY:Port Call: ${day.port}`,
+          `DESCRIPTION:${day.description}\\nArrival: ${day.arrival || 'TBD'}\\nDeparture: ${day.departure || 'TBD'}`,
+          `LOCATION:${day.port}${day.country ? ', ' + day.country : ''}`,
+          'STATUS:CONFIRMED',
+          'END:VEVENT'
+        );
+      }
+    });
+  }
+  
+  icalContent.push('END:VCALENDAR');
+  return icalContent.join('\r\n');
+}
+
 // Temporarily disabled Stripe integration - skipping payment features for now
 // if (!process.env.STRIPE_SECRET_KEY) {
 //   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -189,40 +247,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Temporarily disabled Stripe payment endpoints
+  // Stripe payment integration
+  const { default: Stripe } = await import('stripe');
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2024-12-18.acacia'
+  });
+  
   // Create Stripe payment intent
-  // app.post("/api/create-payment-intent", async (req, res) => {
-  //   try {
-  //     const { amount, currency = "usd", bookingId } = req.body;
+  app.post("/api/create-payment-intent", async (req, res) => {
+    try {
+      const { amount, currency = "usd", bookingId } = req.body;
       
-  //     if (!amount || !bookingId) {
-  //       return res.status(400).json({ message: "Amount and booking ID are required" });
-  //     }
+      if (!amount || !bookingId) {
+        return res.status(400).json({ message: "Amount and booking ID are required" });
+      }
       
-  //     const paymentIntent = await stripe.paymentIntents.create({
-  //       amount: Math.round(amount * 100), // Convert to cents
-  //       currency: currency.toLowerCase(),
-  //       metadata: {
-  //         bookingId
-  //       }
-  //     });
+      // Add tax and gratuity calculations
+      const baseAmount = parseFloat(amount);
+      const taxAmount = baseAmount * 0.12; // 12% tax
+      const gratuityAmount = baseAmount * 0.15; // 15% gratuity
+      const totalAmount = baseAmount + taxAmount + gratuityAmount;
       
-  //     res.json({ clientSecret: paymentIntent.client_secret });
-  //   } catch (error: any) {
-  //     res.status(500).json({ message: "Error creating payment intent: " + error.message });
-  //   }
-  // });
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(totalAmount * 100), // Convert to cents
+        currency: currency.toLowerCase(),
+        automatic_payment_methods: {
+          enabled: true,
+        },
+        metadata: {
+          bookingId,
+          baseAmount: baseAmount.toString(),
+          taxAmount: taxAmount.toString(),
+          gratuityAmount: gratuityAmount.toString()
+        }
+      });
+      
+      res.json({ 
+        clientSecret: paymentIntent.client_secret,
+        totalAmount,
+        taxAmount,
+        gratuityAmount
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error creating payment intent: " + error.message });
+    }
+  });
 
   // Update booking payment status
-  // app.patch("/api/bookings/:id/payment", async (req, res) => {
-  //   try {
-  //     const { status, stripePaymentIntentId } = req.body;
-  //     const booking = await storage.updateBookingPaymentStatus(req.params.id, status, stripePaymentIntentId);
-  //     res.json(booking);
-  //   } catch (error: any) {
-  //     res.status(500).json({ message: "Error updating payment status: " + error.message });
-  //   }
-  // });
+  app.patch("/api/bookings/:id/payment", async (req, res) => {
+    try {
+      const { status, stripePaymentIntentId } = req.body;
+      const booking = await storage.updateBookingPaymentStatus(req.params.id, status, stripePaymentIntentId);
+      res.json(booking);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error updating payment status: " + error.message });
+    }
+  });
+
+  // Inventory hold management endpoints
+  app.post("/api/cabins/hold", async (req, res) => {
+    try {
+      const { cruiseId, cabinTypeId, quantity, userId, sessionId } = req.body;
+      
+      // Check availability first
+      const available = await storage.checkCabinAvailability(cruiseId, cabinTypeId, quantity);
+      if (!available) {
+        return res.status(400).json({ message: "Requested cabins not available" });
+      }
+      
+      const hold = await storage.createCabinHold(cruiseId, cabinTypeId, quantity, userId, sessionId);
+      res.json(hold);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error creating cabin hold: " + error.message });
+    }
+  });
+  
+  app.delete("/api/cabins/hold/:holdId", async (req, res) => {
+    try {
+      await storage.releaseCabinHold(req.params.holdId);
+      res.json({ message: "Hold released successfully" });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error releasing hold: " + error.message });
+    }
+  });
+  
+  app.get("/api/cabins/availability/:cruiseId/:cabinTypeId", async (req, res) => {
+    try {
+      const { cruiseId, cabinTypeId } = req.params;
+      const quantity = parseInt(req.query.quantity as string) || 1;
+      const available = await storage.checkCabinAvailability(cruiseId, cabinTypeId, quantity);
+      res.json({ available });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error checking availability: " + error.message });
+    }
+  });
+  
+  // Promotion endpoints
+  app.get("/api/promotions", async (req, res) => {
+    try {
+      const promotions = await storage.getActivePromotions();
+      res.json(promotions);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching promotions: " + error.message });
+    }
+  });
+  
+  app.post("/api/promotions/apply", async (req, res) => {
+    try {
+      const { bookingAmount, promotionIds, bookingData } = req.body;
+      const result = await storage.applyPromotion(bookingAmount, promotionIds, bookingData);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error applying promotion: " + error.message });
+    }
+  });
+  
+  // iCal export endpoint
+  app.get("/api/bookings/:id/calendar", async (req, res) => {
+    try {
+      const booking = await storage.getBooking(req.params.id);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      const cruise = await storage.getCruise(booking.cruiseId);
+      if (!cruise) {
+        return res.status(404).json({ message: "Cruise not found" });
+      }
+      
+      // Generate iCal content
+      const icalContent = generateICalendar(booking, cruise);
+      
+      res.setHeader('Content-Type', 'text/calendar');
+      res.setHeader('Content-Disposition', `attachment; filename="cruise-itinerary-${booking.confirmationNumber}.ics"`);
+      res.send(icalContent);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error generating calendar: " + error.message });
+    }
+  });
+  
+  // Calendar events
+  app.get("/api/bookings/:id/events", async (req, res) => {
+    try {
+      const events = await storage.getCalendarEventsByBooking(req.params.id);
+      res.json(events);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching calendar events: " + error.message });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
