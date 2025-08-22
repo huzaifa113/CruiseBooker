@@ -29,7 +29,7 @@ export default function Booking() {
     extras: []
   });
 
-  const steps = ["Cabin", "Dining", "Extras", "Guests", "Payment"];
+  const steps = ["Cabin", "Dining", "Extras", "Guests"];
 
   // Fetch cruise details
   const { data: cruise, isLoading: cruiseLoading, error: cruiseError } = useQuery({
@@ -96,12 +96,14 @@ export default function Booking() {
   };
 
   const handleStepContinue = () => {
+    console.log(`Current step: ${currentStep}, Total steps: ${steps.length}`);
     if (currentStep < steps.length) {
       setCurrentStep(prev => prev + 1);
       // Scroll to top of page on step change
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       // Proceed to checkout/payment
+      console.log("Proceeding to checkout...");
       proceedToCheckout();
     }
   };
