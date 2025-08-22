@@ -68,59 +68,7 @@ export default function Home() {
       {/* Hero Section with Search */}
       <HeroSearch />
 
-      {/* Destinations Section */}
-      <section className="py-16 bg-white/80 backdrop-blur-sm" id="destinations-section">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Popular Destinations
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Explore the world's most beautiful destinations with our carefully curated cruise experiences
-            </p>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* Generate destination cards dynamically from cruise data */}
-            {cruises && cruises.length > 0 && 
-              // Get unique destinations with counts from actual cruise data
-              Object.values(
-                cruises.reduce((acc: any, cruise: Cruise) => {
-                  const dest = cruise.destination;
-                  if (!acc[dest]) {
-                    acc[dest] = {
-                      name: dest,
-                      image: cruise.image,
-                      description: cruise.highlights?.[0] || `Experience the beauty of ${dest}`,
-                      cruiseCount: 1,
-                      cruises: [cruise]
-                    };
-                  } else {
-                    acc[dest].cruiseCount += 1;
-                    acc[dest].cruises.push(cruise);
-                  }
-                  return acc;
-                }, {})
-              ).slice(0, 4).map((destination: any) => (
-              <Card key={destination.name} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => handleDestinationClick(destination.name)}>
-                <div className="relative h-48">
-                  <img
-                    src={destination.image}
-                    alt={destination.name}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                  <div className="absolute bottom-4 left-4 text-white">
-                    <h3 className="text-lg font-semibold">{destination.name}</h3>
-                    <p className="text-sm opacity-90">{destination.description}</p>
-                    <p className="text-xs mt-1 text-blue-200">{destination.cruiseCount} cruise{destination.cruiseCount > 1 ? 's' : ''}</p>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Featured Cruises Section */}
       <section className="py-16 bg-gradient-to-r from-blue-100 to-indigo-100">
@@ -312,8 +260,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Destinations Section */}
-      <section className="py-16 bg-gray-50">
+      {/* Popular Destinations Section */}
+      <section className="py-16 bg-white/80 backdrop-blur-sm" id="destinations-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -324,55 +272,45 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                name: "Caribbean",
-                image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop",
-                description: "Turquoise waters and pristine beaches",
-                cruiseCount: "15+ cruises available"
-              },
-              {
-                name: "Mediterranean",
-                image: "https://images.unsplash.com/photo-1530841344095-b2893194ecfb?w=400&h=300&fit=crop",
-                description: "Ancient history meets modern luxury",
-                cruiseCount: "12+ cruises available"
-              },
-              {
-                name: "Alaska",
-                image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
-                description: "Glaciers, wildlife, and wilderness",
-                cruiseCount: "8+ cruises available"
-              },
-              {
-                name: "Northern Europe",
-                image: "https://images.unsplash.com/photo-1516049516295-2c90900bbe4a?w=400&h=300&fit=crop",
-                description: "Dramatic fjords and historic capitals",
-                cruiseCount: "10+ cruises available"
-              }
-            ].map((destination, index) => (
-              <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group" onClick={() => handleDestinationClick(destination)}>
-                <div className="relative h-48 overflow-hidden">
-                  <img 
-                    src={destination.image} 
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* Generate destination cards dynamically from cruise data */}
+            {cruises && cruises.length > 0 && 
+              // Get unique destinations with counts from actual cruise data
+              Object.values(
+                cruises.reduce((acc: any, cruise: Cruise) => {
+                  const dest = cruise.destination;
+                  if (!acc[dest]) {
+                    acc[dest] = {
+                      name: dest,
+                      image: cruise.imageUrl,
+                      description: cruise.highlights?.[0] || `Experience the beauty of ${dest}`,
+                      cruiseCount: 1,
+                      cruises: [cruise]
+                    };
+                  } else {
+                    acc[dest].cruiseCount += 1;
+                    acc[dest].cruises.push(cruise);
+                  }
+                  return acc;
+                }, {})
+              ).slice(0, 4).map((destination: any) => (
+              <Card key={destination.name} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => handleDestinationClick(destination.name)}>
+                <div className="relative h-48">
+                  <img
+                    src={destination.image}
                     alt={destination.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkRlc3RpbmF0aW9uPC90ZXh0Pjwvc3ZnPg==";
+                    }}
                   />
-                  <div className="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-30 transition-opacity"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 text-white">
-                    <h3 className="text-lg font-bold">{destination.name}</h3>
-                    <p className="text-sm text-gray-200">{destination.cruiseCount}</p>
+                    <h3 className="text-lg font-semibold">{destination.name}</h3>
+                    <p className="text-sm opacity-90">{destination.description}</p>
+                    <p className="text-xs mt-1 text-blue-200">{destination.cruiseCount} cruise{destination.cruiseCount > 1 ? 's' : ''}</p>
                   </div>
                 </div>
-                <CardContent className="p-4">
-                  <p className="text-gray-600">{destination.description}</p>
-                  <button className="mt-3 text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center">
-                    Explore Cruises
-                    <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                </CardContent>
               </Card>
             ))}
           </div>

@@ -111,9 +111,14 @@ export class DatabaseStorage implements IStorage {
         conditions.push(lte(cruises.basePrice, filters.maxPrice.toString()));
       }
       
-      if (filters.duration && filters.duration.length > 0) {
-        const durationConditions = filters.duration.map(d => eq(cruises.duration, d));
-        conditions.push(sql`${cruises.duration} IN (${sql.join(filters.duration.map(d => sql`${d}`), sql`,`)})`);
+      if (filters.duration) {
+        if (Array.isArray(filters.duration) && filters.duration.length > 0) {
+          conditions.push(sql`${cruises.duration} IN (${sql.join(filters.duration.map(d => sql`${d}`), sql`,`)})`);
+        } else if (typeof filters.duration === 'string') {
+          conditions.push(eq(cruises.duration, parseInt(filters.duration)));
+        } else if (typeof filters.duration === 'number') {
+          conditions.push(eq(cruises.duration, filters.duration));
+        }
       }
       
       if (filters.cruiseLines && filters.cruiseLines.length > 0) {

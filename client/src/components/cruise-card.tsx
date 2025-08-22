@@ -102,20 +102,35 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
                 <span data-testid={`text-duration-${cruise.id}`}>{cruise.duration} Days / {cruise.duration - 1} Nights</span>
               </div>
             </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-2xl font-bold text-gray-900" data-testid={`text-price-${cruise.id}`}>
-                  {formatPrice(cruise.basePrice)}
-                </span>
-                <p className="text-xs text-gray-600">per person</p>
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-2xl font-bold text-gray-900" data-testid={`text-price-${cruise.id}`}>
+                    {formatPrice(cruise.basePrice)}
+                  </span>
+                  <p className="text-xs text-gray-600">per person</p>
+                </div>
               </div>
-              <Button
-                onClick={() => onSelectCruise?.(cruise)}
-                className="bg-coral-500 text-white hover:bg-coral-600"
-                data-testid={`button-select-cruise-${cruise.id}`}
-              >
-                Select
-              </Button>
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onViewItinerary?.(cruise)}
+                  className="flex-1 bg-ocean-100 text-ocean-700 hover:bg-ocean-200 border-ocean-200"
+                  data-testid={`button-see-itinerary-${cruise.id}`}
+                >
+                  See Itinerary
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleViewCabins}
+                  className="flex-1 bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  data-testid={`button-view-cabins-${cruise.id}`}
+                >
+                  View Cabins
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -133,11 +148,11 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
     <>
       <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-ocean-400" data-testid={`cruise-card-${cruise.id}`}>
         <div className="flex flex-col md:flex-row">
-          <div className="relative md:w-2/5">
+          <div className="relative md:w-2/5 min-h-[200px] md:min-h-[280px]">
             <img
               src={cruise.imageUrl}
               alt={cruise.name}
-              className="w-full h-56 md:h-full object-cover"
+              className="w-full h-full object-cover rounded-l-lg md:rounded-l-lg md:rounded-tr-none"
               onError={(e) => {
                 e.currentTarget.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkNydWlzZSBJbWFnZTwvdGV4dD48L3N2Zz4=";
               }}

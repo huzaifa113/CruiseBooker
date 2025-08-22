@@ -259,7 +259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Download Invoice PDF endpoint
+  // Download Invoice endpoint (JSON data for frontend PDF generation)
   app.get("/api/bookings/:id/invoice", async (req, res) => {
     try {
       const booking = await storage.getBookingWithDetails(req.params.id);
@@ -267,7 +267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Booking not found" });
       }
       
-      // Generate PDF invoice content (HTML that can be converted to PDF on frontend)
+      // Generate invoice data for frontend PDF generation
       const invoiceData = {
         booking,
         cruise: booking.cruise,
@@ -279,6 +279,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(invoiceData);
     } catch (error: any) {
       res.status(500).json({ message: "Error generating invoice: " + error.message });
+    }
+  });
+
+  // Download Invoice PDF endpoint (actual PDF file)
+  app.get("/api/bookings/:id/invoice-pdf", async (req, res) => {
+    try {
+      const booking = await storage.getBookingWithDetails(req.params.id);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      // For now, return 404 to trigger fallback to print method
+      // In production, you would use puppeteer or similar to generate actual PDF
+      res.status(404).json({ message: "PDF generation not available, using fallback method" });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error generating PDF invoice: " + error.message });
     }
   });
 

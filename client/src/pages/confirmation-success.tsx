@@ -36,34 +36,56 @@ export default function ConfirmationSuccess() {
 
   const handleDownloadInvoice = async () => {
     try {
-      const response = await fetch(`/api/bookings/${bookingId}/invoice`);
+      const response = await fetch(`/api/bookings/${bookingId}/invoice-pdf`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/pdf',
+        },
+      });
+      
       if (response.ok) {
-        const invoiceData = await response.json();
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `invoice-${bookingId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
         
-        // Generate PDF-ready invoice HTML
-        const invoiceHtml = generateInvoiceHTML(invoiceData);
-        
-        // Create a new window for PDF generation
-        const printWindow = window.open('', '_blank');
-        if (printWindow) {
-          printWindow.document.write(invoiceHtml);
-          printWindow.document.close();
-          
-          // Wait for content to load then trigger print dialog
-          printWindow.onload = () => {
-            setTimeout(() => {
-              printWindow.print();
-              // Note: User can choose "Save as PDF" in the print dialog
-            }, 500);
-          };
-        }
-        
-        console.log("Invoice opened for PDF download");
+        console.log("Invoice downloaded successfully");
       } else {
-        throw new Error('Failed to generate invoice');
+        // Fallback to print method if PDF endpoint not available
+        const invoiceResponse = await fetch(`/api/bookings/${bookingId}/invoice`);
+        if (invoiceResponse.ok) {
+          const invoiceData = await invoiceResponse.json();
+          
+          // Generate print-ready invoice HTML
+          const invoiceHtml = generateInvoiceHTML(invoiceData);
+          
+          // Create a new window for printing/PDF save
+          const printWindow = window.open('', '_blank');
+          if (printWindow) {
+            printWindow.document.write(invoiceHtml);
+            printWindow.document.close();
+            
+            // Wait for content to load then trigger print dialog
+            printWindow.onload = () => {
+              setTimeout(() => {
+                printWindow.print();
+                // User can choose "Save as PDF" in the print dialog
+              }, 500);
+            };
+          }
+        } else {
+          throw new Error('Failed to generate invoice');
+        }
       }
     } catch (error) {
       console.error("Error downloading invoice:", error);
+      alert("Failed to download invoice. Please try again later.");
     }
   };
 
