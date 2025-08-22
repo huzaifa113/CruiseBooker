@@ -10,6 +10,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import type { GuestInfo } from "@/lib/types";
 
 const guestSchema = z.object({
@@ -62,6 +63,7 @@ export default function GuestDetails({
   onBack
 }: GuestDetailsProps) {
   const { user } = useAuth();
+  const { toast } = useToast();
   const totalGuests = adultCount + childCount + seniorCount;
   
   const { register, formState: { errors }, handleSubmit, watch } = useForm<GuestDetailsForm>({
