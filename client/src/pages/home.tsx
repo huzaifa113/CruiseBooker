@@ -81,32 +81,27 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              {
-                name: "Caribbean",
-                image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400&h=300&fit=crop",
-                description: "Tropical paradise with crystal clear waters",
-                cruiseCount: "12+ cruises"
-              },
-              {
-                name: "Mediterranean",
-                image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop",
-                description: "Rich history and stunning coastal cities",
-                cruiseCount: "8+ cruises"
-              },
-              {
-                name: "Norwegian Fjords",
-                image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=300&fit=crop",
-                description: "Breathtaking natural beauty and wilderness",
-                cruiseCount: "6+ cruises"
-              },
-              {
-                name: "Alaska",
-                image: "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=400&h=300&fit=crop",
-                description: "Glaciers, wildlife, and pristine landscapes",
-                cruiseCount: "5+ cruises"
-              }
-            ].map((destination) => (
+            {/* Generate destination cards dynamically from cruise data */}
+            {cruises && cruises.length > 0 && 
+              // Get unique destinations with counts from actual cruise data
+              Object.values(
+                cruises.reduce((acc: any, cruise: Cruise) => {
+                  const dest = cruise.destination;
+                  if (!acc[dest]) {
+                    acc[dest] = {
+                      name: dest,
+                      image: cruise.image,
+                      description: cruise.highlights?.[0] || `Experience the beauty of ${dest}`,
+                      cruiseCount: 1,
+                      cruises: [cruise]
+                    };
+                  } else {
+                    acc[dest].cruiseCount += 1;
+                    acc[dest].cruises.push(cruise);
+                  }
+                  return acc;
+                }, {})
+              ).slice(0, 4).map((destination: any) => (
               <Card key={destination.name} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => handleDestinationClick(destination.name)}>
                 <div className="relative h-48">
                   <img
@@ -118,7 +113,7 @@ export default function Home() {
                   <div className="absolute bottom-4 left-4 text-white">
                     <h3 className="text-lg font-semibold">{destination.name}</h3>
                     <p className="text-sm opacity-90">{destination.description}</p>
-                    <p className="text-xs mt-1 text-blue-200">{destination.cruiseCount}</p>
+                    <p className="text-xs mt-1 text-blue-200">{destination.cruiseCount} cruise{destination.cruiseCount > 1 ? 's' : ''}</p>
                   </div>
                 </div>
               </Card>
@@ -218,7 +213,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Special Deals Section */}
+      {/* Special Deals Section - Dynamic from Promotions */}
       <section className="py-16 bg-gradient-to-r from-green-50 to-emerald-50" id="deals-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">

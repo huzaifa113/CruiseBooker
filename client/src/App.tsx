@@ -13,7 +13,7 @@ import Checkout from "@/pages/checkout-redesigned";
 import Confirmation from "@/pages/confirmation";
 import ConfirmationSuccess from "@/pages/confirmation-success";
 import Reservations from "@/pages/reservations";
-import MyReservations from "@/pages/my-reservations";
+import MyReservations from "@/pages/my-reservations-fixed";
 import NotFound from "@/pages/not-found";
 
 function Router() {
