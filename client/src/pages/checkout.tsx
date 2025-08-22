@@ -46,7 +46,7 @@ const StripePaymentWrapper = ({ booking, totalAmount }: { booking: any; totalAmo
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            amount: Math.round(convertedAmount * 100), // Convert to cents
+            amount: convertedAmount, // Send as decimal amount, not cents
             currency: currency.toLowerCase(),
             bookingId: booking.id,
             description: `Cruise booking ${booking.confirmationNumber}`

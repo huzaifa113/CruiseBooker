@@ -295,33 +295,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Amount and booking ID are required" });
       }
       
-      // Add tax and gratuity calculations
+      // Validate currency and amount
+      const supportedCurrencies = ['usd', 'eur', 'sgd', 'thb'];
+      const currencyCode = currency.toLowerCase();
+      
+      if (!supportedCurrencies.includes(currencyCode)) {
+        return res.status(400).json({ message: "Unsupported currency" });
+      }
+      
+      // Convert amount to smallest currency unit
       const baseAmount = parseFloat(amount);
-      const taxAmount = baseAmount * 0.12; // 12% tax
-      const gratuityAmount = baseAmount * 0.15; // 15% gratuity
-      const totalAmount = baseAmount + taxAmount + gratuityAmount;
+      let amountInSmallestUnit;
+      
+      if (currencyCode === 'thb') {
+        // THB doesn't use cents, but smallest unit is satang (1/100)
+        amountInSmallestUnit = Math.round(baseAmount * 100);
+      } else {
+        // USD, EUR, SGD use cents
+        amountInSmallestUnit = Math.round(baseAmount * 100);
+      }
       
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(totalAmount * 100), // Convert to cents
-        currency: currency.toLowerCase(),
+        amount: amountInSmallestUnit,
+        currency: currencyCode,
         automatic_payment_methods: {
           enabled: true,
         },
         metadata: {
           bookingId,
-          baseAmount: baseAmount.toString(),
-          taxAmount: taxAmount.toString(),
-          gratuityAmount: gratuityAmount.toString()
+          originalAmount: baseAmount.toString(),
+          originalCurrency: currencyCode
         }
       });
       
       res.json({ 
         clientSecret: paymentIntent.client_secret,
-        totalAmount,
-        taxAmount,
-        gratuityAmount
+        totalAmount: baseAmount,
+        currency: currencyCode
       });
     } catch (error: any) {
+      console.error("Stripe payment intent error:", error);
       res.status(500).json({ message: "Error creating payment intent: " + error.message });
     }
   });
@@ -382,6 +395,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(promotions);
     } catch (error: any) {
       res.status(500).json({ message: "Error fetching promotions: " + error.message });
+    }
+  });
+
+  app.post("/api/promotions/apply", async (req, res) => {
+    try {
+      const { bookingAmount, promotionIds, bookingData } = req.body;
+      
+      if (!bookingAmount || !promotionIds || !Array.isArray(promotionIds)) {
+        return res.status(400).json({ message: "Invalid request data" });
+      }
+      
+      const result = await storage.applyPromotion(bookingAmount, promotionIds, bookingData);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error applying promotion: " + error.message });
     }
   });
   

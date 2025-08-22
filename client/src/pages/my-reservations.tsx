@@ -6,28 +6,134 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Calendar, MapPin, Ship, Users, CreditCard, Phone, Mail } from 'lucide-react';
 // Remove date-fns import to avoid build issues
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { isUnauthorizedError } from '@/lib/authUtils';
 
 export default function MyReservations() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
+  const [showLookupForm, setShowLookupForm] = useState(!isAuthenticated);
+  const [confirmationNumber, setConfirmationNumber] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [lookedUpBooking, setLookedUpBooking] = useState(null);
 
-  // Redirect to home if not authenticated
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
-      return;
-    }
-  }, [isAuthenticated, authLoading, toast]);
+  // Show lookup form for unauthenticated users or when they choose to search
+  if (!isAuthenticated || showLookupForm) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-ocean-50 to-white p-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Find Your Reservation</h1>
+            <p className="text-gray-600">Enter your confirmation number and last name to view your booking</p>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Reservation Lookup</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="confirmation" className="block text-sm font-medium text-gray-700 mb-2">
+                    Confirmation Number
+                  </label>
+                  <input
+                    id="confirmation"
+                    type="text"
+                    value={confirmationNumber}
+                    onChange={(e) => setConfirmationNumber(e.target.value.toUpperCase())}
+                    placeholder="e.g., ABC123456"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ocean-500"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                    Last Name
+                  </label>
+                  <input
+                    id="lastName"
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="As shown on booking"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ocean-500"
+                  />
+                </div>
+              </div>
+
+              <Button 
+                onClick={async () => {
+                  try {
+                    const response = await fetch(`/api/bookings/lookup?confirmationNumber=${confirmationNumber}&lastName=${lastName}`);
+                    if (response.ok) {
+                      const booking = await response.json();
+                      setLookedUpBooking(booking);
+                    } else {
+                      toast({
+                        title: "Reservation Not Found",
+                        description: "Please check your confirmation number and last name",
+                        variant: "destructive"
+                      });
+                    }
+                  } catch (error) {
+                    toast({
+                      title: "Error",
+                      description: "Unable to look up reservation",
+                      variant: "destructive"
+                    });
+                  }
+                }}
+                disabled={!confirmationNumber || !lastName}
+                className="w-full bg-ocean-600 hover:bg-ocean-700 text-white"
+              >
+                Find Reservation
+              </Button>
+
+              {isAuthenticated && (
+                <>
+                  <Separator />
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowLookupForm(false)}
+                    className="w-full"
+                  >
+                    View My Account Bookings Instead
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          {lookedUpBooking && (
+            <div className="mt-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Reservation Found</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <strong>Confirmation:</strong> {(lookedUpBooking as any).confirmationNumber}
+                    </div>
+                    <div>
+                      <strong>Status:</strong> <Badge className={getStatusColor((lookedUpBooking as any).paymentStatus)}>{(lookedUpBooking as any).paymentStatus}</Badge>
+                    </div>
+                    <div>
+                      <strong>Primary Guest:</strong> {(lookedUpBooking as any).primaryGuestName}
+                    </div>
+                    <div>
+                      <strong>Total Amount:</strong> ${(lookedUpBooking as any).totalPrice?.toLocaleString()}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   const { data: bookings, isLoading, error } = useQuery({
     queryKey: ['/api/user/bookings'],
