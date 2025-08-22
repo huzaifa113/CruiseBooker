@@ -153,8 +153,15 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
               src={cruise.imageUrl}
               alt={cruise.name}
               className="w-full h-full object-cover rounded-tl-lg md:rounded-tl-lg md:rounded-bl-lg md:rounded-tr-none"
+              loading="lazy"
+              crossOrigin="anonymous"
               onError={(e) => {
-                e.currentTarget.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkNydWlzZSBJbWFnZTwvdGV4dD48L3N2Zz4=";
+                const target = e.currentTarget;
+                if (!target.src.includes('auto=compress')) {
+                  target.src = cruise.imageUrl + '&auto=compress&cs=tinysrgb&dpr=2&h=650&w=940';
+                } else {
+                  target.src = `data:image/svg+xml;base64,${btoa(`<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#4285f4"/><text x="50%" y="50%" font-family="Arial" font-size="24" fill="#fff" text-anchor="middle" dy=".3em">${cruise.name}</text></svg>`)}`;
+                }
               }}
             />
             

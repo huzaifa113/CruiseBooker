@@ -86,70 +86,36 @@ export class DatabaseStorage implements IStorage {
     if (filters) {
       const conditions: any[] = [];
       
+      // Simplified destination-only filtering
       if (filters.destination) {
-        // Use exact match for destination filtering (case-insensitive)
         conditions.push(sql`LOWER(${cruises.destination}) = LOWER(${filters.destination})`);
-      }
-      
-      if (filters.departurePort) {
-        conditions.push(eq(cruises.departurePort, filters.departurePort));
-      }
-      
-      if (filters.departureDate) {
-        conditions.push(gte(cruises.departureDate, filters.departureDate));
-      }
-      
-      if (filters.returnDate) {
-        conditions.push(lte(cruises.returnDate, filters.returnDate));
-      }
-      
-      if (filters.minPrice) {
-        conditions.push(gte(cruises.basePrice, filters.minPrice.toString()));
-      }
-      
-      if (filters.maxPrice) {
-        conditions.push(lte(cruises.basePrice, filters.maxPrice.toString()));
-      }
-      
-      if (filters.duration) {
-        if (Array.isArray(filters.duration) && filters.duration.length > 0) {
-          conditions.push(sql`${cruises.duration} IN (${sql.join(filters.duration.map(d => sql`${d}`), sql`,`)})`);
-        } else if (typeof filters.duration === 'string') {
-          conditions.push(eq(cruises.duration, parseInt(filters.duration)));
-        } else if (typeof filters.duration === 'number') {
-          conditions.push(eq(cruises.duration, filters.duration));
-        }
-      }
-      
-      if (filters.cruiseLines && filters.cruiseLines.length > 0) {
-        const lineConditions = filters.cruiseLines.map(line => ilike(cruises.cruiseLine, `%${line}%`));
-        conditions.push(sql`(${sql.join(lineConditions, sql` OR `)})`);
       }
       
       if (conditions.length > 0) {
         query = query.where(and(...conditions));
       }
       
-      // Sorting
+      // Apply sorting
       if (filters.sortBy) {
         const order = filters.sortOrder === 'desc' ? desc : asc;
         switch (filters.sortBy) {
           case 'price':
             query = query.orderBy(order(cruises.basePrice));
             break;
-          case 'departure':
-            query = query.orderBy(order(cruises.departureDate));
+          case 'rating':
+            query = query.orderBy(order(cruises.rating));
             break;
           case 'duration':
             query = query.orderBy(order(cruises.duration));
             break;
-          case 'rating':
-            query = query.orderBy(order(cruises.rating));
-            break;
+          default:
+            query = query.orderBy(desc(cruises.rating));
         }
       } else {
-        query = query.orderBy(asc(cruises.departureDate));
+        query = query.orderBy(desc(cruises.rating));
       }
+    } else {
+      query = query.orderBy(desc(cruises.rating));
     }
     
     return await query;
