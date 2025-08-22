@@ -63,7 +63,8 @@ export const cabinTypes = pgTable("cabin_types", {
   maxOccupancy: integer("max_occupancy").notNull(),
   amenities: json("amenities").$type<string[]>().notNull(),
   imageUrl: text("image_url").notNull(),
-  availableCount: integer("available_count").notNull()
+  availableCount: integer("available_count").notNull(),
+  cabinImages: json("cabin_images").$type<string[]>().default([]).notNull() // Array of cabin interior images
 });
 
 export const bookings = pgTable("bookings", {

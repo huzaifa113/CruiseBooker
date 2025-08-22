@@ -15,20 +15,16 @@ export async function enhancedSeedDatabase() {
   console.log("Starting enhanced database seeding...");
 
   try {
-    // Check if we already have enhanced data
-    const existingCruises = await db.select().from(cruises);
-    if (existingCruises.length >= 8) {
-      console.log("Enhanced database already seeded, skipping...");
-      return;
-    }
-
-    // Clear existing data
+    // Always clear and reseed for consistent data
+    console.log("Clearing existing data for fresh seed...");
     await db.delete(calendarEvents);
     await db.delete(bookings);
     await db.delete(promotions);
     await db.delete(extras);
     await db.delete(cabinTypes);
     await db.delete(cruises);
+
+
 
     // Enhanced cruise data with comprehensive details
     const enhancedCruises = [
@@ -307,7 +303,7 @@ export async function enhancedSeedDatabase() {
     // Enhanced cabin types - basic set for all cruises
     const enhancedCabinTypes = [];
     
-    // Create standard cabin types for each cruise
+    // Create standard cabin types for each cruise with cabin images
     for (const cruise of enhancedCruises) {
       enhancedCabinTypes.push(
         { 
@@ -320,7 +316,12 @@ export async function enhancedSeedDatabase() {
           maxOccupancy: 2, 
           amenities: ["Private bathroom", "TV", "Safe"], 
           imageUrl: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=300&fit=crop", 
-          availableCount: 50 
+          availableCount: 50,
+          cabinImages: [
+            "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=600&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&fit=crop"
+          ]
         },
         { 
           id: `${cruise.id}-ocean`, 
@@ -331,8 +332,13 @@ export async function enhancedSeedDatabase() {
           priceModifier: 1.25, 
           maxOccupancy: 2, 
           amenities: ["Ocean view", "Private bathroom", "TV", "Safe"], 
-          imageUrl: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=300&fit=crop", 
-          availableCount: 30 
+          imageUrl: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&h=300&fit=crop", 
+          availableCount: 30,
+          cabinImages: [
+            "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=600&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&h=400&fit=crop"
+          ]
         },
         { 
           id: `${cruise.id}-balcony`, 
@@ -343,8 +349,13 @@ export async function enhancedSeedDatabase() {
           priceModifier: 1.55, 
           maxOccupancy: 2, 
           amenities: ["Private balcony", "Ocean view", "Premium bathroom"], 
-          imageUrl: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=300&fit=crop", 
-          availableCount: 25 
+          imageUrl: "https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=400&h=300&fit=crop", 
+          availableCount: 25,
+          cabinImages: [
+            "https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=600&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&h=400&fit=crop"
+          ]
         },
         { 
           id: `${cruise.id}-suite`, 
@@ -355,8 +366,13 @@ export async function enhancedSeedDatabase() {
           priceModifier: 2.25, 
           maxOccupancy: 4, 
           amenities: ["Separate living area", "Large balcony", "Butler service"], 
-          imageUrl: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=300&fit=crop", 
-          availableCount: 10 
+          imageUrl: "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=400&h=300&fit=crop", 
+          availableCount: 10,
+          cabinImages: [
+            "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=600&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=600&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&fit=crop"
+          ]
         }
       );
     }
@@ -409,13 +425,13 @@ export async function enhancedSeedDatabase() {
         description: "Book 6 months in advance and save up to 30%",
         discountType: "percentage",
         discountValue: 30.0,
-        minBookingAmount: 2000.0,
+        conditions: { minBookingAmount: 2000.0 },
         validFrom: new Date("2024-12-01"),
-        validUntil: new Date("2025-12-31"),
+        validTo: new Date("2025-12-31"),
         maxUses: 1000,
         currentUses: 147,
         isActive: true,
-        terms: "Valid for new bookings only. Not combinable with other offers."
+
       },
       {
         id: "promo-last-minute",
@@ -424,13 +440,13 @@ export async function enhancedSeedDatabase() {
         description: "Book within 30 days and enjoy 25% savings",
         discountType: "percentage",
         discountValue: 25.0,
-        minBookingAmount: 1500.0,
+        conditions: { minBookingAmount: 1500.0 },
         validFrom: new Date("2025-01-01"),
-        validUntil: new Date("2025-12-31"),
+        validTo: new Date("2025-12-31"),
         maxUses: 500,
         currentUses: 89,
         isActive: true,
-        terms: "Valid for departures within 30 days of booking."
+
       },
       {
         id: "promo-group",
@@ -439,13 +455,13 @@ export async function enhancedSeedDatabase() {
         description: "Special rates for groups of 8 or more",
         discountType: "percentage",
         discountValue: 20.0,
-        minBookingAmount: 10000.0,
+        conditions: { minBookingAmount: 10000.0 },
         validFrom: new Date("2025-01-01"),
-        validUntil: new Date("2025-12-31"),
+        validTo: new Date("2025-12-31"),
         maxUses: 100,
         currentUses: 23,
         isActive: true,
-        terms: "Minimum 8 passengers in same booking. Group leader travels free with 15+ passengers."
+
       },
       {
         id: "promo-loyalty",
@@ -454,28 +470,28 @@ export async function enhancedSeedDatabase() {
         description: "Exclusive discount for returning customers",
         discountType: "percentage",
         discountValue: 15.0,
-        minBookingAmount: 1000.0,
+        conditions: { minBookingAmount: 1000.0 },
         validFrom: new Date("2025-01-01"),
-        validUntil: new Date("2025-12-31"),
+        validTo: new Date("2025-12-31"),
         maxUses: 2000,
         currentUses: 456,
         isActive: true,
-        terms: "Valid for passengers who have sailed with us before."
+
       },
       {
         id: "promo-family",
         code: "FAMILY300",
         name: "Family Fun Package",
         description: "Fixed $300 discount for families with children",
-        discountType: "fixed",
+        discountType: "fixed_amount",
         discountValue: 300.0,
-        minBookingAmount: 3000.0,
+        conditions: { minBookingAmount: 3000.0 },
         validFrom: new Date("2025-02-01"),
-        validUntil: new Date("2025-08-31"),
+        validTo: new Date("2025-08-31"),
         maxUses: 300,
         currentUses: 67,
         isActive: true,
-        terms: "Valid for bookings with at least one passenger under 18."
+
       }
     ];
 
