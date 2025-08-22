@@ -48,7 +48,10 @@ export default function SearchResults() {
     // Add filter criteria
     if (filters.minPrice !== 500) params.append('minPrice', filters.minPrice.toString());
     if (filters.maxPrice !== 5000) params.append('maxPrice', filters.maxPrice.toString());
-    if (filters.duration.length > 0) params.append('duration', filters.duration.join(','));
+    if (filters.duration.length > 0) {
+      // Send duration as individual parameters for proper array handling
+      filters.duration.forEach(d => params.append('duration', d.toString()));
+    }
     if (filters.cruiseLines.length > 0) params.append('cruiseLines', filters.cruiseLines.join(','));
     if (filters.cabinTypes.length > 0) params.append('cabinTypes', filters.cabinTypes.join(','));
     params.append('sortBy', filters.sortBy);

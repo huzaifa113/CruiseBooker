@@ -67,7 +67,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Parse query parameters
       if (req.query.destination) filters.destination = req.query.destination as string;
       if (req.query.departure) filters.departure = req.query.departure as string;
-      if (req.query.duration) filters.duration = req.query.duration as string;
+      if (req.query.duration) {
+        const durationParam = req.query.duration;
+        if (Array.isArray(durationParam)) {
+          filters.duration = durationParam;
+        } else {
+          filters.duration = [durationParam as string];
+        }
+      }
       if (req.query.priceRange) filters.priceRange = req.query.priceRange as string;
       if (req.query.sortBy) filters.sortBy = req.query.sortBy as string;
       if (req.query.sortOrder) filters.sortOrder = req.query.sortOrder as string;
@@ -290,10 +297,155 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Booking not found" });
       }
       
-      // For now, return 404 to trigger fallback to print method
-      // In production, you would use puppeteer or similar to generate actual PDF
-      res.status(404).json({ message: "PDF generation not available, using fallback method" });
+      const puppeteer = await import('puppeteer');
+      const browser = await puppeteer.default.launch({ 
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      });
+      const page = await browser.newPage();
+      
+      // Generate invoice HTML
+      const invoiceData = {
+        booking,
+        cruise: booking.cruise,
+        cabinType: booking.cabinType,
+        generatedAt: new Date().toISOString(),
+        invoiceNumber: `INV-${booking.confirmationNumber}-${Date.now()}`
+      };
+      
+      const formatCurrency = (amount: number, currency: string) => {
+        return new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: currency,
+        }).format(amount);
+      };
+
+      const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+      };
+
+      const invoiceHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice - ${booking.confirmationNumber}</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; border-bottom: 2px solid #0ea5e9; padding-bottom: 20px; margin-bottom: 30px; }
+        .company-name { font-size: 28px; font-weight: bold; color: #0ea5e9; margin-bottom: 5px; }
+        .invoice-title { font-size: 24px; color: #333; }
+        .invoice-details { display: flex; justify-content: space-between; margin-bottom: 30px; }
+        .invoice-info, .billing-info { width: 48%; }
+        .invoice-info h3, .billing-info h3 { color: #0ea5e9; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        .cruise-details { background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+        .cruise-details h3 { color: #0ea5e9; margin-top: 0; }
+        .items-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        .items-table th, .items-table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        .items-table th { background: #0ea5e9; color: white; }
+        .total-section { text-align: right; font-size: 18px; font-weight: bold; color: #333; }
+        .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company-name">Phoenix Vacation Group</div>
+        <div class="invoice-title">INVOICE</div>
+    </div>
+    
+    <div class="invoice-details">
+        <div class="invoice-info">
+            <h3>Invoice Details</h3>
+            <p><strong>Invoice Number:</strong> ${invoiceData.invoiceNumber}</p>
+            <p><strong>Confirmation Number:</strong> ${booking.confirmationNumber}</p>
+            <p><strong>Generated:</strong> ${formatDate(invoiceData.generatedAt)}</p>
+            <p><strong>Payment Status:</strong> ${booking.paymentStatus}</p>
+        </div>
+        <div class="billing-info">
+            <h3>Billing Information</h3>
+            <p><strong>Primary Guest:</strong> ${booking.primaryGuestName}</p>
+            <p><strong>Email:</strong> ${booking.primaryGuestEmail}</p>
+            <p><strong>Phone:</strong> ${booking.primaryGuestPhone || 'N/A'}</p>
+            <p><strong>Guests:</strong> ${booking.guestCount} travelers</p>
+        </div>
+    </div>
+    
+    <div class="cruise-details">
+        <h3>Cruise Details</h3>
+        <p><strong>Cruise:</strong> ${booking.cruise?.name || 'N/A'}</p>
+        <p><strong>Ship:</strong> ${booking.cruise?.ship || 'N/A'}</p>
+        <p><strong>Departure:</strong> ${booking.cruise?.departurePort || 'N/A'} on ${formatDate(booking.cruise?.departureDate || '')}</p>
+        <p><strong>Duration:</strong> ${booking.cruise?.duration || 'N/A'} nights</p>
+        <p><strong>Cabin:</strong> ${booking.cabinType?.name || 'N/A'}</p>
+    </div>
+    
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Cruise Fare</td>
+                <td>${booking.guestCount}</td>
+                <td>${formatCurrency(parseFloat(booking.baseAmount) / booking.guestCount, booking.currency)}</td>
+                <td>${formatCurrency(parseFloat(booking.baseAmount), booking.currency)}</td>
+            </tr>
+            <tr>
+                <td>Taxes and Fees</td>
+                <td>1</td>
+                <td>${formatCurrency(parseFloat(booking.taxAmount), booking.currency)}</td>
+                <td>${formatCurrency(parseFloat(booking.taxAmount), booking.currency)}</td>
+            </tr>
+            <tr>
+                <td>Gratuities</td>
+                <td>1</td>
+                <td>${formatCurrency(parseFloat(booking.gratuityAmount), booking.currency)}</td>
+                <td>${formatCurrency(parseFloat(booking.gratuityAmount), booking.currency)}</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <div class="total-section">
+        <p>Total Amount: ${formatCurrency(parseFloat(booking.totalAmount), booking.currency)}</p>
+    </div>
+    
+    <div class="footer">
+        <p>Thank you for choosing Phoenix Vacation Group!</p>
+        <p>For questions, contact us at support@phoenixvacationgroup.com</p>
+    </div>
+</body>
+</html>`;
+      
+      await page.setContent(invoiceHtml);
+      
+      const pdf = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '20mm',
+          right: '20mm',
+          bottom: '20mm',
+          left: '20mm'
+        }
+      });
+      
+      await browser.close();
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="invoice-${booking.confirmationNumber}.pdf"`);
+      res.send(pdf);
+      
     } catch (error: any) {
+      console.error("Error generating PDF:", error);
       res.status(500).json({ message: "Error generating PDF invoice: " + error.message });
     }
   });
