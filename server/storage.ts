@@ -166,11 +166,6 @@ export class DatabaseStorage implements IStorage {
 
   async getCabinType(id: string): Promise<CabinType | undefined> {
     const [cabinType] = await db.select().from(cabinTypes).where(eq(cabinTypes.id, id));
-    return cabinType;
-  }
-
-  async getCabinType(id: string): Promise<CabinType | undefined> {
-    const [cabinType] = await db.select().from(cabinTypes).where(eq(cabinTypes.id, id));
     return cabinType || undefined;
   }
 
@@ -226,7 +221,7 @@ export class DatabaseStorage implements IStorage {
       .set({ 
         paymentStatus: paymentData.paymentStatus,
         stripePaymentIntentId: paymentData.paymentIntentId,
-        totalPrice: paymentData.paidAmount,
+        totalAmount: paymentData.paidAmount.toString(),
         updatedAt: new Date()
       })
       .where(eq(bookings.id, id))

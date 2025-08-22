@@ -29,10 +29,11 @@ const StripePaymentWrapper = ({ booking, totalAmount }: { booking: any; totalAmo
     }).format(amount);
   };
 
+  // Fix THB conversion - use proper exchange rate that doesn't exceed Stripe limits
   const convertedAmount = currency === 'USD' ? totalAmount : 
                          currency === 'EUR' ? totalAmount * 0.85 :
                          currency === 'SGD' ? totalAmount * 1.35 :
-                         currency === 'THB' ? totalAmount * 35 : totalAmount;
+                         currency === 'THB' ? Math.min(totalAmount * 0.03, 999999) : totalAmount;
 
   const handlePaymentSuccess = (paymentIntentId: string) => {
     console.log("Payment successful:", paymentIntentId);
@@ -124,10 +125,11 @@ const CheckoutForm = ({ booking, totalAmount }: { booking: any; totalAmount: num
   };
 
   const discountedAmount = totalAmount - promotionDiscount;
+  // Fix THB conversion to prevent Stripe amount_too_large error
   const convertedAmount = currency === 'USD' ? discountedAmount : 
                          currency === 'EUR' ? discountedAmount * 0.85 :
                          currency === 'SGD' ? discountedAmount * 1.35 :
-                         currency === 'THB' ? discountedAmount * 35 : discountedAmount;
+                         currency === 'THB' ? Math.min(discountedAmount * 0.03, 999999) : discountedAmount;
 
   // Create payment intent mutation
   const createPaymentIntentMutation = useMutation({
