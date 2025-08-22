@@ -16,7 +16,7 @@ interface CruiseCardProps {
 
 export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, compact = false }: CruiseCardProps) {
   const [showCabinCarousel, setShowCabinCarousel] = useState(false);
-  const [selectedCabinType, setSelectedCabinType] = useState<CabinType | null>(null);
+  const [selectedCabinType, setSelectedCabinType] = useState<any>(null);
 
   // Fetch cabin types for this cruise
   const { data: cabinTypes } = useQuery({
@@ -30,19 +30,23 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
     }
   });
 
-  const handleViewCabins = () => {
-    console.log('View Cabins clicked, cabinTypes:', cabinTypes);
+  const handleViewCabins = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    console.log('🚪 View Cabins clicked!', { cabinTypes, length: cabinTypes?.length });
+    
     if (cabinTypes && cabinTypes.length > 0) {
-      // Transform the cabin type data to match expected format
-      const transformedCabinType = {
-        name: cabinTypes[0].name,
-        description: cabinTypes[0].description,
-        cabinImages: cabinTypes[0].cabinImages || []
-      };
-      setSelectedCabinType(transformedCabinType);
+      const firstCabin = cabinTypes[0];
+      console.log('🏠 Setting cabin data:', firstCabin);
+      
+      setSelectedCabinType({
+        name: firstCabin.name,
+        description: firstCabin.description,
+        cabinImages: firstCabin.cabinImages || []
+      });
       setShowCabinCarousel(true);
+      console.log('✅ Cabin carousel should open now');
     } else {
-      console.log('No cabin types available');
+      console.error('❌ No cabin types available!', cabinTypes);
     }
   };
 
@@ -134,9 +138,10 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
                   variant="outline"
                   size="sm"
                   onClick={handleViewCabins}
-                  className="flex-1 bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  className="flex-1 bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer"
                   data-testid={`button-view-cabins-${cruise.id}`}
                 >
+                  <Camera className="w-4 h-4 mr-1" />
                   View Cabins
                 </Button>
               </div>
@@ -244,7 +249,7 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
                   variant="outline"
                   size="sm"
                   onClick={handleViewCabins}
-                  className="bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  className="bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer"
                   data-testid={`button-view-cabins-${cruise.id}`}
                 >
                   <Camera className="w-4 h-4 mr-1" />

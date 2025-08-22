@@ -18,7 +18,13 @@ export default function CabinCarousel({ isOpen, onClose, cabinType }: CabinCarou
 
   if (!cabinType) return null;
 
-  const images = cabinType.cabinImages || [];
+  const images = cabinType?.cabinImages || [];
+  
+  console.log('🖼️ Cabin Carousel opened with:', { 
+    cabinType, 
+    images, 
+    imageCount: images.length 
+  });
   
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
