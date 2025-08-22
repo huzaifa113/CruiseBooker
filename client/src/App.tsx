@@ -27,6 +27,7 @@ function Router() {
           <Route path="/search" component={SearchResults} />
           <Route path="/booking/:cruiseId" component={Booking} />
           <Route path="/checkout/:bookingId" component={Checkout} />
+          <Route path="/checkout" component={Checkout} />
           <Route path="/confirmation/:confirmationNumber" component={Confirmation} />
           <Route path="/reservations" component={Reservations} />
         </>
