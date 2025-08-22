@@ -31,9 +31,18 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
   });
 
   const handleViewCabins = () => {
+    console.log('View Cabins clicked, cabinTypes:', cabinTypes);
     if (cabinTypes && cabinTypes.length > 0) {
-      setSelectedCabinType(cabinTypes[0]); // Default to first cabin type
+      // Transform the cabin type data to match expected format
+      const transformedCabinType = {
+        name: cabinTypes[0].name,
+        description: cabinTypes[0].description,
+        cabinImages: cabinTypes[0].cabinImages || []
+      };
+      setSelectedCabinType(transformedCabinType);
       setShowCabinCarousel(true);
+    } else {
+      console.log('No cabin types available');
     }
   };
 
