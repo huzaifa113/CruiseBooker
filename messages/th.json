@@ -1,0 +1,112 @@
+{
+  "common": {
+    "search": "ค้นหา",
+    "book_now": "จองเลย",
+    "view_details": "ดูรายละเอียด",
+    "see_itinerary": "ดูกำหนดการเดินทาง",
+    "loading": "กำลังโหลด...",
+    "error": "ข้อผิดพลาด",
+    "success": "สำเร็จ",
+    "cancel": "ยกเลิก",
+    "confirm": "ยืนยัน",
+    "save": "บันทึก",
+    "edit": "แก้ไข",
+    "delete": "ลบ",
+    "back": "กลับ",
+    "next": "ถัดไป",
+    "previous": "ก่อนหน้า",
+    "close": "ปิด"
+  },
+  "navigation": {
+    "home": "หน้าแรก",
+    "search": "ค้นหาครูซ",
+    "deals": "โปรโมชั่น",
+    "destinations": "จุดหมายปลายทาง",
+    "about": "เกี่ยวกับเรา",
+    "contact": "ติดต่อ",
+    "my_bookings": "การจองของฉัน",
+    "login": "เข้าสู่ระบบ",
+    "logout": "ออกจากระบบ",
+    "profile": "โปรไฟล์"
+  },
+  "home": {
+    "hero_title": "ค้นพบครูซในฝันของคุณ",
+    "hero_subtitle": "สำรวจจุดหมายปลายทางที่สวยงามที่สุดในโลกบนเรือครูซหรู",
+    "featured_cruises": "ครูซแนะนำ",
+    "popular_destinations": "จุดหมายยอดนิยม",
+    "special_deals": "โปรโมชั่นพิเศษ",
+    "why_choose_us": "ทำไมต้องเลือกฟีนิกซ์ เวเคชั่น กรุ๊ป",
+    "search_placeholder": "คุณต้องการเดินทางครูซไปที่ไหน?"
+  },
+  "search": {
+    "destination": "จุดหมายปลายทาง",
+    "departure_date": "วันออกเดินทาง",
+    "return_date": "วันกลับ",
+    "guests": "ผู้โดยสาร",
+    "departure_port": "ท่าเรือออกเดินทาง",
+    "adults": "ผู้ใหญ่",
+    "children": "เด็ก",
+    "seniors": "ผู้สูงอายุ (55+)",
+    "search_cruises": "ค้นหาครูซ",
+    "filter_results": "กรองผลลัพธ์",
+    "price_range": "ช่วงราคา",
+    "duration": "ระยะเวลา",
+    "cruise_lines": "สายการเรือ",
+    "cabin_types": "ประเภทห้องพัก",
+    "sort_by": "เรียงโดย",
+    "lowest_price": "ราคาต่ำสุด",
+    "soonest_departure": "ออกเดินทางเร็วสุด",
+    "duration_short": "ระยะเวลา",
+    "rating": "คะแนน"
+  },
+  "booking": {
+    "cabin_selection": "เลือกห้องพัก",
+    "dining_selection": "เลือกเวลาอาหาร",
+    "extras_selection": "บริการเสริม",
+    "guest_details": "ข้อมูลผู้โดยสาร",
+    "payment": "ชำระเงิน",
+    "booking_summary": "สรุปการจอง",
+    "total_amount": "ราคารวม",
+    "taxes_fees": "ภาษีและค่าธรรมเนียม",
+    "gratuities": "ค่าทิป",
+    "subtotal": "ราคาย่อย",
+    "confirmation_number": "หมายเลขการจอง",
+    "booking_confirmed": "ยืนยันการจองแล้ว"
+  },
+  "cabin": {
+    "interior": "ห้องด้านใน",
+    "ocean_view": "ห้องมีหน้าต่างทะเล",
+    "balcony": "ห้องมีระเบียง",
+    "suite": "ห้องสวีท",
+    "per_person": "ต่อคน",
+    "max_occupancy": "จำนวนผู้เข้าพักสูงสุด",
+    "amenities": "สิ่งอำนวยความสะดวก",
+    "select_cabin": "เลือกห้องพัก"
+  },
+  "dining": {
+    "early_seating": "รอบแรก",
+    "late_seating": "รอบหลัง",
+    "my_time": "รับประทานตามเวลาที่ต้องการ",
+    "dining_time": "เวลารับประทานอาหาร"
+  },
+  "guest": {
+    "first_name": "ชื่อ",
+    "last_name": "นามสกุล",
+    "date_of_birth": "วันเกิด",
+    "passport_number": "หมายเลขหนังสือเดินทาง",
+    "passport_country": "ประเทศที่ออกหนังสือเดินทาง",
+    "passport_expiry": "วันหมดอายุหนังสือเดินทาง",
+    "special_needs": "ความต้องการพิเศษ",
+    "primary_contact": "ผู้ติดต่อหลัก",
+    "email": "อีเมล",
+    "phone": "เบอร์โทรศัพท์"
+  },
+  "errors": {
+    "required_field": "กรุณากรอกข้อมูลในช่องนี้",
+    "invalid_email": "กรุณากรอกอีเมลที่ถูกต้อง",
+    "invalid_phone": "กรุณากรอกเบอร์โทรศัพท์ที่ถูกต้อง",
+    "passport_expiry": "หนังสือเดินทางต้องมีอายุอย่างน้อย 6 เดือนหลังจากวันสิ้นสุดการเดินทาง",
+    "booking_failed": "การจองล้มเหลว กรุณาลองใหม่อีกครั้ง",
+    "payment_failed": "การชำระเงินล้มเหลว กรุณาตรวจสอบข้อมูลการชำระเงิน"
+  }
+}
