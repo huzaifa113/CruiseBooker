@@ -73,13 +73,18 @@ export default function SecurePaymentForm({
     try {
       // Step 2: Create secure payment intent
       console.log("Creating payment intent for amount:", totalAmount, currency);
-      const paymentData = await apiRequest('POST', '/api/create-payment-intent', {
-        amount: Math.round(totalAmount * 100), // Convert to cents
-        currency: currency.toLowerCase(),
-        bookingId: booking.id,
-        description: `Cruise booking ${booking.confirmationNumber}`
+      const response = await fetch('/api/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: Math.round(totalAmount * 100), // Convert to cents
+          currency: currency.toLowerCase(),
+          bookingId: booking.id,
+          description: `Cruise booking ${booking.confirmationNumber}`
+        })
       });
-
+      
+      const paymentData = await response.json();
       if (!paymentData.clientSecret) {
         throw new Error('Invalid payment setup');
       }
@@ -109,11 +114,15 @@ export default function SecurePaymentForm({
         console.log("Payment succeeded, confirming booking...");
         
         // Step 5: Confirm booking with backend
-        await apiRequest('POST', `/api/bookings/${booking.id}/confirm-payment`, {
-          paymentIntentId: paymentIntent.id,
-          amount: totalAmount,
-          currency: currency,
-          paymentStatus: 'completed'
+        await fetch(`/api/bookings/${booking.id}/confirm-payment`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            paymentIntentId: paymentIntent.id,
+            amount: totalAmount,
+            currency: currency,
+            paymentStatus: 'completed'
+          })
         });
         
         toast({

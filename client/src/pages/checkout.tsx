@@ -42,13 +42,19 @@ const StripePaymentWrapper = ({ booking, totalAmount }: { booking: any; totalAmo
   useEffect(() => {
     const createPaymentIntent = async () => {
       try {
-        const response = await apiRequest('POST', '/api/create-payment-intent', {
-          amount: Math.round(convertedAmount * 100), // Convert to cents
-          currency: currency.toLowerCase(),
-          bookingId: booking.id,
-          description: `Cruise booking ${booking.confirmationNumber}`
+        const response = await fetch('/api/create-payment-intent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: Math.round(convertedAmount * 100), // Convert to cents
+            currency: currency.toLowerCase(),
+            bookingId: booking.id,
+            description: `Cruise booking ${booking.confirmationNumber}`
+          })
         });
-        setClientSecret(response.clientSecret);
+        const paymentData = await response.json();
+        console.log('Payment intent created:', paymentData);
+        setClientSecret(paymentData.clientSecret);
       } catch (error) {
         console.error('Failed to create payment intent:', error);
       }
