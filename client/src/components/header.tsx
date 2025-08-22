@@ -19,7 +19,9 @@ export default function Header() {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { language, setLanguage, t } = useLanguageContext();
-  const { user, isAuthenticated } = useAuth();
+  // Authentication removed - no user menu needed
+  const user = null;
+  const isAuthenticated = false;
 
   const handleDestinationsClick = () => {
     // Navigate to home page if not there, then scroll to destinations

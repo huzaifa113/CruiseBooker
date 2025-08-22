@@ -17,11 +17,10 @@ import MyReservations from "@/pages/my-reservations-fixed";
 import NotFound from "@/pages/not-found";
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
-
   return (
     <Switch>
-      {/* Routes available to all users */}
+      {/* All routes available to all users - no authentication required */}
+      <Route path="/" component={Home} />
       <Route path="/search" component={SearchResults} />
       <Route path="/booking/:cruiseId" component={Booking} />
       <Route path="/checkout/:bookingId" component={Checkout} />
@@ -30,13 +29,7 @@ function Router() {
       <Route path="/confirmation-success/:bookingId" component={ConfirmationSuccess} />
       <Route path="/reservations" component={Reservations} />
       <Route path="/my-reservations" component={MyReservations} />
-
-      {/* Auth-dependent routes */}
-      {isLoading || !isAuthenticated ? (
-        <Route path="/" component={Landing} />
-      ) : (
-        <Route path="/" component={Home} />
-      )}
+      <Route path="/landing" component={Landing} />
       
       <Route component={NotFound} />
     </Switch>

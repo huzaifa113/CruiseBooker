@@ -62,7 +62,8 @@ export default function GuestDetails({
   onContinue,
   onBack
 }: GuestDetailsProps) {
-  const { user } = useAuth();
+  // Authentication removed - no auto-fill from user account
+  const user = null;
   const { toast } = useToast();
   const totalGuests = adultCount + childCount + seniorCount;
   
