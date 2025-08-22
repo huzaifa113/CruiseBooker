@@ -1,0 +1,81 @@
+
+Phoenix
+EN
+TH
+
+Complete Your Booking
+Caribbean Paradise • Interior Stateroom • 2 guests
+
+Payment Currency
+
+EUR - Euro
+Payment Summary
+Cruise Fare (2 guests)
+€2,601.25
+Taxes & Fees
+€255.00
+Gratuities
+€318.75
+Total
+€2,698.75
+Promotions & Deals
+Have a promo code?
+Enter promo code
+Apply
+Available Deals
+No promotions available for this booking
+
+Booking Confirmation
+Secure Payment: Payments are processed securely through Stripe with full tax and gratuity calculations.
+
+• Your booking will be confirmed immediately
+
+• You will receive a confirmation email
+
+• Booking confirmation number: N1IFX9G6
+
+Confirm Booking - €2,698.75
+Phoenix Vacation Group
+Creating unforgettable cruise experiences for over 25 years. Your luxury vacation starts here.
+
+Cruise Destinations
+Caribbean
+Mediterranean
+Alaska
+Northern Europe
+Asia
+Support
+My Reservations
+Contact Us
+FAQ
+Travel Insurance
+Special Needs
+Contact Info
++66 2 123 4567
+info@phoenixvacations.com
+123 Silom Road
+Bangkok, Thailand 10500
+© 2024 Phoenix Vacation Group. All rights reserved.
+
+Privacy Policy
+Terms of Service
+Sitemap
+[plugin:runtime-error-plugin] Failed to execute 'fetch' on 'Window': '/api/create-payment-intent' is not a valid HTTP method.
+/home/runner/workspace/client/src/lib/queryClient.ts:15:21
+13 |    data?: unknown | undefined,
+14 |  ): Promise<Response> {
+15 |    const res = await fetch(url, {
+   |                      ^
+16 |      method,
+17 |      headers: data ? { "Content-Type": "application/json" } : {},
+
+
+    at apiRequest /home/runner/workspace/client/src/lib/queryClient.ts:15:21
+    at Object.mutationFn /home/runner/workspace/client/src/pages/checkout.tsx:44:20
+
+
+
+
+    at async handleSubmit (https://7ed95bbe-ddc5-420e-9567-d08c4d5392d2-00-3bpc0b5lmwa5r.riker.replit.dev/src/pages/checkout.tsx:81:27
+Click outside, press Esc key, or fix the code to dismiss.
+You can also disable this overlay by setting server.hmr.overlay to false in vite.config.js.

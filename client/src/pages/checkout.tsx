@@ -41,10 +41,7 @@ const CheckoutForm = ({ booking, totalAmount }: { booking: any; totalAmount: num
   // Create payment intent mutation
   const createPaymentIntentMutation = useMutation({
     mutationFn: async (data: { amount: number; currency: string; bookingId: string }) => {
-      return await apiRequest('/api/create-payment-intent', {
-        method: 'POST',
-        body: JSON.stringify(data)
-      });
+      return await apiRequest('POST', '/api/create-payment-intent', data);
     }
   });
 
@@ -308,11 +305,7 @@ export default function Checkout() {
         demoBooking.cabinTypeId = cabinTypes[0].id; // Use first available cabin type
       }
 
-      const response = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(demoBooking)
-      });
+      const response = await apiRequest('POST', '/api/bookings', demoBooking);
       
       if (response.ok) {
         const booking = await response.json();
