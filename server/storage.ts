@@ -388,6 +388,11 @@ export class DatabaseStorage implements IStorage {
     return booking;
   }
 
+  async getBooking(bookingId: string): Promise<any> {
+    const [booking] = await db.select().from(bookings).where(eq(bookings.id, bookingId));
+    return booking;
+  }
+
   private generateConfirmationNumber(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let result = '';

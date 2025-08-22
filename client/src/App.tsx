@@ -21,28 +21,23 @@ function Router() {
 
   return (
     <Switch>
+      {/* Routes available to all users */}
+      <Route path="/search" component={SearchResults} />
+      <Route path="/booking/:cruiseId" component={Booking} />
+      <Route path="/checkout/:bookingId" component={Checkout} />
+      <Route path="/checkout" component={Checkout} />
+      <Route path="/confirmation/:confirmationNumber" component={Confirmation} />
+      <Route path="/confirmation-success/:bookingId" component={ConfirmationSuccess} />
+      <Route path="/reservations" component={Reservations} />
+      <Route path="/my-reservations" component={MyReservations} />
+
+      {/* Auth-dependent routes */}
       {isLoading || !isAuthenticated ? (
-        <>
-          <Route path="/" component={Landing} />
-          <Route path="/search" component={SearchResults} />
-          <Route path="/booking/:cruiseId" component={Booking} />
-          <Route path="/checkout/:bookingId" component={Checkout} />
-          <Route path="/checkout" component={Checkout} />
-          <Route path="/reservations" component={Reservations} />
-        </>
+        <Route path="/" component={Landing} />
       ) : (
-        <>
-          <Route path="/" component={Home} />
-          <Route path="/search" component={SearchResults} />
-          <Route path="/booking/:cruiseId" component={Booking} />
-          <Route path="/checkout/:bookingId" component={Checkout} />
-          <Route path="/checkout" component={Checkout} />
-          <Route path="/confirmation/:confirmationNumber" component={Confirmation} />
-          <Route path="/confirmation-success/:bookingId" component={ConfirmationSuccess} />
-          <Route path="/reservations" component={Reservations} />
-          <Route path="/my-reservations" component={MyReservations} />
-        </>
+        <Route path="/" component={Home} />
       )}
+      
       <Route component={NotFound} />
     </Switch>
   );

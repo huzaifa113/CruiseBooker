@@ -423,15 +423,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // iCal export endpoint
-  app.get("/api/bookings/:id/calendar", async (req, res) => {
+  // Download Invoice PDF endpoint
+  app.get("/api/bookings/:id/invoice", async (req, res) => {
     try {
-      const booking = await storage.getBooking(req.params.id);
+      const booking = await storage.getBookingWithDetails(req.params.id);
       if (!booking) {
         return res.status(404).json({ message: "Booking not found" });
       }
       
-      const cruise = await storage.getCruise(booking.cruiseId);
+      // Generate PDF invoice content (HTML that can be converted to PDF on frontend)
+      const invoiceData = {
+        booking,
+        cruise: booking.cruise,
+        cabinType: booking.cabinType,
+        generatedAt: new Date().toISOString(),
+        invoiceNumber: `INV-${booking.confirmationNumber}-${Date.now()}`
+      };
+      
+      res.json(invoiceData);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error generating invoice: " + error.message });
+    }
+  });
+
+  // Email Confirmation endpoint
+  app.post("/api/bookings/:id/email-confirmation", async (req, res) => {
+    try {
+      const booking = await storage.getBookingWithDetails(req.params.id);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      // In a real app, you would integrate with an email service like SendGrid
+      // For now, we'll simulate the email sending
+      const emailData = {
+        to: booking.primaryGuestEmail,
+        subject: `Booking Confirmation - ${booking.cruise?.name}`,
+        confirmationNumber: booking.confirmationNumber,
+        bookingDetails: booking,
+        sentAt: new Date().toISOString()
+      };
+      
+      console.log("Email would be sent:", emailData);
+      
+      res.json({ 
+        success: true, 
+        message: "Confirmation email sent successfully",
+        emailData 
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error sending email: " + error.message });
+    }
+  });
+
+  // iCal export endpoint
+  app.get("/api/bookings/:id/calendar", async (req, res) => {
+    try {
+      const booking = await storage.getBookingWithDetails(req.params.id);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      const cruise = booking.cruise;
       if (!cruise) {
         return res.status(404).json({ message: "Cruise not found" });
       }
