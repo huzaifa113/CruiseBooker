@@ -9,7 +9,7 @@ import Home from "@/pages/home";
 import Landing from "@/pages/landing";
 import SearchResults from "@/pages/search-results";
 import Booking from "@/pages/booking";
-import Checkout from "@/pages/checkout";
+import Checkout from "@/pages/checkout-redesigned";
 import Confirmation from "@/pages/confirmation";
 import ConfirmationSuccess from "@/pages/confirmation-success";
 import Reservations from "@/pages/reservations";
