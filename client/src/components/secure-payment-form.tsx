@@ -130,9 +130,9 @@ export default function SecurePaymentForm({
           description: `Your booking has been confirmed. Amount charged: ${formatCurrency(totalAmount, currency)}`,
         });
         
-        // Step 6: Redirect to confirmation
+        // Step 6: Redirect to confirmation success page
         onPaymentSuccess(paymentIntent.id);
-        setLocation(`/confirmation/${booking.confirmationNumber}`);
+        setLocation(`/confirmation-success/${bookingId}`);
         
       } else if (paymentIntent?.status === 'requires_action') {
         toast({

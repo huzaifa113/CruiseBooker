@@ -11,6 +11,7 @@ import SearchResults from "@/pages/search-results";
 import Booking from "@/pages/booking";
 import Checkout from "@/pages/checkout";
 import Confirmation from "@/pages/confirmation";
+import ConfirmationSuccess from "@/pages/confirmation-success";
 import Reservations from "@/pages/reservations";
 import MyReservations from "@/pages/my-reservations";
 import NotFound from "@/pages/not-found";
@@ -37,6 +38,7 @@ function Router() {
           <Route path="/checkout/:bookingId" component={Checkout} />
           <Route path="/checkout" component={Checkout} />
           <Route path="/confirmation/:confirmationNumber" component={Confirmation} />
+          <Route path="/confirmation-success/:bookingId" component={ConfirmationSuccess} />
           <Route path="/reservations" component={Reservations} />
           <Route path="/my-reservations" component={MyReservations} />
         </>
