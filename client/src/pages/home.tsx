@@ -9,7 +9,7 @@ import ItineraryModal from "@/components/itinerary-modal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, Quote } from "lucide-react";
+import { Star, Quote, Award, DollarSign, Headphones } from "lucide-react";
 import type { Cruise } from "@shared/schema";
 
 export default function Home() {
@@ -45,6 +45,16 @@ export default function Home() {
   const handleBookCruise = (cruise: Cruise) => {
     setIsItineraryModalOpen(false);
     setLocation(`/booking/${cruise.id}`);
+  };
+
+  const handleDealClick = (deal: any) => {
+    // Navigate to search with applied filters or deals
+    setLocation(`/search?deal=${encodeURIComponent(deal.title)}`);
+  };
+
+  const handleDestinationClick = (destination: string) => {
+    // Navigate to search filtered by destination
+    setLocation(`/search?destination=${encodeURIComponent(destination)}`);
   };
 
 
@@ -95,7 +105,7 @@ export default function Home() {
                 cruiseCount: "5+ cruises"
               }
             ].map((destination) => (
-              <Card key={destination.name} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+              <Card key={destination.name} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => handleDestinationClick(destination.name)}>
                 <div className="relative h-48">
                   <img
                     src={destination.image}
@@ -242,7 +252,7 @@ export default function Home() {
                 color: "bg-blue-600"
               }
             ].map((deal, index) => (
-              <Card key={index} className="relative overflow-hidden hover:shadow-lg transition-shadow">
+              <Card key={index} className="relative overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => handleDealClick(deal)}>
                 <CardContent className="p-6">
                   <div className={`absolute top-4 right-4 ${deal.color} text-white px-3 py-1 rounded-full text-sm font-bold`}>
                     {deal.discount}
@@ -252,6 +262,9 @@ export default function Home() {
                   <div className="text-sm text-gray-500">
                     Valid until: {deal.validUntil}
                   </div>
+                  <button className="mt-4 w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                    Apply Deal
+                  </button>
                 </CardContent>
               </Card>
             ))}
@@ -271,7 +284,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="w-16 h-16 bg-ocean-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-award text-ocean-600 text-2xl"></i>
+                <Award className="text-ocean-600 w-8 h-8" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">25+ Years Experience</h3>
               <p className="text-gray-600">Trusted by thousands of travelers for luxury cruise experiences worldwide.</p>
@@ -279,7 +292,7 @@ export default function Home() {
             
             <div className="text-center">
               <div className="w-16 h-16 bg-ocean-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-dollar-sign text-ocean-600 text-2xl"></i>
+                <DollarSign className="text-ocean-600 w-8 h-8" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Best Price Guarantee</h3>
               <p className="text-gray-600">We'll match any competitor's price and beat it by 5%.</p>
@@ -287,7 +300,7 @@ export default function Home() {
             
             <div className="text-center">
               <div className="w-16 h-16 bg-ocean-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-headset text-ocean-600 text-2xl"></i>
+                <Headphones className="text-ocean-600 w-8 h-8" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">24/7 Support</h3>
               <p className="text-gray-600">Expert cruise consultants available around the clock to help you.</p>

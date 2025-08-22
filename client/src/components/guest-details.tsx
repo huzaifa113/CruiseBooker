@@ -283,30 +283,46 @@ export default function GuestDetails({
                         <Label htmlFor={`guests.${index}.firstName`}>First Name *</Label>
                         <Input
                           {...register(`guests.${index}.firstName`)}
+                          className={errors.guests?.[index]?.firstName ? "border-red-500 focus:border-red-500 ring-red-500" : ""}
                           data-testid={`input-guest-firstname-${index}`}
                         />
+                        {errors.guests?.[index]?.firstName && (
+                          <p className="text-red-500 text-sm mt-1">{errors.guests[index].firstName.message}</p>
+                        )}
                       </div>
                       <div>
                         <Label htmlFor={`guests.${index}.lastName`}>Last Name *</Label>
                         <Input
                           {...register(`guests.${index}.lastName`)}
+                          className={errors.guests?.[index]?.lastName ? "border-red-500 focus:border-red-500 ring-red-500" : ""}
                           data-testid={`input-guest-lastname-${index}`}
                         />
+                        {errors.guests?.[index]?.lastName && (
+                          <p className="text-red-500 text-sm mt-1">{errors.guests[index].lastName.message}</p>
+                        )}
                       </div>
                       <div>
                         <Label htmlFor={`guests.${index}.dateOfBirth`}>Date of Birth *</Label>
                         <Input
                           type="date"
                           {...register(`guests.${index}.dateOfBirth`)}
+                          className={errors.guests?.[index]?.dateOfBirth ? "border-red-500 focus:border-red-500 ring-red-500" : ""}
                           data-testid={`input-guest-dob-${index}`}
                         />
+                        {errors.guests?.[index]?.dateOfBirth && (
+                          <p className="text-red-500 text-sm mt-1">{errors.guests[index].dateOfBirth.message}</p>
+                        )}
                       </div>
                       <div>
                         <Label htmlFor={`guests.${index}.passportNumber`}>Passport Number</Label>
                         <Input
                           {...register(`guests.${index}.passportNumber`)}
+                          className={errors.guests?.[index]?.passportNumber ? "border-red-500 focus:border-red-500 ring-red-500" : ""}
                           data-testid={`input-guest-passport-${index}`}
                         />
+                        {errors.guests?.[index]?.passportNumber && (
+                          <p className="text-red-500 text-sm mt-1">{errors.guests[index].passportNumber.message}</p>
+                        )}
                       </div>
                       <div>
                         <Label htmlFor={`guests.${index}.passportCountry`}>Passport Country</Label>
@@ -328,8 +344,12 @@ export default function GuestDetails({
                         <Input
                           type="date"
                           {...register(`guests.${index}.passportExpiry`)}
+                          className={errors.guests?.[index]?.passportExpiry ? "border-red-500 focus:border-red-500 ring-red-500" : ""}
                           data-testid={`input-guest-passport-expiry-${index}`}
                         />
+                        {errors.guests?.[index]?.passportExpiry && (
+                          <p className="text-red-500 text-sm mt-1">{errors.guests[index].passportExpiry.message}</p>
+                        )}
                       </div>
                       <div className="md:col-span-2">
                         <Label htmlFor={`guests.${index}.specialNeeds`}>Special Needs/Dietary Requirements</Label>
