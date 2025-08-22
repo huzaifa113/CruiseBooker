@@ -132,7 +132,7 @@ export default function SecurePaymentForm({
         
         // Step 6: Redirect to confirmation success page
         onPaymentSuccess(paymentIntent.id);
-        setLocation(`/confirmation-success/${bookingId}`);
+        setLocation(`/confirmation-success/${booking.id}`);
         
       } else if (paymentIntent?.status === 'requires_action') {
         toast({

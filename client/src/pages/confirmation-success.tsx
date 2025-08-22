@@ -104,8 +104,8 @@ export default function ConfirmationSuccess() {
     );
   }
 
-  const cruise = booking.cruise;
-  const cabinType = booking.cabinType;
+  const cruise = booking?.cruise;
+  const cabinType = booking?.cabinType;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -130,7 +130,7 @@ export default function ConfirmationSuccess() {
               <CardTitle className="flex items-center justify-between">
                 <span>Booking Details</span>
                 <Badge className="bg-green-100 text-green-800 border-green-200">
-                  {booking.paymentStatus.charAt(0).toUpperCase() + booking.paymentStatus.slice(1)}
+                  {booking?.paymentStatus?.charAt(0).toUpperCase() + booking?.paymentStatus?.slice(1)}
                 </Badge>
               </CardTitle>
             </CardHeader>
@@ -139,7 +139,7 @@ export default function ConfirmationSuccess() {
               <div className="bg-ocean-50 p-4 rounded-lg">
                 <div className="text-sm text-ocean-700 mb-1">Confirmation Number</div>
                 <div className="text-xl font-bold text-ocean-900" data-testid="confirmation-number">
-                  {booking.confirmationNumber}
+                  {booking?.confirmationNumber}
                 </div>
               </div>
 
@@ -176,7 +176,7 @@ export default function ConfirmationSuccess() {
                   <div>
                     <div className="font-semibold">Guests & Cabin</div>
                     <div className="text-gray-600">
-                      {booking.guestCount} guests • {cabinType?.name}
+                      {booking?.guestCount} guests • {cabinType?.name}
                     </div>
                   </div>
                 </div>
@@ -188,9 +188,9 @@ export default function ConfirmationSuccess() {
               <div className="space-y-2">
                 <div className="font-semibold">Primary Guest</div>
                 <div className="text-gray-600">
-                  <div>{booking.primaryGuestName}</div>
-                  <div>{booking.primaryGuestEmail}</div>
-                  {booking.primaryGuestPhone && <div>{booking.primaryGuestPhone}</div>}
+                  <div>{booking?.primaryGuestName}</div>
+                  <div>{booking?.primaryGuestEmail}</div>
+                  {booking?.primaryGuestPhone && <div>{booking?.primaryGuestPhone}</div>}
                 </div>
               </div>
 
@@ -206,15 +206,20 @@ export default function ConfirmationSuccess() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Cruise Fare</span>
-                    <span>{formatCurrency(parseFloat(booking.totalAmount) - parseFloat(booking.taxAmount) - parseFloat(booking.gratuityAmount), booking.currency)}</span>
+                    <span>{formatCurrency(
+                      parseFloat(booking?.totalAmount || '0') - 
+                      parseFloat(booking?.taxAmount || '0') - 
+                      parseFloat(booking?.gratuityAmount || '0'), 
+                      booking?.currency || 'USD'
+                    )}</span>
                   </div>
                   
-                  {booking.extras && booking.extras.length > 0 && (
+                  {booking?.extras && booking.extras.length > 0 && (
                     <>
                       {booking.extras.map((extra: any, index: number) => (
                         <div key={index} className="flex justify-between text-sm">
                           <span>{extra.name} (×{extra.quantity})</span>
-                          <span>{formatCurrency(extra.price * extra.quantity, booking.currency)}</span>
+                          <span>{formatCurrency(extra.price * extra.quantity, booking?.currency || 'USD')}</span>
                         </div>
                       ))}
                     </>
@@ -222,19 +227,19 @@ export default function ConfirmationSuccess() {
                   
                   <div className="flex justify-between text-sm">
                     <span>Taxes & Fees</span>
-                    <span>{formatCurrency(parseFloat(booking.taxAmount), booking.currency)}</span>
+                    <span>{formatCurrency(parseFloat(booking?.taxAmount || '0'), booking?.currency || 'USD')}</span>
                   </div>
                   
                   <div className="flex justify-between text-sm">
                     <span>Gratuities</span>
-                    <span>{formatCurrency(parseFloat(booking.gratuityAmount), booking.currency)}</span>
+                    <span>{formatCurrency(parseFloat(booking?.gratuityAmount || '0'), booking?.currency || 'USD')}</span>
                   </div>
                   
                   <Separator />
                   
                   <div className="flex justify-between font-semibold text-lg">
                     <span>Total Paid</span>
-                    <span>{formatCurrency(parseFloat(booking.totalAmount), booking.currency)}</span>
+                    <span>{formatCurrency(parseFloat(booking?.totalAmount || '0'), booking?.currency || 'USD')}</span>
                   </div>
                 </div>
               </div>
