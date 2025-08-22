@@ -13,6 +13,8 @@ interface CabinSelectionProps {
   onCabinSelect: (cabinId: string) => void;
   onContinue: () => void;
   onBack: () => void;
+  isLoading?: boolean;
+  error?: Error | null;
 }
 
 export default function CabinSelection({ 
@@ -20,7 +22,9 @@ export default function CabinSelection({
   selectedCabinId, 
   onCabinSelect, 
   onContinue, 
-  onBack 
+  onBack,
+  isLoading = false,
+  error = null
 }: CabinSelectionProps) {
   const [locationPreference, setLocationPreference] = useState<string>("guarantee");
 
@@ -40,59 +44,92 @@ export default function CabinSelection({
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Select Your Cabin</h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {cabinTypes.map((cabin) => (
-            <Card 
-              key={cabin.id} 
-              className={`cursor-pointer transition-colors ${
-                selectedCabinId === cabin.id 
-                  ? 'border-ocean-300 bg-ocean-50' 
-                  : 'border-gray-200 hover:border-ocean-300'
-              }`}
-              onClick={() => onCabinSelect(cabin.id)}
-              data-testid={`cabin-card-${cabin.id}`}
-            >
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900" data-testid={`cabin-name-${cabin.id}`}>
-                      {cabin.name}
-                    </h3>
-                    <p className="text-sm text-gray-600" data-testid={`cabin-description-${cabin.id}`}>
-                      {cabin.description}
-                    </p>
-                    {cabin.type === "Balcony" && (
-                      <Badge variant="secondary" className="bg-coral-500 text-white mt-1">
-                        Most Popular
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xl font-bold text-gray-900" data-testid={`cabin-price-${cabin.id}`}>
-                      {formatPrice("1000", cabin.priceModifier)}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="text-red-800 font-medium">Error loading cabin types</div>
+            <div className="text-red-600 text-sm mt-1">{error.message}</div>
+          </div>
+        )}
+        
+        {isLoading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="animate-pulse">
+                <div className="bg-gray-200 rounded-lg h-64"></div>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {!isLoading && !error && cabinTypes.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-gray-400 mb-4">
+              <Bed className="w-12 h-12 mx-auto" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              No Cabins Available
+            </h3>
+            <p className="text-gray-600">
+              Sorry, there are no cabin types available for this cruise.
+            </p>
+          </div>
+        )}
+        
+        {!isLoading && !error && cabinTypes.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {cabinTypes.map((cabin) => (
+              <Card 
+                key={cabin.id} 
+                className={`cursor-pointer transition-colors ${
+                  selectedCabinId === cabin.id 
+                    ? 'border-ocean-300 bg-ocean-50' 
+                    : 'border-gray-200 hover:border-ocean-300'
+                }`}
+                onClick={() => onCabinSelect(cabin.id)}
+                data-testid={`cabin-card-${cabin.id}`}
+              >
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900" data-testid={`cabin-name-${cabin.id}`}>
+                        {cabin.name}
+                      </h3>
+                      <p className="text-sm text-gray-600" data-testid={`cabin-description-${cabin.id}`}>
+                        {cabin.description}
+                      </p>
+                      {cabin.type === "Balcony" && (
+                        <Badge variant="secondary" className="bg-coral-500 text-white mt-1">
+                          Most Popular
+                        </Badge>
+                      )}
                     </div>
-                    <div className="text-sm text-gray-600">per person</div>
-                  </div>
-                </div>
-                
-                <img 
-                  src={cabin.imageUrl} 
-                  alt={cabin.name}
-                  className="w-full h-32 object-cover rounded-lg mb-4"
-                />
-                
-                <div className="space-y-2 text-sm">
-                  {cabin.amenities.map((amenity, index) => (
-                    <div key={index} className="flex items-center text-green-600">
-                      <Check className="w-4 h-4 mr-2" />
-                      <span data-testid={`amenity-${cabin.id}-${index}`}>{amenity}</span>
+                    <div className="text-right">
+                      <div className="text-xl font-bold text-gray-900" data-testid={`cabin-price-${cabin.id}`}>
+                        {formatPrice("1000", cabin.priceModifier)}
+                      </div>
+                      <div className="text-sm text-gray-600">per person</div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  </div>
+                  
+                  <img 
+                    src={cabin.imageUrl} 
+                    alt={cabin.name}
+                    className="w-full h-32 object-cover rounded-lg mb-4"
+                  />
+                  
+                  <div className="space-y-2 text-sm">
+                    {cabin.amenities.map((amenity, index) => (
+                      <div key={index} className="flex items-center text-green-600">
+                        <Check className="w-4 h-4 mr-2" />
+                        <span data-testid={`amenity-${cabin.id}-${index}`}>{amenity}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
         {selectedCabinId && (
           <div className="mb-8">

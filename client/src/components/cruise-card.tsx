@@ -19,20 +19,38 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
   const [selectedCabinType, setSelectedCabinType] = useState<any>(null);
 
   // Fetch cabin types for this cruise
-  const { data: cabinTypes } = useQuery({
+  const { data: cabinTypes, isLoading: cabinTypesLoading, error: cabinTypesError } = useQuery({
     queryKey: ["/api/cruises", cruise.id, "cabins"],
     queryFn: async () => {
-      const response = await fetch(`/api/cruises/${cruise.id}/cabins`);
+      const response = await fetch(`/api/cruises/${cruise.id}/cabins`, {
+        credentials: "include"
+      });
       if (!response.ok) {
-        throw new Error("Failed to fetch cabin types");
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch cabin types: ${response.status} ${errorText}`);
       }
       return response.json();
-    }
+    },
+    enabled: !!cruise.id,
+    retry: 3,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000)
   });
 
   const handleViewCabins = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    console.log('🚪 View Cabins clicked!', { cabinTypes, length: cabinTypes?.length });
+    console.log('🚪 View Cabins clicked!', { cabinTypes, length: cabinTypes?.length, loading: cabinTypesLoading, error: cabinTypesError });
+    
+    // If still loading, don't proceed
+    if (cabinTypesLoading) {
+      console.log('⏳ Still loading cabin data...');
+      return;
+    }
+    
+    // If error occurred, show error
+    if (cabinTypesError) {
+      console.error('❌ Error loading cabin types:', cabinTypesError);
+      return;
+    }
     
     if (cabinTypes && cabinTypes.length > 0) {
       const firstCabin = cabinTypes[0];

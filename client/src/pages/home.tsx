@@ -283,7 +283,7 @@ export default function Home() {
                     acc[dest] = {
                       name: dest,
                       image: cruise.imageUrl,
-                      description: cruise.highlights?.[0] || `Experience the beauty of ${dest}`,
+                      description: `Experience the beauty of ${dest}`,
                       cruiseCount: 1,
                       cruises: [cruise]
                     };

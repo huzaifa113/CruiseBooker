@@ -40,12 +40,12 @@ export default function CabinCarousel({ isOpen, onClose, cabinType }: CabinCarou
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl p-0 overflow-hidden">
+      <DialogContent className="max-w-4xl p-0 overflow-hidden" aria-describedby="cabin-carousel-description">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="text-2xl font-bold text-gray-900">
             {cabinType.name} - Interior Gallery
           </DialogTitle>
-          <p className="text-gray-600 mt-2">{cabinType.description}</p>
+          <p id="cabin-carousel-description" className="text-gray-600 mt-2">{cabinType.description}</p>
         </DialogHeader>
         
         <div className="relative">

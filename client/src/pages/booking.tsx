@@ -35,38 +35,57 @@ export default function Booking() {
   const { data: cruise, isLoading: cruiseLoading, error: cruiseError } = useQuery({
     queryKey: ["/api/cruises", cruiseId],
     queryFn: async () => {
-      const response = await fetch(`/api/cruises/${cruiseId}`);
+      const response = await fetch(`/api/cruises/${cruiseId}`, {
+        credentials: "include"
+      });
       if (!response.ok) {
-        throw new Error("Failed to fetch cruise details");
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch cruise details: ${response.status} ${errorText}`);
       }
       return response.json();
     },
-    enabled: !!cruiseId
+    enabled: !!cruiseId,
+    retry: 3,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000)
   });
 
   // Fetch cabin types
-  const { data: cabinTypes, isLoading: cabinsLoading } = useQuery({
+  const { data: cabinTypes, isLoading: cabinsLoading, error: cabinsError } = useQuery({
     queryKey: ["/api/cruises", cruiseId, "cabins"],
     queryFn: async () => {
-      const response = await fetch(`/api/cruises/${cruiseId}/cabins`);
+      console.log('📡 Fetching cabin types for cruise:', cruiseId);
+      const response = await fetch(`/api/cruises/${cruiseId}/cabins`, {
+        credentials: "include"
+      });
       if (!response.ok) {
-        throw new Error("Failed to fetch cabin types");
+        const errorText = await response.text();
+        console.error('❌ Failed to fetch cabin types:', response.status, errorText);
+        throw new Error(`Failed to fetch cabin types: ${response.status} ${errorText}`);
       }
-      return response.json();
+      const data = await response.json();
+      console.log('✅ Cabin types loaded:', data?.length || 0, 'cabins');
+      return data;
     },
-    enabled: !!cruiseId
+    enabled: !!cruiseId,
+    retry: 3,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000)
   });
 
   // Fetch extras
-  const { data: extras, isLoading: extrasLoading } = useQuery({
+  const { data: extras, isLoading: extrasLoading, error: extrasError } = useQuery({
     queryKey: ["/api/extras"],
     queryFn: async () => {
-      const response = await fetch("/api/extras");
+      const response = await fetch("/api/extras", {
+        credentials: "include"
+      });
       if (!response.ok) {
-        throw new Error("Failed to fetch extras");
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch extras: ${response.status} ${errorText}`);
       }
       return response.json();
-    }
+    },
+    retry: 3,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000)
   });
 
   const handleCabinSelect = (cabinId: string) => {
@@ -206,6 +225,7 @@ export default function Booking() {
 
   // Show loading state
   if (cruiseLoading || cabinsLoading || extrasLoading) {
+    console.log('⏳ Booking page loading...', { cruiseLoading, cabinsLoading, extrasLoading });
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
@@ -231,8 +251,10 @@ export default function Booking() {
     );
   }
 
-  // Show error state
-  if (cruiseError || !cruise) {
+  // Show error state  
+  if (cruiseError || cabinsError || extrasError || !cruise) {
+    const errorMessage = cruiseError?.message || cabinsError?.message || extrasError?.message || 'Unknown error';
+    console.error('❌ Booking page error:', { cruiseError, cabinsError, extrasError, errorMessage });
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
@@ -298,6 +320,8 @@ export default function Booking() {
                 onCabinSelect={handleCabinSelect}
                 onContinue={handleStepContinue}
                 onBack={handleStepBack}
+                isLoading={cabinsLoading}
+                error={cabinsError}
               />
             )}
 
