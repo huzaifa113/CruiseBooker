@@ -43,8 +43,7 @@ const CheckoutForm = ({ booking, totalAmount }: { booking: any; totalAmount: num
     mutationFn: async (data: { amount: number; currency: string; bookingId: string }) => {
       return await apiRequest('/api/create-payment-intent', {
         method: 'POST',
-        body: JSON.stringify(data),
-        headers: { 'Content-Type': 'application/json' }
+        body: JSON.stringify(data)
       });
     }
   });
@@ -87,7 +86,7 @@ const CheckoutForm = ({ booking, totalAmount }: { booking: any; totalAmount: num
 
       toast({
         title: "Payment Processed",
-        description: `Total amount: ${formatCurrency(paymentData.totalAmount, currency)} (including taxes and gratuities)`,
+        description: `Total amount: ${formatCurrency(discountedAmount, currency)} (including taxes and gratuities)`,
       });
 
       // Redirect to confirmation page
@@ -416,8 +415,11 @@ export default function Checkout() {
     );
   }
 
-  const { booking, cruise, cabinType } = bookingDetails;
-  const totalAmount = booking.totalAmount;
+  // bookingDetails is the booking object directly, not nested
+  const booking = bookingDetails;
+  const cruise = bookingDetails.cruise;
+  const cabinType = bookingDetails.cabinType;
+  const totalAmount = parseFloat(booking.totalAmount) + parseFloat(booking.taxAmount || "0") + parseFloat(booking.gratuityAmount || "0");
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -432,7 +434,7 @@ export default function Checkout() {
         </div>
 
         <CheckoutForm 
-          booking={{...booking, cruise, cabinType}} 
+          booking={booking} 
           totalAmount={totalAmount} 
         />
       </div>
