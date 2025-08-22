@@ -226,6 +226,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user's bookings (for logged-in users)
+  app.get("/api/user/bookings", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const userBookings = await storage.getUserBookings(userId);
+      res.json(userBookings);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching user bookings: " + error.message });
+    }
+  });
+
   // Get booking details for checkout (includes cruise and cabin info)
   app.get("/api/bookings/:id/details", async (req, res) => {
     try {

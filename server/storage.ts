@@ -215,6 +215,29 @@ export class DatabaseStorage implements IStorage {
     return updatedBooking;
   }
 
+  async updateBookingPayment(id: string, paymentData: {
+    paymentIntentId: string;
+    paymentStatus: string;
+    paidAmount: number;
+    paidCurrency: string;
+    paidAt: Date;
+  }): Promise<Booking> {
+    const [updatedBooking] = await db.update(bookings)
+      .set({ 
+        paymentStatus: paymentData.paymentStatus,
+        stripePaymentIntentId: paymentData.paymentIntentId,
+        totalPrice: paymentData.paidAmount,
+        updatedAt: new Date()
+      })
+      .where(eq(bookings.id, id))
+      .returning();
+    return updatedBooking;
+  }
+
+  async getUserBookings(userId: string): Promise<Booking[]> {
+    return await db.select().from(bookings).where(eq(bookings.userId, userId));
+  }
+
   async getExtras(): Promise<Extra[]> {
     return await db.select().from(extras);
   }

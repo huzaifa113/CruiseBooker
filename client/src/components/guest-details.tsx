@@ -402,14 +402,13 @@ export default function GuestDetails({
               Back to Extras
             </Button>
             <Button
-              type="submit"
+              type="button"
               className="bg-ocean-600 text-white hover:bg-ocean-700 font-semibold px-8 py-3"
               data-testid="button-continue-guests"
-              onClick={(e) => {
+              onClick={() => {
                 // Get current form data
                 const formData = watch();
                 console.log("Button clicked, form data:", formData);
-                console.log("Form errors:", errors);
                 
                 // Validate passport expiry for filled passports
                 if (formData.guests) {
@@ -435,26 +434,8 @@ export default function GuestDetails({
                   }
                 }
                 
-                // Ensure minimum required data
-                const minimalData = {
-                  primaryGuestName: formData.primaryGuestName || "Guest Name",
-                  primaryGuestEmail: formData.primaryGuestEmail || "guest@example.com",
-                  primaryGuestPhone: formData.primaryGuestPhone || "",
-                  specialRequests: formData.specialRequests || "",
-                  guests: formData.guests && formData.guests.length > 0 ? formData.guests : [{
-                    firstName: "Guest",
-                    lastName: "User", 
-                    dateOfBirth: "1990-01-01",
-                    passportNumber: "",
-                    passportCountry: "US",
-                    passportExpiry: "",
-                    specialNeeds: "",
-                    isChild: false,
-                    isSenior: false
-                  }]
-                };
-                
-                onFormDataChange(minimalData);
+                // Pass the form data directly without forcing validation
+                onFormDataChange(formData);
                 onContinue();
               }}
             >

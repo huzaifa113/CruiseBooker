@@ -12,6 +12,7 @@ import Booking from "@/pages/booking";
 import Checkout from "@/pages/checkout";
 import Confirmation from "@/pages/confirmation";
 import Reservations from "@/pages/reservations";
+import MyReservations from "@/pages/my-reservations";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -26,6 +27,7 @@ function Router() {
           <Route path="/booking/:cruiseId" component={Booking} />
           <Route path="/checkout/:bookingId" component={Checkout} />
           <Route path="/checkout" component={Checkout} />
+          <Route path="/reservations" component={Reservations} />
         </>
       ) : (
         <>
@@ -36,6 +38,7 @@ function Router() {
           <Route path="/checkout" component={Checkout} />
           <Route path="/confirmation/:confirmationNumber" component={Confirmation} />
           <Route path="/reservations" component={Reservations} />
+          <Route path="/my-reservations" component={MyReservations} />
         </>
       )}
       <Route component={NotFound} />

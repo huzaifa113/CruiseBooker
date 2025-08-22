@@ -164,7 +164,7 @@ export default function Header() {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/reservations" className="cursor-pointer">
+                    <Link href="/my-reservations" className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
                       <span>My Reservations</span>
                     </Link>
