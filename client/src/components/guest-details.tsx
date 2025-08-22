@@ -404,10 +404,34 @@ export default function GuestDetails({
               className="bg-ocean-600 text-white hover:bg-ocean-700 font-semibold px-8 py-3"
               data-testid="button-continue-guests"
               onClick={(e) => {
-                // Force form submission even if validation fails
+                // Get current form data
                 const formData = watch();
                 console.log("Button clicked, form data:", formData);
                 console.log("Form errors:", errors);
+                
+                // Validate passport expiry for filled passports
+                if (formData.guests) {
+                  const today = new Date();
+                  const sixMonthsFromNow = new Date();
+                  sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+
+                  const invalidPassports = formData.guests.filter((guest: any, index: number) => {
+                    if (guest.passportExpiry && guest.passportExpiry.trim()) {
+                      const expiryDate = new Date(guest.passportExpiry);
+                      return expiryDate < sixMonthsFromNow;
+                    }
+                    return false;
+                  });
+
+                  if (invalidPassports.length > 0) {
+                    toast({
+                      title: "Passport Validation Error",
+                      description: "All passports must be valid for at least 6 months from today",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
+                }
                 
                 // Ensure minimum required data
                 const minimalData = {

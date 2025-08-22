@@ -50,29 +50,6 @@ const CheckoutForm = ({ booking, totalAmount }: { booking: any; totalAmount: num
     setIsProcessing(true);
 
     try {
-      // Validate passport expiry before payment
-      const today = new Date();
-      const cruiseEndDate = booking.cruise?.returnDate ? new Date(booking.cruise.returnDate) : new Date();
-      const sixMonthsAfterCruise = new Date(cruiseEndDate);
-      sixMonthsAfterCruise.setMonth(sixMonthsAfterCruise.getMonth() + 6);
-
-      const hasValidPassports = booking.guests?.every((guest: any) => {
-        if (guest.passportExpiry) {
-          const expiryDate = new Date(guest.passportExpiry);
-          return expiryDate >= sixMonthsAfterCruise;
-        }
-        return false;
-      });
-
-      if (!hasValidPassports) {
-        toast({
-          title: "Passport Validation Error",
-          description: "All passports must be valid for at least 6 months after cruise end date",
-          variant: "destructive"
-        });
-        setIsProcessing(false);
-        return;
-      }
 
       // Create payment intent with discounted amount
       const paymentData = await createPaymentIntentMutation.mutateAsync({
