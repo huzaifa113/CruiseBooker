@@ -29,7 +29,7 @@ export default function Home() {
         throw new Error(`Failed to fetch cruises: ${response.status} ${errorText}`);
       }
       const data = await response.json();
-      return data.slice(3, 6); // Show only last 3 for featured section
+      return data.slice(-3); // Show last 3 cruises for featured section
     }
   });
 
