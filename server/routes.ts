@@ -418,6 +418,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Secure payment confirmation endpoint
+  app.post("/api/bookings/:id/confirm-payment", async (req, res) => {
+    try {
+      const { paymentIntentId, amount, currency, paymentStatus } = req.body;
+      const bookingId = req.params.id;
+      
+      // Verify payment with Stripe
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      
+      if (paymentIntent.status !== 'succeeded') {
+        return res.status(400).json({ message: "Payment not successful" });
+      }
+      
+      // Update booking with payment information
+      const updatedBooking = await storage.updateBookingPayment(bookingId, {
+        paymentIntentId,
+        paymentStatus: 'completed',
+        paidAmount: amount,
+        paidCurrency: currency,
+        paidAt: new Date()
+      });
+      
+      res.json({ 
+        success: true, 
+        booking: updatedBooking,
+        message: "Payment confirmed successfully"
+      });
+    } catch (error: any) {
+      console.error("Payment confirmation error:", error);
+      res.status(500).json({ message: "Error confirming payment: " + error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

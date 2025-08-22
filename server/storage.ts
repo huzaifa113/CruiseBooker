@@ -351,6 +351,25 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(calendarEvents).where(eq(calendarEvents.bookingId, bookingId));
   }
 
+  async updateBookingPayment(bookingId: string, paymentData: {
+    paymentIntentId: string;
+    paymentStatus: string;
+    paidAmount: number;
+    paidCurrency: string;
+    paidAt: Date;
+  }): Promise<Booking> {
+    const [booking] = await db
+      .update(bookings)
+      .set({
+        stripePaymentIntentId: paymentData.paymentIntentId,
+        paymentStatus: paymentData.paymentStatus,
+        updatedAt: new Date(),
+      })
+      .where(eq(bookings.id, bookingId))
+      .returning();
+    return booking;
+  }
+
   private generateConfirmationNumber(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let result = '';

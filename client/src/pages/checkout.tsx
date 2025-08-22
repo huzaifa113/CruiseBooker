@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { loadStripe } from '@stripe/stripe-js';
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+import SecurePaymentForm from '@/components/secure-payment-form';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +17,90 @@ import PromotionsSection from '@/components/promotions-section';
 
 // Initialize Stripe
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
+
+const StripePaymentWrapper = ({ booking, totalAmount }: { booking: any; totalAmount: number }) => {
+  const [clientSecret, setClientSecret] = useState('');
+  const [currency, setCurrency] = useState('USD');
+  
+  const formatCurrency = (amount: number, currencyCode: string) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currencyCode,
+    }).format(amount);
+  };
+
+  const convertedAmount = currency === 'USD' ? totalAmount : 
+                         currency === 'EUR' ? totalAmount * 0.85 :
+                         currency === 'SGD' ? totalAmount * 1.35 :
+                         currency === 'THB' ? totalAmount * 35 : totalAmount;
+
+  const handlePaymentSuccess = (paymentIntentId: string) => {
+    console.log("Payment successful:", paymentIntentId);
+  };
+
+  // Create payment intent when component mounts
+  useEffect(() => {
+    const createPaymentIntent = async () => {
+      try {
+        const response = await apiRequest('POST', '/api/create-payment-intent', {
+          amount: Math.round(convertedAmount * 100), // Convert to cents
+          currency: currency.toLowerCase(),
+          bookingId: booking.id,
+          description: `Cruise booking ${booking.confirmationNumber}`
+        });
+        setClientSecret(response.clientSecret);
+      } catch (error) {
+        console.error('Failed to create payment intent:', error);
+      }
+    };
+
+    createPaymentIntent();
+  }, [convertedAmount, currency, booking.id, booking.confirmationNumber]);
+
+  if (!clientSecret) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-8">
+          <div className="animate-spin w-8 h-8 border-4 border-ocean-600 border-t-transparent rounded-full" />
+          <span className="ml-3">Loading secure payment...</span>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Elements stripe={stripePromise} options={{ clientSecret }}>
+      <div className="space-y-8">
+        {/* Currency Selection */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Payment Currency</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Select value={currency} onValueChange={setCurrency}>
+              <SelectTrigger className="w-48" data-testid="select-currency">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="USD">USD - US Dollar</SelectItem>
+                <SelectItem value="EUR">EUR - Euro</SelectItem>
+                <SelectItem value="SGD">SGD - Singapore Dollar</SelectItem>
+                <SelectItem value="THB">THB - Thai Baht</SelectItem>
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+
+        <SecurePaymentForm 
+          booking={booking}
+          totalAmount={convertedAmount}
+          currency={currency}
+          onPaymentSuccess={handlePaymentSuccess}
+        />
+      </div>
+    </Elements>
+  );
+};
 
 const CheckoutForm = ({ booking, totalAmount }: { booking: any; totalAmount: number }) => {
   const { toast } = useToast();
@@ -45,35 +130,8 @@ const CheckoutForm = ({ booking, totalAmount }: { booking: any; totalAmount: num
     }
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsProcessing(true);
-
-    try {
-
-      // Create payment intent with discounted amount
-      const paymentData = await createPaymentIntentMutation.mutateAsync({
-        amount: discountedAmount,
-        currency: currency.toLowerCase(),
-        bookingId: booking.id
-      });
-
-      toast({
-        title: "Payment Processed",
-        description: `Total amount: ${formatCurrency(discountedAmount, currency)} (including taxes and gratuities)`,
-      });
-
-      // Redirect to confirmation page
-      setLocation(`/confirmation/${booking.confirmationNumber}`);
-    } catch (error: any) {
-      toast({
-        title: "Payment Error",
-        description: error.message || "Payment failed. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
-    }
+  const handlePaymentSuccess = (paymentIntentId: string) => {
+    console.log("Payment successful:", paymentIntentId);
   };
 
   const handlePromotionApplied = (discount: number, promotions: any[]) => {
@@ -175,43 +233,13 @@ const CheckoutForm = ({ booking, totalAmount }: { booking: any; totalAmount: num
         }}
       />
 
-      {/* Payment Form */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Booking Confirmation</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-green-800">
-              <strong>Secure Payment:</strong> Payments are processed securely through Stripe with full tax and gratuity calculations.
-            </p>
-          </div>
-          
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="text-sm text-gray-600 space-y-2">
-              <p>• Your booking will be confirmed immediately</p>
-              <p>• You will receive a confirmation email</p>
-              <p>• Booking confirmation number: <span className="font-medium">{booking.confirmationNumber}</span></p>
-            </div>
-            
-            <Button
-              type="submit"
-              disabled={isProcessing}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 text-lg"
-              data-testid="button-submit-payment"
-            >
-              {isProcessing ? (
-                <div className="flex items-center">
-                  <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
-                  Processing Booking...
-                </div>
-              ) : (
-                `Confirm Booking - ${formatCurrency(convertedAmount, currency)}`
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+      {/* Secure Payment Form */}
+      <SecurePaymentForm 
+        booking={booking}
+        totalAmount={convertedAmount}
+        currency={currency}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
     </div>
   );
 };
@@ -403,7 +431,8 @@ export default function Checkout() {
           </p>
         </div>
 
-        <CheckoutForm 
+        {/* Create client secret for Stripe Elements */}
+        <StripePaymentWrapper 
           booking={booking} 
           totalAmount={totalAmount} 
         />
