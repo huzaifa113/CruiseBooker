@@ -4,6 +4,123 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import type { Cruise } from "@shared/schema";
 
+// Helper function to generate printable itinerary HTML
+function generatePrintableItinerary(cruise: Cruise): string {
+  const itineraryRows = cruise.itinerary?.map(day => `
+    <tr>
+      <td style="padding: 12px; border: 1px solid #ddd; font-weight: bold;">Day ${day.day}</td>
+      <td style="padding: 12px; border: 1px solid #ddd;">${new Date(day.date).toLocaleDateString()}</td>
+      <td style="padding: 12px; border: 1px solid #ddd;">${day.port}</td>
+      <td style="padding: 12px; border: 1px solid #ddd;">${day.arrival || 'At Sea'}</td>
+      <td style="padding: 12px; border: 1px solid #ddd;">${day.departure || 'At Sea'}</td>
+      <td style="padding: 12px; border: 1px solid #ddd;">${day.description}</td>
+    </tr>
+  `).join('') || '';
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>${cruise.name} - Itinerary</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { border-bottom: 2px solid #0066cc; padding-bottom: 20px; margin-bottom: 30px; }
+        .cruise-title { color: #0066cc; font-size: 28px; font-weight: bold; margin: 0; }
+        .cruise-subtitle { color: #666; font-size: 16px; margin: 5px 0 0 0; }
+        .itinerary-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .itinerary-table th { background: #0066cc; color: white; padding: 12px; text-align: left; }
+        .itinerary-table td { padding: 12px; border: 1px solid #ddd; }
+        .itinerary-table tr:nth-child(even) { background: #f9f9f9; }
+        @media print { body { margin: 0; } }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1 class="cruise-title">${cruise.name}</h1>
+        <p class="cruise-subtitle">${cruise.ship} • ${cruise.cruiseLine} • ${cruise.duration} Days</p>
+        <p class="cruise-subtitle">Departure: ${new Date(cruise.departureDate).toLocaleDateString()} from ${cruise.departurePort}</p>
+      </div>
+      
+      <h2>Daily Itinerary</h2>
+      <table class="itinerary-table">
+        <thead>
+          <tr>
+            <th>Day</th>
+            <th>Date</th>
+            <th>Port</th>
+            <th>Arrival</th>
+            <th>Departure</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itineraryRows}
+        </tbody>
+      </table>
+    </body>
+    </html>
+  `;
+}
+
+// Helper function to generate iCal content for cruise
+function generateCruiseICalendar(cruise: Cruise): string {
+  const formatDate = (date: string | Date): string => {
+    const d = new Date(date);
+    return d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  };
+
+  let icalContent = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Phoenix Vacation Group//Cruise Itinerary//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH'
+  ];
+  
+  // Add main cruise event
+  icalContent.push(
+    'BEGIN:VEVENT',
+    `UID:cruise-${cruise.id}-main@phoenixvacationgroup.com`,
+    `DTSTAMP:${formatDate(new Date())}`,
+    `DTSTART:${formatDate(cruise.departureDate)}`,
+    `DTEND:${formatDate(cruise.returnDate)}`,
+    `SUMMARY:${cruise.name} - ${cruise.cruiseLine}`,
+    `DESCRIPTION:${cruise.duration} day cruise on ${cruise.ship}\\nDeparting from ${cruise.departurePort}`,
+    `LOCATION:${cruise.departurePort}`,
+    'STATUS:CONFIRMED',
+    'END:VEVENT'
+  );
+  
+  // Add port calls if itinerary exists
+  if (cruise.itinerary) {
+    cruise.itinerary.forEach((day: any) => {
+      if (day.port !== 'At Sea' && day.arrival) {
+        const arrivalTime = day.arrival ? `${day.arrival}:00` : '09:00:00';
+        const departureTime = day.departure ? `${day.departure}:00` : '17:00:00';
+        
+        const eventStart = new Date(`${day.date}T${arrivalTime}`);
+        const eventEnd = new Date(`${day.date}T${departureTime}`);
+        
+        icalContent.push(
+          'BEGIN:VEVENT',
+          `UID:cruise-${cruise.id}-port-${day.day}@phoenixvacationgroup.com`,
+          `DTSTAMP:${formatDate(new Date())}`,
+          `DTSTART:${formatDate(eventStart)}`,
+          `DTEND:${formatDate(eventEnd)}`,
+          `SUMMARY:Port Call: ${day.port}`,
+          `DESCRIPTION:${day.description}\\nArrival: ${day.arrival || 'TBD'}\\nDeparture: ${day.departure || 'TBD'}`,
+          `LOCATION:${day.port}${day.country ? ', ' + day.country : ''}`,
+          'STATUS:CONFIRMED',
+          'END:VEVENT'
+        );
+      }
+    });
+  }
+  
+  icalContent.push('END:VCALENDAR');
+  return icalContent.join('\r\n');
+}
+
 interface ItineraryModalProps {
   cruise: Cruise | null;
   isOpen: boolean;
@@ -15,31 +132,42 @@ export default function ItineraryModal({ cruise, isOpen, onClose, onBookCruise }
   if (!cruise) return null;
 
   const handlePrint = () => {
-    window.print();
+    // Create a printable version of the itinerary
+    const printContent = generatePrintableItinerary(cruise);
+    const printWindow = window.open('', '_blank');
+    
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      
+      // Wait for content to load then trigger print dialog
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print();
+        }, 500);
+      };
+    }
   };
 
   const handleExportCalendar = async () => {
     if (!cruise) return;
     
     try {
-      // For demo purposes, create a mock booking ID
-      // In real implementation, this would come from actual booking data
-      const mockBookingId = 'demo-booking-id';
+      // Generate iCal content directly from cruise data
+      const icalContent = generateCruiseICalendar(cruise);
       
-      const response = await fetch(`/api/bookings/${mockBookingId}/calendar`);
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `cruise-itinerary-${cruise.name.replace(/\s+/g, '-').toLowerCase()}.ics`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      } else {
-        console.error('Failed to export calendar');
-      }
+      // Create and download the .ics file
+      const blob = new Blob([icalContent], { type: 'text/calendar' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `cruise-itinerary-${cruise.name.replace(/\s+/g, '-').toLowerCase()}.ics`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      console.log("Calendar exported successfully");
     } catch (error) {
       console.error('Error exporting calendar:', error);
     }

@@ -40,19 +40,25 @@ export default function ConfirmationSuccess() {
       if (response.ok) {
         const invoiceData = await response.json();
         
-        // Create a simple invoice HTML and trigger download
+        // Generate PDF-ready invoice HTML
         const invoiceHtml = generateInvoiceHTML(invoiceData);
-        const blob = new Blob([invoiceHtml], { type: 'text/html' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `invoice-${booking?.confirmationNumber}.html`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
         
-        console.log("Invoice downloaded successfully");
+        // Create a new window for PDF generation
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+          printWindow.document.write(invoiceHtml);
+          printWindow.document.close();
+          
+          // Wait for content to load then trigger print dialog
+          printWindow.onload = () => {
+            setTimeout(() => {
+              printWindow.print();
+              // Note: User can choose "Save as PDF" in the print dialog
+            }, 500);
+          };
+        }
+        
+        console.log("Invoice opened for PDF download");
       } else {
         throw new Error('Failed to generate invoice');
       }
