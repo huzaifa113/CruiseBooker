@@ -21,6 +21,7 @@ export const users = pgTable("users", {
   password: varchar("password"), // For simple auth, optional for OAuth users
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
+  phone: varchar("phone"),
   profileImageUrl: varchar("profile_image_url"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

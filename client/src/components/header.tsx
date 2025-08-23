@@ -201,17 +201,19 @@ export default function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="hidden md:flex items-center space-x-2">
+              <div className="hidden md:flex items-center">
                 <Button 
                   variant="ghost"
-                  className="text-gray-700 hover:text-blue-600"
+                  size="sm"
+                  className="text-gray-600 hover:text-blue-600 font-medium"
                   onClick={handleLoginClick}
                   data-testid="button-signin"
                 >
                   {t('signIn')}
                 </Button>
                 <Button 
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 font-semibold px-4 lg:px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all text-sm lg:text-base"
+                  size="sm"
+                  className="ml-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-md transition-colors"
                   onClick={handleRegisterClick}
                   data-testid="button-signup"
                 >

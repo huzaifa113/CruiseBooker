@@ -11,6 +11,7 @@ export interface AuthUser {
   email: string;
   firstName?: string;
   lastName?: string;
+  phone?: string;
 }
 
 // Simple password validation
@@ -38,7 +39,8 @@ function generateToken(user: AuthUser): string {
       id: user.id, 
       email: user.email,
       firstName: user.firstName,
-      lastName: user.lastName 
+      lastName: user.lastName,
+      phone: user.phone
     },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN }
@@ -53,7 +55,8 @@ function verifyToken(token: string): AuthUser | null {
       id: decoded.id,
       email: decoded.email,
       firstName: decoded.firstName,
-      lastName: decoded.lastName
+      lastName: decoded.lastName,
+      phone: decoded.phone
     };
   } catch (error) {
     return null;
@@ -81,7 +84,7 @@ export function setupSimpleAuth(app: Express) {
   // Register endpoint
   app.post("/api/auth/register", async (req, res) => {
     try {
-      const { email, password, firstName, lastName } = req.body;
+      const { email, password, firstName, lastName, phone } = req.body;
       
       if (!email || !password) {
         return res.status(400).json({ message: "Email and password are required" });
@@ -105,7 +108,8 @@ export function setupSimpleAuth(app: Express) {
         email,
         password: hashedPassword,
         firstName,
-        lastName
+        lastName,
+        phone
       });
       
       // Generate token
@@ -113,7 +117,8 @@ export function setupSimpleAuth(app: Express) {
         id: user.id,
         email: user.email,
         firstName: user.firstName || undefined,
-        lastName: user.lastName || undefined
+        lastName: user.lastName || undefined,
+        phone: user.phone || undefined
       });
       
       res.status(201).json({
@@ -157,7 +162,8 @@ export function setupSimpleAuth(app: Express) {
         id: user.id,
         email: user.email,
         firstName: user.firstName || undefined,
-        lastName: user.lastName || undefined
+        lastName: user.lastName || undefined,
+        phone: user.phone || undefined
       });
       
       res.json({

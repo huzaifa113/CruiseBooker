@@ -6,6 +6,7 @@ export interface User {
   email: string;
   firstName?: string;
   lastName?: string;
+  phone?: string;
 }
 
 export function useAuth() {
@@ -53,16 +54,17 @@ export function useAuth() {
   });
 
   const registerMutation = useMutation({
-    mutationFn: async ({ email, password, firstName, lastName }: { 
+    mutationFn: async ({ email, password, firstName, lastName, phone }: { 
       email: string; 
       password: string; 
       firstName?: string; 
       lastName?: string; 
+      phone?: string;
     }) => {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, firstName, lastName })
+        body: JSON.stringify({ email, password, firstName, lastName, phone })
       });
       if (!response.ok) {
         const error = await response.json();

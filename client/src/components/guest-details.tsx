@@ -62,17 +62,16 @@ export default function GuestDetails({
   onContinue,
   onBack
 }: GuestDetailsProps) {
-  // Authentication removed - no auto-fill from user account
-  const user = null;
+  const { user } = useAuth();
   const { toast } = useToast();
   const totalGuests = adultCount + childCount + seniorCount;
   
-  const { register, formState: { errors }, handleSubmit, watch } = useForm<GuestDetailsForm>({
+  const { register, formState: { errors }, handleSubmit, watch, setValue } = useForm<GuestDetailsForm>({
     resolver: zodResolver(guestDetailsSchema),
     defaultValues: {
-      primaryGuestName: formData.primaryGuestName || ((user as any)?.firstName && (user as any)?.lastName ? `${(user as any).firstName} ${(user as any).lastName}` : ""),
-      primaryGuestEmail: formData.primaryGuestEmail || (user as any)?.email || "",
-      primaryGuestPhone: formData.primaryGuestPhone || "",
+      primaryGuestName: formData.primaryGuestName || (user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : ""),
+      primaryGuestEmail: formData.primaryGuestEmail || user?.email || "",
+      primaryGuestPhone: formData.primaryGuestPhone || user?.phone || "",
       specialRequests: formData.specialRequests || "",
       guests: formData.guests || Array(totalGuests).fill(null).map((_, index) => ({
         firstName: "",
@@ -85,6 +84,21 @@ export default function GuestDetails({
         isChild: index >= adultCount && index < adultCount + childCount,
         isSenior: index >= adultCount + childCount
       }))
+    }
+  });
+
+  // Auto-fill primary contact information when user data is available
+  useState(() => {
+    if (user && !formData.primaryGuestName && !formData.primaryGuestEmail) {
+      if (user.firstName && user.lastName) {
+        setValue("primaryGuestName", `${user.firstName} ${user.lastName}`);
+      }
+      if (user.email) {
+        setValue("primaryGuestEmail", user.email);
+      }
+      if (user.phone) {
+        setValue("primaryGuestPhone", user.phone);
+      }
     }
   });
 
@@ -224,6 +238,13 @@ export default function GuestDetails({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {user && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <p className="text-sm text-blue-800">
+                    <span className="font-medium">✓ Signed in as {user.email}</span> - Your contact information has been auto-filled below.
+                  </p>
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="primaryGuestName">Full Name *</Label>

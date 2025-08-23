@@ -12,6 +12,11 @@ interface AuthModalProps {
 export default function AuthModal({ isOpen, onClose, defaultMode = "login" }: AuthModalProps) {
   const [mode, setMode] = useState<"login" | "register">(defaultMode);
 
+  // Reset mode when modal opens with new defaultMode
+  useState(() => {
+    setMode(defaultMode);
+  });
+
   const handleSuccess = () => {
     onClose();
   };
