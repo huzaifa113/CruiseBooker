@@ -201,25 +201,15 @@ export default function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="hidden md:flex items-center">
-                <Button 
-                  variant="ghost"
-                  size="sm"
-                  className="text-gray-600 hover:text-blue-600 font-medium"
-                  onClick={handleLoginClick}
-                  data-testid="button-signin"
-                >
-                  {t('signIn')}
-                </Button>
-                <Button 
-                  size="sm"
-                  className="ml-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-md transition-colors"
-                  onClick={handleRegisterClick}
-                  data-testid="button-signup"
-                >
-                  Sign Up
-                </Button>
-              </div>
+              <Button 
+                variant="ghost"
+                size="sm"
+                className="hidden md:flex text-gray-600 hover:text-blue-600 font-medium"
+                onClick={handleLoginClick}
+                data-testid="button-signin"
+              >
+                {t('signIn')}
+              </Button>
             )}
             
             {/* Mobile menu */}
@@ -262,27 +252,15 @@ export default function Header() {
                     </div>
                   </Link>
                   {!isAuthenticated ? (
-                    <div className="space-y-3">
-                      <Button 
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => {
-                          handleLoginClick();
-                          setMobileMenuOpen(false);
-                        }}
-                      >
-                        {t('signIn')}
-                      </Button>
-                      <Button 
-                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 font-semibold"
-                        onClick={() => {
-                          handleRegisterClick();
-                          setMobileMenuOpen(false);
-                        }}
-                      >
-                        Sign Up
-                      </Button>
-                    </div>
+                    <Button 
+                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 font-semibold"
+                      onClick={() => {
+                        handleLoginClick();
+                        setMobileMenuOpen(false);
+                      }}
+                    >
+                      {t('signIn')}
+                    </Button>
                   ) : (
                     <div className="space-y-3 pt-3 border-t">
                       <div className="flex items-center space-x-3">

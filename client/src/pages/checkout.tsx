@@ -6,15 +6,18 @@ import { Elements } from '@stripe/react-stripe-js';
 import SecurePaymentForm from '@/components/secure-payment-form';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
+import AuthModal from '@/components/auth/auth-modal';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { useBookingId } from "@/hooks/use-route-params";
 import { apiRequest } from '@/lib/queryClient';
 import PromotionsSection from '@/components/promotions-section';
+import { Lock, CreditCard } from "lucide-react";
 
 // Initialize Stripe
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
@@ -256,6 +259,8 @@ const CheckoutForm = ({ booking, totalAmount }: { booking: any; totalAmount: num
 export default function Checkout() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const bookingId = useBookingId();
   
   const { data: bookingDetails, isLoading, error } = useQuery({
@@ -426,6 +431,61 @@ export default function Checkout() {
   const cabinType = bookingDetails.cabinType;
   const totalAmount = parseFloat(booking.totalAmount) + parseFloat(booking.taxAmount || "0") + parseFloat(booking.gratuityAmount || "0");
 
+  // Authentication wall - require sign in before payment
+  if (!authLoading && !isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        
+        <div className="max-w-2xl mx-auto px-4 py-16">
+          <Card>
+            <CardContent className="p-8 text-center">
+              <div className="flex justify-center mb-6">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Lock className="w-8 h-8 text-blue-600" />
+                </div>
+              </div>
+              
+              <h1 className="text-2xl font-bold text-gray-900 mb-4">Sign In Required</h1>
+              
+              <p className="text-gray-600 mb-6">
+                To complete your booking and make payment, please sign in to your account. 
+                This helps us secure your reservation and send you confirmation details.
+              </p>
+              
+              <div className="space-y-3">
+                <Button 
+                  onClick={() => setShowAuthModal(true)}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                  data-testid="button-signin-to-pay"
+                >
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  Sign In to Complete Payment
+                </Button>
+                
+                <Button 
+                  variant="outline"
+                  onClick={() => setLocation(`/booking/${cruise.id}`)}
+                  className="w-full"
+                >
+                  Continue Booking Later
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <AuthModal 
+          isOpen={showAuthModal} 
+          onClose={() => setShowAuthModal(false)} 
+          defaultMode="login"
+        />
+        
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -446,6 +506,12 @@ export default function Checkout() {
       </div>
 
       <Footer />
+      
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
+        defaultMode="login"
+      />
     </div>
   );
 }
