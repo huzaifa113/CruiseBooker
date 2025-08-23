@@ -121,6 +121,22 @@ export function setupSimpleAuth(app: Express) {
         phone: user.phone || undefined
       });
       
+      // Send welcome email notification (async, don't wait for it)
+      try {
+        await fetch(`${process.env.BACKEND_URL || 'http://localhost:5000'}/api/notify-signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: user.id,
+            email: user.email
+          })
+        });
+        console.log(`Welcome email notification sent for user: ${user.email}`);
+      } catch (error) {
+        console.error("Failed to send welcome email notification:", error);
+        // Don't fail registration if email notification fails
+      }
+      
       res.status(201).json({
         user: {
           id: user.id,

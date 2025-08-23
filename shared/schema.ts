@@ -169,6 +169,22 @@ export const calendarEvents = pgTable("calendar_events", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
+// Payment transactions table
+export const payments = pgTable("payments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  bookingId: varchar("booking_id").notNull().references(() => bookings.id),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").notNull().default("USD"),
+  status: text("status").notNull().default("pending"), // "pending", "processing", "paid", "failed", "refunded"
+  paymentMethod: text("payment_method"), // "card", "bank_transfer", etc.
+  stripePaymentIntentId: text("stripe_payment_intent_id"),
+  transactionId: text("transaction_id"),
+  failureReason: text("failure_reason"),
+  processedAt: timestamp("processed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
 // Relations
 export const cruisesRelations = relations(cruises, ({ many }) => ({
   cabinTypes: many(cabinTypes),

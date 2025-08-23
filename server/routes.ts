@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupSimpleAuth, optionalAuth } from "./auth";
+import { sendWelcomeEmail, sendPaymentStatusEmail, sendBookingStatusEmail } from "./emailService";
 
 // Helper function to generate iCal content
 function generateICalendar(booking: any, cruise: any): string {
@@ -42,6 +43,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Basic routes
   app.get("/api/health", (req, res) => {
     res.json({ status: "healthy" });
+  });
+
+  // Email notification webhook routes
+  app.post("/api/notify-signup", async (req, res) => {
+    try {
+      const { user_id, email } = req.body;
+      
+      if (!email || !user_id) {
+        return res.status(400).json({ message: "Missing required fields: email, user_id" });
+      }
+
+      console.log(`Sending welcome email to ${email} for user ${user_id}`);
+      const success = await sendWelcomeEmail(email, user_id);
+      
+      if (success) {
+        res.json({ message: "Welcome email sent successfully", email, user_id });
+      } else {
+        res.status(500).json({ message: "Failed to send welcome email" });
+      }
+    } catch (error: any) {
+      console.error("Error in notify-signup:", error);
+      res.status(500).json({ message: "Error sending welcome email: " + error.message });
+    }
+  });
+
+  app.post("/api/notify-payment", async (req, res) => {
+    try {
+      const { amount, created_at, status, user_email, confirmation_number } = req.body;
+      
+      if (!amount || !created_at || !status || !user_email) {
+        return res.status(400).json({ message: "Missing required fields: amount, created_at, status, user_email" });
+      }
+
+      console.log(`Sending payment status email to ${user_email} for amount $${amount}, status: ${status}`);
+      const success = await sendPaymentStatusEmail(user_email, amount, created_at, status, confirmation_number);
+      
+      if (success) {
+        res.json({ message: "Payment status email sent successfully", user_email, amount, status });
+      } else {
+        res.status(500).json({ message: "Failed to send payment status email" });
+      }
+    } catch (error: any) {
+      console.error("Error in notify-payment:", error);
+      res.status(500).json({ message: "Error sending payment status email: " + error.message });
+    }
+  });
+
+  app.post("/api/notify-booking", async (req, res) => {
+    try {
+      const { booking_details, status, user_email } = req.body;
+      
+      if (!booking_details || !status || !user_email) {
+        return res.status(400).json({ message: "Missing required fields: booking_details, status, user_email" });
+      }
+
+      console.log(`Sending booking status email to ${user_email} for booking ${booking_details.confirmationNumber}, status: ${status}`);
+      const success = await sendBookingStatusEmail(user_email, booking_details, status);
+      
+      if (success) {
+        res.json({ message: "Booking status email sent successfully", user_email, status });
+      } else {
+        res.status(500).json({ message: "Failed to send booking status email" });
+      }
+    } catch (error: any) {
+      console.error("Error in notify-booking:", error);
+      res.status(500).json({ message: "Error sending booking status email: " + error.message });
+    }
   });
 
   // Cruise routes
@@ -109,6 +177,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertBookingSchema.parse(req.body);
       const booking = await storage.createBooking(validatedData);
+      
+      // Send booking creation notification email
+      try {
+        const bookingDetails = await storage.getBookingWithDetails(booking.id);
+        await fetch(`${process.env.BACKEND_URL || 'http://localhost:5000'}/api/notify-booking`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            booking_details: bookingDetails,
+            status: 'created',
+            user_email: bookingDetails?.primaryGuestEmail
+          })
+        });
+        console.log(`Booking creation email sent for booking: ${booking.confirmationNumber}`);
+      } catch (error) {
+        console.error("Failed to send booking creation email:", error);
+        // Don't fail booking creation if email notification fails
+      }
+      
       res.status(201).json(booking);
     } catch (error: any) {
       if (error instanceof z.ZodError) {
@@ -372,6 +459,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         paidCurrency: currency,
         paidAt: new Date()
       });
+      
+      // Get full booking details for email notifications
+      const bookingWithDetails = await storage.getBookingWithDetails(bookingId);
+      
+      // Send payment confirmation email notification
+      try {
+        await fetch(`${process.env.BACKEND_URL || 'http://localhost:5000'}/api/notify-payment`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: amount.toString(),
+            created_at: new Date().toISOString(),
+            status: 'paid',
+            user_email: bookingWithDetails?.primaryGuestEmail,
+            confirmation_number: bookingWithDetails?.confirmationNumber
+          })
+        });
+        console.log(`Payment confirmation email sent for booking: ${bookingWithDetails?.confirmationNumber}`);
+      } catch (error) {
+        console.error("Failed to send payment confirmation email:", error);
+      }
+      
+      // Send booking confirmation email notification
+      try {
+        await fetch(`${process.env.BACKEND_URL || 'http://localhost:5000'}/api/notify-booking`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            booking_details: bookingWithDetails,
+            status: 'confirmed',
+            user_email: bookingWithDetails?.primaryGuestEmail
+          })
+        });
+        console.log(`Booking confirmation email sent for booking: ${bookingWithDetails?.confirmationNumber}`);
+      } catch (error) {
+        console.error("Failed to send booking confirmation email:", error);
+      }
       
       res.json({ 
         success: true, 
