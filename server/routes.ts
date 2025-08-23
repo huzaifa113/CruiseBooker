@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupSimpleAuth, optionalAuth } from "./auth";
 
 // Helper function to generate iCal content
 function generateICalendar(booking: any, cruise: any): string {
@@ -36,14 +36,8 @@ import { insertBookingSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Optional auth setup (commented out to remove login wall)
-  // await setupAuth(app);
-
-  // Optional auth routes (returns null user for now)
-  app.get('/api/auth/user', async (req: any, res) => {
-    // Return null to indicate no authentication required
-    res.json(null);
-  });
+  // Setup simple auth (optional - doesn't block users)
+  setupSimpleAuth(app);
 
   // Basic routes
   app.get("/api/health", (req, res) => {
@@ -154,9 +148,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user's bookings (for logged-in users)
-  app.get("/api/user/bookings", isAuthenticated, async (req: any, res) => {
+  app.get("/api/user/bookings", optionalAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      if (!req.user) {
+        return res.status(401).json({ message: "Please log in to view your bookings" });
+      }
+      const userId = req.user.id;
       const userBookings = await storage.getUserBookings(userId);
       res.json(userBookings);
     } catch (error: any) {
@@ -180,7 +177,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Stripe payment integration
   const { default: Stripe } = await import('stripe');
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2024-12-18.acacia'
+    apiVersion: '2025-07-30.basil'
   });
   
   // Create Stripe payment intent

@@ -14,14 +14,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AuthModal from "./auth/auth-modal";
 
 export default function Header() {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { language, setLanguage, t } = useLanguageContext();
-  // Authentication removed - no user menu needed
-  const user = null;
-  const isAuthenticated = false;
+  const { user, isAuthenticated, logout } = useAuth();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
 
   const handleDestinationsClick = () => {
     // Navigate to home page if not there, then scroll to destinations
@@ -45,6 +46,27 @@ export default function Header() {
         dealsSection.scrollIntoView({ behavior: 'smooth' });
       }
     }
+  };
+
+  const handleLoginClick = () => {
+    setAuthMode("login");
+    setIsAuthModalOpen(true);
+  };
+
+  const handleRegisterClick = () => {
+    setAuthMode("register");
+    setIsAuthModalOpen(true);
+  };
+
+  const handleLogout = () => {
+    logout();
+  };
+
+  const getUserInitials = () => {
+    if (!user) return "U";
+    const first = user.firstName?.charAt(0) || "";
+    const last = user.lastName?.charAt(0) || "";
+    return (first + last).toUpperCase() || user.email.charAt(0).toUpperCase();
   };
 
   return (
@@ -146,9 +168,9 @@ export default function Header() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="hidden md:flex relative h-10 w-10 rounded-full" data-testid="button-user-menu">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={(user as any)?.profileImageUrl || ''} alt={(user as any)?.firstName || 'User'} />
-                      <AvatarFallback>
-                        {(user as any)?.firstName ? (user as any).firstName[0] : (user as any)?.email ? (user as any).email[0].toUpperCase() : 'U'}
+                      <AvatarImage src={user?.profileImageUrl || ''} alt={user?.firstName || 'User'} />
+                      <AvatarFallback className="bg-blue-600 text-white">
+                        {getUserInitials()}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -157,10 +179,10 @@ export default function Header() {
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">
-                        {(user as any)?.firstName && (user as any)?.lastName ? `${(user as any).firstName} ${(user as any).lastName}` : (user as any)?.email}
+                        {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.email}
                       </p>
                       <p className="text-xs leading-none text-muted-foreground">
-                        {(user as any)?.email}
+                        {user?.email}
                       </p>
                     </div>
                   </DropdownMenuLabel>
@@ -172,20 +194,30 @@ export default function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => window.location.href = '/api/logout'} className="cursor-pointer">
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button 
-                className="hidden md:flex bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 font-semibold px-4 lg:px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all text-sm lg:text-base" 
-                onClick={() => window.location.href = '/api/login'}
-                data-testid="button-signin"
-              >
-                {t('signIn')}
-              </Button>
+              <div className="hidden md:flex items-center space-x-2">
+                <Button 
+                  variant="ghost"
+                  className="text-gray-700 hover:text-blue-600"
+                  onClick={handleLoginClick}
+                  data-testid="button-signin"
+                >
+                  {t('signIn')}
+                </Button>
+                <Button 
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 font-semibold px-4 lg:px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all text-sm lg:text-base"
+                  onClick={handleRegisterClick}
+                  data-testid="button-signup"
+                >
+                  Sign Up
+                </Button>
+              </div>
             )}
             
             {/* Mobile menu */}
@@ -227,15 +259,69 @@ export default function Header() {
                       {t('myReservations')}
                     </div>
                   </Link>
-                  <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 font-semibold">
-                    {t('signIn')}
-                  </Button>
+                  {!isAuthenticated ? (
+                    <div className="space-y-3">
+                      <Button 
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => {
+                          handleLoginClick();
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        {t('signIn')}
+                      </Button>
+                      <Button 
+                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 font-semibold"
+                        onClick={() => {
+                          handleRegisterClick();
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        Sign Up
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 pt-3 border-t">
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={user?.profileImageUrl || ''} alt={user?.firstName || 'User'} />
+                          <AvatarFallback className="bg-blue-600 text-white">
+                            {getUserInitials()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="text-sm font-medium">
+                            {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.email}
+                          </p>
+                          <p className="text-xs text-gray-500">{user?.email}</p>
+                        </div>
+                      </div>
+                      <Button 
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => {
+                          handleLogout();
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Log out
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>
           </div>
         </div>
       </div>
+      
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        defaultMode={authMode}
+      />
     </header>
   );
 }
