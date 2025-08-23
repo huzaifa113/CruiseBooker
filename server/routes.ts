@@ -36,18 +36,29 @@ import { insertBookingSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+
   // Optional auth setup (commented out to remove login wall)
   // await setupAuth(app);
 
   // Optional auth routes (returns null user for now)
   app.get('/api/auth/user', async (req: any, res) => {
-    // Return null to indicate no authentication required
-    res.json(null);
+    try {
+      // Return null to indicate no authentication required
+      res.json(null);
+    } catch (error: any) {
+      console.error("Auth error:", error);
+      res.status(500).json({ message: "Authentication error" });
+    }
   });
 
-  // Basic routes
+  // Health check endpoints for deployment monitoring
   app.get("/api/health", (req, res) => {
-    res.json({ status: "healthy" });
+    res.json({ 
+      status: "healthy", 
+      environment: process.env.NODE_ENV || 'development',
+      version: "1.0.0",
+      timestamp: new Date().toISOString()
+    });
   });
 
   // Cruise routes
@@ -55,6 +66,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("API: /api/cruises called");
       console.log("DATABASE_URL exists:", !!process.env.DATABASE_URL);
+      console.log("Environment:", process.env.NODE_ENV);
+      console.log("Origin:", req.headers.origin);
       
       const filters: any = {};
       
@@ -71,19 +84,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(cruises);
     } catch (error: any) {
       console.error("Error in /api/cruises:", error);
-      res.status(500).json({ message: "Error fetching cruises: " + error.message });
+      res.status(500).json({ 
+        message: "Error fetching cruises: " + error.message,
+        environment: process.env.NODE_ENV,
+        timestamp: new Date().toISOString()
+      });
     }
   });
 
   app.get("/api/cruises/:id", async (req, res) => {
     try {
+      console.log("API: /api/cruises/:id called with ID:", req.params.id);
       const cruise = await storage.getCruise(req.params.id);
       if (!cruise) {
+        console.log("Cruise not found:", req.params.id);
         return res.status(404).json({ message: "Cruise not found" });
       }
+      console.log("Cruise found:", cruise.name);
       res.json(cruise);
     } catch (error: any) {
-      res.status(500).json({ message: "Error fetching cruise: " + error.message });
+      console.error("Error fetching cruise:", error);
+      res.status(500).json({ 
+        message: "Error fetching cruise: " + error.message,
+        cruiseId: req.params.id,
+        timestamp: new Date().toISOString()
+      });
     }
   });
 

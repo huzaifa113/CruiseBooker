@@ -8,10 +8,15 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Supabase connection using node-postgres for better compatibility
+// Database connection with production optimizations
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  // Production connection settings
+  max: process.env.NODE_ENV === 'production' ? 10 : 5,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+  keepAlive: true,
 });
 
 export const db = drizzle(pool, { schema });

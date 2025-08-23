@@ -1,11 +1,37 @@
 import express, { type Request, Response, NextFunction } from "express";
+import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { enhancedSeedDatabase } from "./enhanced-seed";
 
+// Validate required environment variables
+const requiredEnvVars = ['DATABASE_URL'];
+const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+if (missingEnvVars.length > 0) {
+  console.error('Missing required environment variables:', missingEnvVars);
+  process.exit(1);
+}
+
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+
+// CORS configuration for production deployment
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? [
+        /\.replit\.app$/,
+        /\.replit\.dev$/,
+        /localhost:\d+$/,
+        process.env.FRONTEND_URL
+      ].filter(Boolean)
+    : true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions as any));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -58,7 +84,7 @@ app.use((req, res, next) => {
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
+  if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);
   } else {
     serveStatic(app);
