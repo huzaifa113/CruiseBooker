@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Search, Download, Mail, Edit } from "lucide-react";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
@@ -13,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function Reservations() {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [lookupForm, setLookupForm] = useState({
     confirmationNumber: "",
     lastName: ""
@@ -99,10 +101,31 @@ export default function Reservations() {
   };
 
   const handleManageBooking = () => {
-    // TODO: Implement booking management functionality
+    if (!booking?.cruiseId) {
+      toast({
+        title: "Error",
+        description: "Unable to edit booking - missing cruise information.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Navigate to booking page with edit mode parameters
+    const editParams = new URLSearchParams({
+      edit: 'true',
+      bookingId: booking.id,
+      confirmationNumber: booking.confirmationNumber,
+      cabinType: booking.cabinTypeId || '',
+      guestCount: booking.guestCount?.toString() || '2',
+      diningTime: booking.diningTime || '',
+      extras: JSON.stringify(booking.extras || [])
+    });
+
+    setLocation(`/booking/${booking.cruiseId}?${editParams.toString()}`);
+    
     toast({
-      title: "Manage Booking",
-      description: "Booking management features coming soon.",
+      title: "Redirecting to Edit Booking",
+      description: "Loading your existing booking details for editing...",
     });
   };
 

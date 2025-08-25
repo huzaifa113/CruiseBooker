@@ -109,13 +109,23 @@ export default function HeroSearch() {
               
               <div>
                 <Label htmlFor="departureDate" className="block text-sm font-medium text-gray-700 mb-2">
-                  Departure Date
+                  Departure Date <span className="text-xs text-gray-500">(From tomorrow)</span>
                 </Label>
                 <Input
                   id="departureDate"
                   type="date"
                   value={formData.departureDate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, departureDate: e.target.value }))}
+                  onChange={(e) => {
+                    const newDepartureDate = e.target.value;
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      departureDate: newDepartureDate,
+                      // Clear return date if it's before the new departure date
+                      returnDate: prev.returnDate && prev.returnDate <= newDepartureDate ? "" : prev.returnDate
+                    }));
+                  }}
+                  min={new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]} // Tomorrow
+                  max={new Date(new Date().getFullYear() + 2, 11, 31).toISOString().split('T')[0]} // 2 years from now
                   className="focus:ring-2 focus:ring-ocean-500 focus:border-ocean-500"
                   data-testid="input-departure-date"
                 />
@@ -123,13 +133,18 @@ export default function HeroSearch() {
               
               <div>
                 <Label htmlFor="returnDate" className="block text-sm font-medium text-gray-700 mb-2">
-                  Return Date
+                  Return Date <span className="text-xs text-gray-500">(Optional)</span>
                 </Label>
                 <Input
                   id="returnDate"
                   type="date"
                   value={formData.returnDate}
                   onChange={(e) => setFormData(prev => ({ ...prev, returnDate: e.target.value }))}
+                  min={formData.departureDate ? 
+                    new Date(new Date(formData.departureDate).getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0] : 
+                    new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // Day after departure or day after tomorrow
+                  }
+                  max={new Date(new Date().getFullYear() + 2, 11, 31).toISOString().split('T')[0]} // 2 years from now
                   className="focus:ring-2 focus:ring-ocean-500 focus:border-ocean-500"
                   data-testid="input-return-date"
                 />

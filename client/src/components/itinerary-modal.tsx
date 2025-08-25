@@ -177,58 +177,47 @@ export default function ItineraryModal({ cruise, isOpen, onClose, onBookCruise }
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden" data-testid="modal-itinerary">
         <DialogHeader className="pb-6 border-b border-gray-200">
-          <div className="flex justify-between items-start">
-            <div>
-              <DialogTitle className="text-2xl font-bold text-gray-900" data-testid="text-cruise-name">
-                {cruise.name}
-              </DialogTitle>
-              <p className="text-gray-600" data-testid="text-ship-duration">
-                {cruise.ship} • {cruise.duration} Days
-              </p>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
-              data-testid="button-close-modal"
-            >
-              <X className="w-6 h-6" />
-            </Button>
-          </div>
+          <DialogTitle className="text-2xl font-bold text-gray-900 pr-8" data-testid="text-cruise-name">
+            {cruise.name}
+          </DialogTitle>
+          <p className="text-gray-600" data-testid="text-ship-duration">
+            {cruise.ship} • {cruise.duration} Days
+          </p>
         </DialogHeader>
         
-        <div className="overflow-y-auto max-h-[calc(90vh-200px)] px-1">
+        <div className="overflow-y-auto max-h-[calc(90vh-240px)] px-1 py-2">
           <div className="space-y-6">
             {cruise.itinerary?.map((day, index) => (
-              <div key={index} className="flex border-b border-gray-100 pb-6 last:border-b-0" data-testid={`itinerary-day-${day.day}`}>
-                <div className="w-20 flex-shrink-0">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-ocean-600" data-testid={`text-day-number-${day.day}`}>
-                      {day.day.toString().padStart(2, '0')}
+              <div key={index} className="flex flex-col sm:flex-row border-b border-gray-100 pb-6 last:border-b-0" data-testid={`itinerary-day-${day.day}`}>
+                <div className="w-full sm:w-20 flex-shrink-0 mb-4 sm:mb-0">
+                  <div className="text-center sm:text-center">
+                    <div className="text-2xl font-bold text-ocean-600 inline sm:block" data-testid={`text-day-number-${day.day}`}>
+                      Day {day.day.toString().padStart(2, '0')}
                     </div>
-                    <div className="text-sm text-gray-600" data-testid={`text-day-date-${day.day}`}>
+                    <div className="text-sm text-gray-600 inline sm:block ml-2 sm:ml-0" data-testid={`text-day-date-${day.day}`}>
                       {day.date}
                     </div>
                   </div>
                 </div>
-                <div className="flex-1 ml-6">
-                  <div className="flex items-center mb-2">
+                <div className="flex-1 sm:ml-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center mb-2 gap-2">
                     <h3 className="text-lg font-semibold text-gray-900" data-testid={`text-port-name-${day.day}`}>
                       {day.port}
                     </h3>
-                    {day.country && (
-                      <span className="ml-3 text-sm text-gray-600" data-testid={`text-country-${day.day}`}>
-                        {day.country}
-                      </span>
-                    )}
-                    {day.port === "At Sea" && (
-                      <Badge variant="secondary" className="ml-3 bg-blue-100 text-blue-800">
-                        Cruising
-                      </Badge>
-                    )}
+                    <div className="flex items-center gap-3">
+                      {day.country && (
+                        <span className="text-sm text-gray-600" data-testid={`text-country-${day.day}`}>
+                          {day.country}
+                        </span>
+                      )}
+                      {day.port === "At Sea" && (
+                        <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                          Cruising
+                        </Badge>
+                      )}
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-sm text-gray-600 mb-3">
                     <div>
                       <span className="font-medium">Arrival:</span> 
                       <span className="ml-1" data-testid={`text-arrival-${day.day}`}>
@@ -242,7 +231,7 @@ export default function ItineraryModal({ cruise, isOpen, onClose, onBookCruise }
                       </span>
                     </div>
                   </div>
-                  <p className="text-gray-700" data-testid={`text-description-${day.day}`}>
+                  <p className="text-gray-700 text-sm sm:text-base" data-testid={`text-description-${day.day}`}>
                     {day.description}
                   </p>
                 </div>
@@ -251,34 +240,36 @@ export default function ItineraryModal({ cruise, isOpen, onClose, onBookCruise }
           </div>
         </div>
         
-        <div className="bg-gray-50 -mx-6 -mb-6 p-6 flex justify-between items-center border-t">
-          <div className="flex space-x-4">
+        <div className="bg-gray-50 -mx-6 -mb-6 p-6 border-t">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex flex-wrap gap-3">
+              <Button
+                variant="outline"
+                onClick={handlePrint}
+                className="flex items-center text-ocean-600 hover:text-ocean-700 border-ocean-200"
+                data-testid="button-print-itinerary"
+              >
+                <Printer className="w-4 h-4 mr-2" />
+                Print Itinerary
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleExportCalendar}
+                className="flex items-center text-ocean-600 hover:text-ocean-700 border-ocean-200"
+                data-testid="button-export-calendar"
+              >
+                <CalendarPlus className="w-4 h-4 mr-2" />
+                Export to Calendar
+              </Button>
+            </div>
             <Button
-              variant="outline"
-              onClick={handlePrint}
-              className="flex items-center text-ocean-600 hover:text-ocean-700 border-ocean-200"
-              data-testid="button-print-itinerary"
+              onClick={() => onBookCruise?.(cruise)}
+              className="bg-coral-500 text-white hover:bg-coral-600 font-semibold px-6 py-3 w-full sm:w-auto"
+              data-testid="button-book-cruise"
             >
-              <Printer className="w-4 h-4 mr-2" />
-              Print Itinerary
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleExportCalendar}
-              className="flex items-center text-ocean-600 hover:text-ocean-700 border-ocean-200"
-              data-testid="button-export-calendar"
-            >
-              <CalendarPlus className="w-4 h-4 mr-2" />
-              Export to Calendar
+              Book This Cruise
             </Button>
           </div>
-          <Button
-            onClick={() => onBookCruise?.(cruise)}
-            className="bg-coral-500 text-white hover:bg-coral-600 font-semibold px-6 py-3"
-            data-testid="button-book-cruise"
-          >
-            Book This Cruise
-          </Button>
         </div>
       </DialogContent>
     </Dialog>

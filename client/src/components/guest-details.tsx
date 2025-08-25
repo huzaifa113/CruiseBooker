@@ -16,16 +16,27 @@ import type { GuestInfo } from "@/lib/types";
 const guestSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
-  dateOfBirth: z.string().min(1, "Date of birth is required"),
+  dateOfBirth: z.string().min(1, "Date of birth is required").refine((date) => {
+    const birthDate = new Date(date);
+    const today = new Date();
+    const hundredYearsAgo = new Date();
+    hundredYearsAgo.setFullYear(today.getFullYear() - 100);
+    
+    // Must be in the past but not more than 100 years ago
+    return birthDate < today && birthDate > hundredYearsAgo;
+  }, "Please enter a valid date of birth (not in the future, not more than 100 years ago)"),
   passportNumber: z.string().optional(),
   passportCountry: z.string().optional(),
   passportExpiry: z.string().optional().refine((date) => {
-    if (!date) return true; // Optional field
+    if (!date || date.trim() === "") return true;
     const expiryDate = new Date(date);
+    const today = new Date();
     const sixMonthsFromNow = new Date();
     sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
-    return expiryDate > sixMonthsFromNow;
-  }, "Passport must be valid for at least 6 months from travel date"),
+    
+    // Passport expiry must be at least 6 months in the future and reasonable
+    return expiryDate > sixMonthsFromNow && expiryDate < new Date(today.getFullYear() + 50, today.getMonth(), today.getDate());
+  }, "Passport must be valid for at least 6 months from today and not exceed 50 years"),
   specialNeeds: z.string().optional(),
   isChild: z.boolean(),
   isSenior: z.boolean()
@@ -64,6 +75,7 @@ export default function GuestDetails({
 }: GuestDetailsProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const totalGuests = adultCount + childCount + seniorCount;
   
   const { register, formState: { errors }, handleSubmit, watch, setValue } = useForm<GuestDetailsForm>({
@@ -102,10 +114,42 @@ export default function GuestDetails({
     }
   });
 
-  const onSubmit = (data: GuestDetailsForm) => {
+  const onSubmit = async (data: GuestDetailsForm) => {
+    if (isSubmitting) return; // Prevent double submission
+    
+    setIsSubmitting(true);
     console.log("Guest details form submitted:", data);
-    onFormDataChange(data);
-    onContinue();
+    
+    try {
+      // Validate passport expiry for filled passports
+      if (data.guests) {
+        const today = new Date();
+        const sixMonthsFromNow = new Date();
+        sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+
+        const invalidPassports = data.guests.filter((guest: any, index: number) => {
+          if (guest.passportExpiry && guest.passportExpiry.trim()) {
+            const expiryDate = new Date(guest.passportExpiry);
+            return expiryDate < sixMonthsFromNow;
+          }
+          return false;
+        });
+
+        if (invalidPassports.length > 0) {
+          toast({
+            title: "Passport Validation Error",
+            description: "All passports must be valid for at least 6 months from today",
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+      
+      onFormDataChange(data);
+      onContinue();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const updateGuestCount = (type: 'adults' | 'children' | 'seniors', change: number) => {
@@ -280,9 +324,12 @@ export default function GuestDetails({
                   id="primaryGuestPhone"
                   {...register("primaryGuestPhone")}
                   placeholder="Enter phone number"
-                  className="placeholder:text-gray-400"
+                  className={errors.primaryGuestPhone ? "border-red-500 focus:border-red-500 ring-red-500" : "placeholder:text-gray-400"}
                   data-testid="input-primary-phone"
                 />
+                {errors.primaryGuestPhone && (
+                  <p className="text-red-500 text-sm mt-1">{errors.primaryGuestPhone.message}</p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -332,6 +379,8 @@ export default function GuestDetails({
                           type="date"
                           {...register(`guests.${index}.dateOfBirth`)}
                           className={errors.guests?.[index]?.dateOfBirth ? "border-red-500 focus:border-red-500 ring-red-500" : ""}
+                          max={new Date().toISOString().split('T')[0]} // Can't select future dates
+                          min={new Date(new Date().getFullYear() - 100, 0, 1).toISOString().split('T')[0]} // 100 years ago limit
                           data-testid={`input-guest-dob-${index}`}
                         />
                         {errors.guests?.[index]?.dateOfBirth && (
@@ -357,7 +406,10 @@ export default function GuestDetails({
                             // Update the form value
                           }
                         }}>
-                          <SelectTrigger data-testid={`select-guest-country-${index}`}>
+                          <SelectTrigger 
+                            className={errors.guests?.[index]?.passportCountry ? "border-red-500 focus:border-red-500 ring-red-500" : ""}
+                            data-testid={`select-guest-country-${index}`}
+                          >
                             <SelectValue placeholder="Select country" />
                           </SelectTrigger>
                           <SelectContent>
@@ -369,6 +421,9 @@ export default function GuestDetails({
                           </SelectContent>
                         </Select>
                         <input type="hidden" {...register(`guests.${index}.passportCountry`)} />
+                        {errors.guests?.[index]?.passportCountry && (
+                          <p className="text-red-500 text-sm mt-1">{errors.guests[index].passportCountry.message}</p>
+                        )}
                       </div>
                       <div>
                         <Label htmlFor={`guests.${index}.passportExpiry`}>Passport Expiry</Label>
@@ -376,6 +431,8 @@ export default function GuestDetails({
                           type="date"
                           {...register(`guests.${index}.passportExpiry`)}
                           className={errors.guests?.[index]?.passportExpiry ? "border-red-500 focus:border-red-500 ring-red-500" : ""}
+                          min={new Date().toISOString().split('T')[0]} // Must be in the future
+                          max={new Date(new Date().getFullYear() + 50, 11, 31).toISOString().split('T')[0]} // 50 years from now limit
                           data-testid={`input-guest-passport-expiry-${index}`}
                         />
                         {errors.guests?.[index]?.passportExpiry && (
@@ -386,9 +443,13 @@ export default function GuestDetails({
                         <Label htmlFor={`guests.${index}.specialNeeds`}>Special Needs/Dietary Requirements</Label>
                         <Textarea
                           {...register(`guests.${index}.specialNeeds`)}
+                          className={errors.guests?.[index]?.specialNeeds ? "border-red-500 focus:border-red-500 ring-red-500" : ""}
                           placeholder="Please specify any special requirements, medical needs, or dietary restrictions"
                           data-testid={`textarea-guest-special-needs-${index}`}
                         />
+                        {errors.guests?.[index]?.specialNeeds && (
+                          <p className="text-red-500 text-sm mt-1">{errors.guests[index].specialNeeds.message}</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -424,44 +485,19 @@ export default function GuestDetails({
               Back to Extras
             </Button>
             <Button
-              type="button"
+              type="submit"
+              disabled={isSubmitting}
               className="bg-ocean-600 text-white hover:bg-ocean-700 font-semibold px-8 py-3"
               data-testid="button-continue-guests"
-              onClick={() => {
-                // Get current form data
-                const formData = watch();
-                console.log("Button clicked, form data:", formData);
-                
-                // Validate passport expiry for filled passports
-                if (formData.guests) {
-                  const today = new Date();
-                  const sixMonthsFromNow = new Date();
-                  sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
-
-                  const invalidPassports = formData.guests.filter((guest: any, index: number) => {
-                    if (guest.passportExpiry && guest.passportExpiry.trim()) {
-                      const expiryDate = new Date(guest.passportExpiry);
-                      return expiryDate < sixMonthsFromNow;
-                    }
-                    return false;
-                  });
-
-                  if (invalidPassports.length > 0) {
-                    toast({
-                      title: "Passport Validation Error",
-                      description: "All passports must be valid for at least 6 months from today",
-                      variant: "destructive"
-                    });
-                    return;
-                  }
-                }
-                
-                // Pass the form data directly without forcing validation
-                onFormDataChange(formData);
-                onContinue();
-              }}
             >
-              Continue to Payment
+              {isSubmitting ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                  Processing...
+                </div>
+              ) : (
+                "Continue to Payment"
+              )}
             </Button>
           </div>
         </form>
