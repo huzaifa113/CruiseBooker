@@ -91,7 +91,7 @@ export default function ConfirmationSuccess() {
 
   const handleEmailConfirmation = async () => {
     try {
-      const response = await fetch(`/api/bookings/${bookingId}/email-confirmation`, {
+      const response = await fetch(`/api/bookings/${bookingId}/resend-email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -101,14 +101,14 @@ export default function ConfirmationSuccess() {
       if (response.ok) {
         const result = await response.json();
         console.log("Email confirmation sent:", result);
-        // In a real app, you could show a toast notification here
-        alert("Confirmation email sent successfully!");
+        alert(`Confirmation email sent successfully to ${result.sentTo || booking?.primaryGuestEmail}!`);
       } else {
-        throw new Error('Failed to send email');
+        const errorResult = await response.json();
+        throw new Error(errorResult.message || 'Failed to send email');
       }
     } catch (error) {
       console.error("Error sending email:", error);
-      alert("Failed to send email confirmation");
+      alert(`Failed to send email confirmation: ${error.message}`);
     }
   };
 

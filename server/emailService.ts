@@ -1,4 +1,5 @@
 import { MailService } from '@sendgrid/mail';
+import { generateInvoicePDF } from './pdfService';
 
 if (!process.env.SENDGRID_API_KEY) {
   throw new Error("SENDGRID_API_KEY environment variable must be set");
@@ -13,6 +14,12 @@ interface EmailParams {
   subject: string;
   text?: string;
   html?: string;
+  attachments?: Array<{
+    content: string;
+    filename: string;
+    type?: string;
+    disposition?: string;
+  }>;
 }
 
 export async function sendEmail(params: EmailParams): Promise<boolean> {
@@ -25,6 +32,7 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     
     if (params.text) emailData.text = params.text;
     if (params.html) emailData.html = params.html;
+    if (params.attachments) emailData.attachments = params.attachments;
     
     // console.log('Sending email with data:', JSON.stringify({
     //   to: emailData.to,
@@ -247,6 +255,36 @@ export async function sendBookingStatusEmail(
   status: string
 ): Promise<boolean> {
   const template = EmailTemplates.bookingStatus(bookingDetails, status);
+  
+  let attachments: any[] = [];
+  
+  // Generate PDF invoice for confirmed bookings
+  if (status === 'confirmed' && bookingDetails) {
+    try {
+      const invoiceData = {
+        booking: bookingDetails,
+        cruise: bookingDetails.cruise,
+        cabinType: bookingDetails.cabinType,
+        generatedAt: new Date().toISOString(),
+        invoiceNumber: `INV-${bookingDetails.confirmationNumber}-${Date.now()}`
+      };
+      
+      const pdfBuffer = await generateInvoicePDF(invoiceData);
+      if (pdfBuffer) {
+        attachments.push({
+          content: pdfBuffer.toString('base64'),
+          filename: `invoice-${bookingDetails.confirmationNumber}.pdf`,
+          type: 'application/pdf',
+          disposition: 'attachment'
+        });
+        console.log(`PDF invoice attached to email for booking: ${bookingDetails.confirmationNumber}`);
+      }
+    } catch (error) {
+      console.error('Failed to generate PDF invoice for email:', error);
+      // Continue sending email without attachment if PDF generation fails
+    }
+  }
+  
   return await sendEmail({
     to: userEmail,
     from: {
@@ -255,6 +293,7 @@ export async function sendBookingStatusEmail(
     },
     subject: template.subject,
     html: template.html,
-    text: template.text
+    text: template.text,
+    attachments: attachments.length > 0 ? attachments : undefined
   });
 }

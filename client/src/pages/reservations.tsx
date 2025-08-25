@@ -58,12 +58,44 @@ export default function Reservations() {
     });
   };
 
-  const handleEmailConfirmation = () => {
-    // TODO: Implement email confirmation resend
-    toast({
-      title: "Email Sent",
-      description: "Confirmation details have been sent to your email address.",
-    });
+  const handleEmailConfirmation = async () => {
+    if (!booking?.id) {
+      toast({
+        title: "Error",
+        description: "No booking found to send confirmation.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/bookings/${booking.id}/resend-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok) {
+        toast({
+          title: "Email Sent Successfully!",
+          description: `Confirmation details have been sent to ${result.sentTo}`,
+        });
+      } else {
+        toast({
+          title: "Email Send Failed",
+          description: result.message || "Failed to send confirmation email.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error sending confirmation email:', error);
+      toast({
+        title: "Email Send Failed",
+        description: "Failed to send confirmation email. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleManageBooking = () => {

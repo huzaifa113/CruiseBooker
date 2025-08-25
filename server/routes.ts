@@ -508,6 +508,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Resend booking confirmation email
+  app.post("/api/bookings/:id/resend-email", async (req, res) => {
+    try {
+      const bookingId = req.params.id;
+      
+      // Get full booking details for email
+      const bookingWithDetails = await storage.getBookingWithDetails(bookingId);
+      
+      if (!bookingWithDetails) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      if (!bookingWithDetails.primaryGuestEmail) {
+        return res.status(400).json({ message: "No email address found for this booking" });
+      }
+      
+      // Send booking confirmation email
+      try {
+        await fetch(`${process.env.BACKEND_URL || 'http://localhost:5000'}/api/notify-booking`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            booking_details: bookingWithDetails,
+            status: 'confirmed',
+            user_email: bookingWithDetails.primaryGuestEmail
+          })
+        });
+        
+        console.log(`Booking confirmation email resent for booking: ${bookingWithDetails.confirmationNumber}`);
+        
+        res.json({ 
+          success: true,
+          message: "Confirmation email sent successfully",
+          sentTo: bookingWithDetails.primaryGuestEmail
+        });
+      } catch (emailError) {
+        console.error("Failed to send booking confirmation email:", emailError);
+        res.status(500).json({ message: "Failed to send confirmation email" });
+      }
+      
+    } catch (error: any) {
+      console.error("Error in resend email:", error);
+      res.status(500).json({ message: "Error resending email: " + error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
