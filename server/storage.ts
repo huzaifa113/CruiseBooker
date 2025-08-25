@@ -1,4 +1,4 @@
-import { cruises, cabinTypes, bookings, extras, users, cabinHolds, promotions, calendarEvents, type Cruise, type CabinType, type Booking, type Extra, type User, type UpsertUser, type InsertCruise, type InsertCabinType, type InsertBooking, type InsertExtra } from "@shared/schema";
+import { cruises, cabinTypes, bookings, extras, users, cabinHolds, promotions, calendarEvents, favorites, type Cruise, type CabinType, type Booking, type Extra, type User, type UpsertUser, type InsertCruise, type InsertCabinType, type InsertBooking, type InsertExtra, type Favorite, type InsertFavorite } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, lte, ilike, sql, desc, asc } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -59,6 +59,12 @@ export interface IStorage {
   // Calendar Events
   createCalendarEvent(bookingId: string, eventData: any): Promise<any>;
   getCalendarEventsByBooking(bookingId: string): Promise<any[]>;
+  
+  // Favorites
+  addFavorite(userId: string, cruiseId: string): Promise<any>;
+  removeFavorite(userId: string, cruiseId: string): Promise<void>;
+  getUserFavorites(userId: string): Promise<any[]>;
+  isFavorite(userId: string, cruiseId: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -391,6 +397,56 @@ export class DatabaseStorage implements IStorage {
   async getBooking(bookingId: string): Promise<any> {
     const [booking] = await db.select().from(bookings).where(eq(bookings.id, bookingId));
     return booking;
+  }
+
+  // Favorites operations
+  async addFavorite(userId: string, cruiseId: string): Promise<any> {
+    try {
+      const [favorite] = await db.insert(favorites).values({
+        userId,
+        cruiseId
+      }).returning();
+      return favorite;
+    } catch (error) {
+      // Handle duplicate favorite (user already favorited this cruise)
+      throw error;
+    }
+  }
+
+  async removeFavorite(userId: string, cruiseId: string): Promise<void> {
+    await db.delete(favorites).where(
+      and(
+        eq(favorites.userId, userId),
+        eq(favorites.cruiseId, cruiseId)
+      )
+    );
+  }
+
+  async getUserFavorites(userId: string): Promise<any[]> {
+    return await db
+      .select({
+        id: favorites.id,
+        cruiseId: favorites.cruiseId,
+        createdAt: favorites.createdAt,
+        cruise: cruises
+      })
+      .from(favorites)
+      .innerJoin(cruises, eq(favorites.cruiseId, cruises.id))
+      .where(eq(favorites.userId, userId))
+      .orderBy(desc(favorites.createdAt));
+  }
+
+  async isFavorite(userId: string, cruiseId: string): Promise<boolean> {
+    const [favorite] = await db
+      .select()
+      .from(favorites)
+      .where(
+        and(
+          eq(favorites.userId, userId),
+          eq(favorites.cruiseId, cruiseId)
+        )
+      );
+    return !!favorite;
   }
 
   private generateConfirmationNumber(): string {

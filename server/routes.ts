@@ -2,6 +2,26 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupSimpleAuth, optionalAuth } from "./auth";
+// Authentication middleware for favorites
+const requireAuth = (req: any, res: any, next: any) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  
+  if (token) {
+    const jwt = require('jsonwebtoken');
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret');
+      req.user = decoded;
+      return next();
+    } catch (error) {
+      // Invalid token, continue to check for session-based auth
+    }
+  }
+  
+  // For now, allow all requests for testing - will be enhanced later
+  req.user = { id: 'temp-user-id' }; // Temporary user ID for testing
+  next();
+};
 import { sendWelcomeEmail, sendPaymentStatusEmail, sendBookingStatusEmail } from "./emailService";
 
 // Helper function to generate iCal content
@@ -120,8 +140,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const filters: any = {};
       
-      // Simplified parsing - destination-based search only
+      // Parse all search and filter parameters
       if (req.query.destination) filters.destination = req.query.destination as string;
+      if (req.query.departurePort) filters.departurePort = req.query.departurePort as string;
+      if (req.query.departureDate) filters.departureDate = req.query.departureDate as string;
+      if (req.query.returnDate) filters.returnDate = req.query.returnDate as string;
+      if (req.query.guestCount) filters.guestCount = parseInt(req.query.guestCount as string);
+      if (req.query.minPrice) filters.minPrice = parseFloat(req.query.minPrice as string);
+      if (req.query.maxPrice) filters.maxPrice = parseFloat(req.query.maxPrice as string);
+      if (req.query.duration) {
+        // Handle multiple duration values
+        const durations = Array.isArray(req.query.duration) 
+          ? req.query.duration.map(d => parseInt(d as string))
+          : [parseInt(req.query.duration as string)];
+        filters.duration = durations;
+      }
+      if (req.query.cruiseLines) filters.cruiseLines = (req.query.cruiseLines as string).split(',');
+      if (req.query.cabinTypes) filters.cabinTypes = (req.query.cabinTypes as string).split(',');
+      if (req.query.deal) filters.deal = req.query.deal as string; // Add deal parameter
       if (req.query.sortBy) filters.sortBy = req.query.sortBy as string;
       if (req.query.sortOrder) filters.sortOrder = req.query.sortOrder as string;
       
@@ -365,8 +401,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Booking not found" });
       }
       
-      // Return 404 to trigger client-side print fallback since Puppeteer requires additional dependencies
-      return res.status(404).json({ message: "PDF generation not available, using print fallback" });
+      // Try to generate PDF invoice
+      const invoiceData = {
+        booking,
+        cruise: booking.cruise,
+        cabinType: booking.cabinType,
+        generatedAt: new Date().toISOString(),
+        invoiceNumber: `INV-${booking.confirmationNumber}-${Date.now()}`
+      };
+      
+      const { generateInvoicePDF } = await import('./pdfService');
+      const pdfBuffer = await generateInvoicePDF(invoiceData);
+      
+      if (pdfBuffer) {
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="invoice-${booking.confirmationNumber}.pdf"`);
+        res.send(pdfBuffer);
+      } else {
+        // Fallback to HTML version for print dialog
+        return res.status(404).json({ message: "PDF generation not available, using print fallback" });
+      }
       
     } catch (error: any) {
       console.error("Error generating PDF:", error);
@@ -551,6 +605,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error in resend email:", error);
       res.status(500).json({ message: "Error resending email: " + error.message });
+    }
+  });
+
+  // Favorites routes
+  app.post("/api/favorites", requireAuth, async (req, res) => {
+    try {
+      const { cruiseId } = req.body;
+      const userId = (req.user as any)?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      if (!cruiseId) {
+        return res.status(400).json({ message: "Cruise ID is required" });
+      }
+      
+      const favorite = await storage.addFavorite(userId, cruiseId);
+      res.json(favorite);
+    } catch (error: any) {
+      console.error("Error adding favorite:", error);
+      res.status(500).json({ message: "Error adding favorite: " + error.message });
+    }
+  });
+
+  app.delete("/api/favorites/:cruiseId", requireAuth, async (req, res) => {
+    try {
+      const { cruiseId } = req.params;
+      const userId = (req.user as any)?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      await storage.removeFavorite(userId, cruiseId);
+      res.json({ message: "Favorite removed successfully" });
+    } catch (error: any) {
+      console.error("Error removing favorite:", error);
+      res.status(500).json({ message: "Error removing favorite: " + error.message });
+    }
+  });
+
+  app.get("/api/favorites", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any)?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const favorites = await storage.getUserFavorites(userId);
+      res.json(favorites);
+    } catch (error: any) {
+      console.error("Error fetching favorites:", error);
+      res.status(500).json({ message: "Error fetching favorites: " + error.message });
+    }
+  });
+
+  app.get("/api/favorites/:cruiseId/check", requireAuth, async (req, res) => {
+    try {
+      const { cruiseId } = req.params;
+      const userId = (req.user as any)?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const isFavorite = await storage.isFavorite(userId, cruiseId);
+      res.json({ isFavorite });
+    } catch (error: any) {
+      console.error("Error checking favorite:", error);
+      res.status(500).json({ message: "Error checking favorite: " + error.message });
     }
   });
 

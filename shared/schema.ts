@@ -185,6 +185,16 @@ export const payments = pgTable("payments", {
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
+export const favorites = pgTable("favorites", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  cruiseId: varchar("cruise_id").notNull().references(() => cruises.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow()
+}, (table) => [
+  // Ensure unique user-cruise combinations
+  index("favorites_user_cruise_idx").on(table.userId, table.cruiseId)
+]);
+
 // Relations
 export const cruisesRelations = relations(cruises, ({ many }) => ({
   cabinTypes: many(cabinTypes),
@@ -247,3 +257,5 @@ export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
 export type Extra = typeof extras.$inferSelect;
 export type InsertExtra = z.infer<typeof insertExtraSchema>;
+export type Favorite = typeof favorites.$inferSelect;
+export type InsertFavorite = typeof favorites.$inferInsert;

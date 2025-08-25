@@ -4,7 +4,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import CabinCarousel from "@/components/cabin-carousel";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import type { Cruise, CabinType } from "@shared/schema";
 
 interface CruiseCardProps {
@@ -17,6 +20,9 @@ interface CruiseCardProps {
 export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, compact = false }: CruiseCardProps) {
   const [showCabinCarousel, setShowCabinCarousel] = useState(false);
   const [selectedCabinType, setSelectedCabinType] = useState<any>(null);
+  const { isAuthenticated } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch cabin types for this cruise
   const { data: cabinTypes, isLoading: cabinTypesLoading, error: cabinTypesError } = useQuery({
@@ -34,6 +40,61 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
     enabled: !!cruise.id,
     retry: 3,
     retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000)
+  });
+
+  // Check if cruise is favorited
+  const { data: favoriteData } = useQuery({
+    queryKey: ["/api/favorites", cruise.id, "check"],
+    enabled: isAuthenticated
+  });
+
+  // Add/remove favorite mutations
+  const addFavoriteMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/favorites", {
+        method: "POST",
+        body: JSON.stringify({ cruiseId: cruise.id }),
+        headers: { "Content-Type": "application/json" }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/favorites", cruise.id, "check"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
+      toast({
+        title: "Added to Favorites",
+        description: `${cruise.name} has been added to your favorites.`
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to Add Favorite",
+        description: "Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const removeFavoriteMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest(`/api/favorites/${cruise.id}`, {
+        method: "DELETE"
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/favorites", cruise.id, "check"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
+      toast({
+        title: "Removed from Favorites",
+        description: `${cruise.name} has been removed from your favorites.`
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to Remove Favorite",
+        description: "Please try again.",
+        variant: "destructive"
+      });
+    }
   });
 
   const handleViewCabins = (e?: React.MouseEvent) => {
@@ -103,8 +164,29 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
               size="sm"
               className="absolute top-4 right-4 bg-white bg-opacity-90 p-2 rounded-lg hover:bg-white"
               data-testid={`button-favorite-${cruise.id}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isAuthenticated) {
+                  toast({
+                    title: "Login Required",
+                    description: "Please log in to save favorites.",
+                    variant: "destructive"
+                  });
+                  return;
+                }
+                
+                const isFav = favoriteData?.isFavorite;
+                if (isFav) {
+                  removeFavoriteMutation.mutate();
+                } else {
+                  addFavoriteMutation.mutate();
+                }
+              }}
+              disabled={addFavoriteMutation.isPending || removeFavoriteMutation.isPending}
             >
-              <Heart className="w-4 h-4 text-gray-400 hover:text-red-500" />
+              <Heart 
+                className={`w-4 h-4 ${favoriteData?.isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-400 hover:text-red-500'}`} 
+              />
             </Button>
           </div>
           <CardContent className="p-6">
@@ -209,6 +291,36 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
                 {cruise.duration} Days
               </Badge>
             </div>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute top-4 left-4 bg-white bg-opacity-90 p-2 rounded-lg hover:bg-white"
+              data-testid={`button-favorite-large-${cruise.id}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isAuthenticated) {
+                  toast({
+                    title: "Login Required",
+                    description: "Please log in to save favorites.",
+                    variant: "destructive"
+                  });
+                  return;
+                }
+                
+                const isFav = favoriteData?.isFavorite;
+                if (isFav) {
+                  removeFavoriteMutation.mutate();
+                } else {
+                  addFavoriteMutation.mutate();
+                }
+              }}
+              disabled={addFavoriteMutation.isPending || removeFavoriteMutation.isPending}
+            >
+              <Heart 
+                className={`w-5 h-5 ${favoriteData?.isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-400 hover:text-red-500'}`} 
+              />
+            </Button>
           </div>
           
           <div className="p-6 md:w-3/5 flex flex-col justify-between">

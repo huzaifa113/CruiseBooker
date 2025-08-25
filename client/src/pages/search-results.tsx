@@ -44,6 +44,7 @@ export default function SearchResults() {
     if (searchParams.get('departureDate')) params.append('departureDate', searchParams.get('departureDate')!);
     if (searchParams.get('returnDate')) params.append('returnDate', searchParams.get('returnDate')!);
     if (searchParams.get('guestCount')) params.append('guestCount', searchParams.get('guestCount')!);
+    if (searchParams.get('deal')) params.append('deal', searchParams.get('deal')!); // Add deal parameter
     
     // Add filter criteria
     if (filters.minPrice !== 500) params.append('minPrice', filters.minPrice.toString());

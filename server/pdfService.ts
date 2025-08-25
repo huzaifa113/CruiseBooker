@@ -1,4 +1,10 @@
-import * as htmlPdf from 'html-pdf-node';
+// Try to import html-pdf-node, fallback if not available
+let htmlPdf: any = null;
+try {
+  htmlPdf = require('html-pdf-node');
+} catch (error) {
+  console.log('html-pdf-node not available, PDF generation will be disabled');
+}
 
 interface InvoiceData {
   booking: any;
@@ -9,11 +15,16 @@ interface InvoiceData {
 }
 
 export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buffer | null> {
+  if (!htmlPdf) {
+    console.log('html-pdf-node not available, skipping PDF generation');
+    return null;
+  }
+
   try {
     const htmlContent = generateInvoiceHTML(invoiceData);
     
     const options = {
-      format: 'A4',
+      format: 'A4' as const,
       margin: {
         top: 20,
         right: 20,
@@ -22,7 +33,14 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
       },
       printBackground: true,
       displayHeaderFooter: false,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-web-security', '--disable-dev-shm-usage']
+      args: [
+        '--no-sandbox', 
+        '--disable-setuid-sandbox', 
+        '--disable-web-security', 
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--disable-features=VizDisplayCompositor'
+      ]
     };
 
     const file = { content: htmlContent };
