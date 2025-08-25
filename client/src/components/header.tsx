@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Ship, Phone, Globe, Menu, MapPin, Tag, X, User, LogOut } from "lucide-react";
+import { Ship, Phone, Globe, Menu, MapPin, Tag, X, User, LogOut, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
@@ -191,6 +191,12 @@ export default function Header() {
                     <Link href="/my-reservations" className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
                       <span>My Reservations</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/favorites" className="cursor-pointer">
+                      <Heart className="mr-2 h-4 w-4" />
+                      <span>Saved Cruises</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

@@ -2,6 +2,25 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupSimpleAuth, optionalAuth } from "./auth";
+
+// Create isAuthenticated middleware for compatibility
+const isAuthenticated = (req: any, res: any, next: any) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  
+  if (token) {
+    try {
+      const jwt = require('jsonwebtoken');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret');
+      req.user = decoded;
+      return next();
+    } catch (error) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+  }
+  
+  return res.status(401).json({ message: "Authentication required" });
+};
 // Authentication middleware for favorites
 const requireAuth = (req: any, res: any, next: any) => {
   const authHeader = req.headers.authorization;
@@ -209,10 +228,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create a new booking
-  app.post("/api/bookings", async (req, res) => {
+  app.post("/api/bookings", isAuthenticated, async (req, res) => {
     try {
       const validatedData = insertBookingSchema.parse(req.body);
-      const booking = await storage.createBooking(validatedData);
+      // Add user ID to booking data
+      const bookingData = {
+        ...validatedData,
+        userId: (req.user as any)?.id
+      };
+      const booking = await storage.createBooking(bookingData);
       
       // Send booking creation notification email
       try {
@@ -609,7 +633,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Favorites routes
-  app.post("/api/favorites", requireAuth, async (req, res) => {
+  app.post("/api/favorites", isAuthenticated, async (req, res) => {
     try {
       const { cruiseId } = req.body;
       const userId = (req.user as any)?.id;
@@ -630,7 +654,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/favorites/:cruiseId", requireAuth, async (req, res) => {
+  app.delete("/api/favorites/:cruiseId", isAuthenticated, async (req, res) => {
     try {
       const { cruiseId } = req.params;
       const userId = (req.user as any)?.id;
@@ -647,7 +671,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/favorites", requireAuth, async (req, res) => {
+  app.get("/api/favorites", isAuthenticated, async (req, res) => {
     try {
       const userId = (req.user as any)?.id;
       
@@ -663,7 +687,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/favorites/:cruiseId/check", requireAuth, async (req, res) => {
+  app.get("/api/favorites/:cruiseId/check", isAuthenticated, async (req, res) => {
     try {
       const { cruiseId } = req.params;
       const userId = (req.user as any)?.id;
