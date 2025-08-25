@@ -9,7 +9,7 @@ mailService.setApiKey(process.env.SENDGRID_API_KEY);
 
 interface EmailParams {
   to: string;
-  from: string;
+  from: string | { email: string; name?: string };
   subject: string;
   text?: string;
   html?: string;
@@ -26,11 +26,19 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     if (params.text) emailData.text = params.text;
     if (params.html) emailData.html = params.html;
     
+    // console.log('Sending email with data:', JSON.stringify({
+    //   to: emailData.to,
+    //   from: emailData.from,
+    //   subject: emailData.subject
+    // }, null, 2));
+    
     await mailService.send(emailData);
     console.log(`Email sent successfully to ${params.to}`);
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error('SendGrid email error:', error);
+    console.error('Error response body:', error.response?.body);
+    console.error('Error status:', error.code || error.status);
     return false;
   }
 }
@@ -193,12 +201,20 @@ export const EmailTemplates = {
   })
 };
 
+// Get verified sender email - use environment variable or verified sender from account
+const getVerifiedSender = () => {
+  return process.env.SENDGRID_FROM_EMAIL || 'huzaifa6807@gmail.com';
+};
+
 // Email sending functions
 export async function sendWelcomeEmail(userEmail: string, userId: string): Promise<boolean> {
   const template = EmailTemplates.welcome(userEmail, userId);
   return await sendEmail({
     to: userEmail,
-    from: 'noreply@phoenixvacationgroup.com',
+    from: {
+      email: getVerifiedSender(),
+      name: 'Phoenix Vacation Group'
+    },
     subject: template.subject,
     html: template.html,
     text: template.text
@@ -215,7 +231,10 @@ export async function sendPaymentStatusEmail(
   const template = EmailTemplates.paymentStatus(amount, createdAt, status, confirmationNumber);
   return await sendEmail({
     to: userEmail,
-    from: 'payments@phoenixvacationgroup.com',
+    from: {
+      email: getVerifiedSender(),
+      name: 'Phoenix Vacation Group - Payments'
+    },
     subject: template.subject,
     html: template.html,
     text: template.text
@@ -230,7 +249,10 @@ export async function sendBookingStatusEmail(
   const template = EmailTemplates.bookingStatus(bookingDetails, status);
   return await sendEmail({
     to: userEmail,
-    from: 'bookings@phoenixvacationgroup.com',
+    from: {
+      email: getVerifiedSender(),
+      name: 'Phoenix Vacation Group - Bookings'
+    },
     subject: template.subject,
     html: template.html,
     text: template.text
