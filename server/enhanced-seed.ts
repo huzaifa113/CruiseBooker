@@ -10,6 +10,7 @@ import {
   calendarEvents 
 } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import bcrypt from "bcrypt";
 
 export async function enhancedSeedDatabase() {
   console.log("Starting enhanced database seeding...");
@@ -23,7 +24,36 @@ export async function enhancedSeedDatabase() {
     await db.delete(extras);
     await db.delete(cabinTypes);
     await db.delete(cruises);
+    await db.delete(users);
 
+    // Create test users
+    console.log("Creating test users...");
+    const hashedPassword = await bcrypt.hash("password123", 10);
+    const testUsers = [
+      {
+        id: "user-1",
+        email: "test@example.com",
+        password: hashedPassword,
+        firstName: "Test",
+        lastName: "User",
+        phone: "+1234567890",
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: "user-2", 
+        email: "demo@example.com",
+        password: hashedPassword,
+        firstName: "Demo",
+        lastName: "User",
+        phone: "+1987654321",
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
+
+    await db.insert(users).values(testUsers);
+    console.log(`Created ${testUsers.length} test users`);
 
 
     // Enhanced cruise data with comprehensive details

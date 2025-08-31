@@ -45,17 +45,22 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
   // Check if cruise is favorited
   const { data: favoriteData } = useQuery({
     queryKey: ["/api/favorites", cruise.id, "check"],
-    enabled: isAuthenticated
+    enabled: isAuthenticated,
+    queryFn: async () => {
+      const response = await fetch(`/api/favorites/${cruise.id}/check`, {
+        credentials: "include"
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to check favorite status: ${response.status}`);
+      }
+      return response.json();
+    }
   });
 
   // Add/remove favorite mutations
   const addFavoriteMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("/api/favorites", {
-        method: "POST",
-        body: JSON.stringify({ cruiseId: cruise.id }),
-        headers: { "Content-Type": "application/json" }
-      });
+      return await apiRequest("POST", "/api/favorites", { cruiseId: cruise.id });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/favorites", cruise.id, "check"] });
@@ -76,9 +81,7 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
 
   const removeFavoriteMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest(`/api/favorites/${cruise.id}`, {
-        method: "DELETE"
-      });
+      return await apiRequest("DELETE", `/api/favorites/${cruise.id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/favorites", cruise.id, "check"] });
