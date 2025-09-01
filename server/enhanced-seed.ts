@@ -7,7 +7,10 @@ import {
   users, 
   bookings, 
   promotions, 
-  calendarEvents 
+  calendarEvents,
+  payments,
+  cabinHolds,
+  favorites
 } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcrypt";
@@ -16,9 +19,12 @@ export async function enhancedSeedDatabase() {
   console.log("Starting enhanced database seeding...");
 
   try {
-    // Always clear and reseed for consistent data
+    // Clear data in proper order to avoid foreign key conflicts
     console.log("Clearing existing data for fresh seed...");
     await db.delete(calendarEvents);
+    await db.delete(payments); // Delete payments first
+    await db.delete(cabinHolds); // Delete holds
+    await db.delete(favorites); // Delete favorites
     await db.delete(bookings);
     await db.delete(promotions);
     await db.delete(extras);

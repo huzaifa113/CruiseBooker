@@ -234,7 +234,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...validatedData,
         userId: (req.user as any)?.id
       };
+      // Create cabin hold before booking
+      const canBook = await storage.checkCabinAvailability(
+        validatedData.cruiseId, 
+        validatedData.cabinTypeId, 
+        validatedData.guestCount
+      );
+      
+      if (!canBook) {
+        return res.status(400).json({ message: "Selected cabin type is not available for the requested dates" });
+      }
+      
+      // Create cabin hold (15-minute reservation)
+      await storage.createCabinHold(
+        validatedData.cruiseId,
+        validatedData.cabinTypeId,
+        validatedData.guestCount,
+        (req.user as any)?.id,
+        req.sessionID
+      );
+      
       const booking = await storage.createBooking(bookingData);
+      
+      // Create calendar events for the booking
+      try {
+        const cruise = await storage.getCruise(booking.cruiseId);
+        if (cruise && cruise.itinerary) {
+          const itinerary = cruise.itinerary as any[];
+          
+          // Create calendar event for cruise departure
+          await storage.createCalendarEvent(booking.id, {
+            eventType: 'departure',
+            title: `${cruise.name} - Departure`,
+            description: `Departure from ${cruise.departurePort}`,
+            startDate: cruise.departureDate,
+            location: cruise.departurePort
+          });
+          
+          // Create calendar event for cruise return
+          await storage.createCalendarEvent(booking.id, {
+            eventType: 'arrival',
+            title: `${cruise.name} - Return`,
+            description: `Return to ${cruise.departurePort}`,
+            startDate: cruise.returnDate,
+            location: cruise.departurePort
+          });
+          
+          // Create port call events
+          for (const day of itinerary) {
+            if (day.port && day.port !== 'At Sea') {
+              await storage.createCalendarEvent(booking.id, {
+                eventType: 'port_call',
+                title: `Port Call - ${day.port}`,
+                description: day.description || `Visit ${day.port}, ${day.country}`,
+                startDate: new Date(day.date),
+                location: `${day.port}, ${day.country}`
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Failed to create calendar events:", error);
+        // Don't fail booking creation if calendar creation fails
+      }
       
       // Send booking creation notification email
       try {
@@ -546,6 +608,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         stripePaymentIntentId: paymentIntentId,
         processedAt: new Date()
       });
+
+      // Release any cabin holds for this booking (payment confirmed, no longer need hold)
+      try {
+        const booking = await storage.getBooking(bookingId);
+        if (booking) {
+          // Clean up expired holds and release any holds for this booking
+          await storage.releaseExpiredHolds();
+        }
+      } catch (error) {
+        console.error("Error releasing cabin holds:", error);
+        // Don't fail payment confirmation if hold release fails
+      }
       
       // Get full booking details for email notifications
       const bookingWithDetails = await storage.getBookingWithDetails(bookingId);
