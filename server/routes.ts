@@ -535,6 +535,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         paidCurrency: currency,
         paidAt: new Date()
       });
+
+      // Create separate payment record in payments table
+      await storage.createPaymentRecord({
+        bookingId,
+        amount: parseFloat(amount),
+        currency: currency || 'USD',
+        status: 'paid',
+        paymentMethod: 'card',
+        stripePaymentIntentId: paymentIntentId,
+        processedAt: new Date()
+      });
       
       // Get full booking details for email notifications
       const bookingWithDetails = await storage.getBookingWithDetails(bookingId);

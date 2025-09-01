@@ -1,4 +1,4 @@
-import { cruises, cabinTypes, bookings, extras, users, cabinHolds, promotions, calendarEvents, favorites, type Cruise, type CabinType, type Booking, type Extra, type User, type UpsertUser, type InsertCruise, type InsertCabinType, type InsertBooking, type InsertExtra, type Favorite, type InsertFavorite } from "@shared/schema";
+import { cruises, cabinTypes, bookings, extras, users, cabinHolds, promotions, calendarEvents, payments, favorites, type Cruise, type CabinType, type Booking, type Extra, type User, type UpsertUser, type InsertCruise, type InsertCabinType, type InsertBooking, type InsertExtra, type Favorite, type InsertFavorite } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, lte, ilike, sql, desc, asc } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -40,6 +40,10 @@ export interface IStorage {
   getBookingByConfirmation(confirmationNumber: string, lastName: string): Promise<Booking | undefined>;
   createBooking(booking: InsertBooking): Promise<Booking>;
   updateBookingPaymentStatus(id: string, status: string, stripePaymentIntentId?: string): Promise<Booking>;
+  
+  // Payments
+  createPaymentRecord(paymentData: any): Promise<any>;
+  getPaymentsByBooking(bookingId: string): Promise<any[]>;
   
   // Extras
   getExtras(): Promise<Extra[]>;
@@ -252,10 +256,6 @@ export class DatabaseStorage implements IStorage {
     return booking;
   }
 
-  async getBooking(bookingId: string): Promise<any> {
-    const [booking] = await db.select().from(bookings).where(eq(bookings.id, bookingId));
-    return booking;
-  }
 
   // Inventory Hold System
   async createCabinHold(cruiseId: string, cabinTypeId: string, quantity: number, userId?: string, sessionId?: string): Promise<any> {
@@ -378,6 +378,33 @@ export class DatabaseStorage implements IStorage {
   
   async getCalendarEventsByBooking(bookingId: string): Promise<any[]> {
     return await db.select().from(calendarEvents).where(eq(calendarEvents.bookingId, bookingId));
+  }
+
+  // Payment Records
+  async createPaymentRecord(paymentData: {
+    bookingId: string;
+    amount: number;
+    currency: string;
+    status: string;
+    paymentMethod?: string;
+    stripePaymentIntentId?: string;
+    transactionId?: string;
+  }): Promise<any> {
+    const [payment] = await db.insert(payments).values({
+      bookingId: paymentData.bookingId,
+      amount: paymentData.amount.toString(),
+      currency: paymentData.currency,
+      status: paymentData.status,
+      paymentMethod: paymentData.paymentMethod,
+      stripePaymentIntentId: paymentData.stripePaymentIntentId,
+      transactionId: paymentData.transactionId,
+      processedAt: new Date()
+    }).returning();
+    return payment;
+  }
+  
+  async getPaymentsByBooking(bookingId: string): Promise<any[]> {
+    return await db.select().from(payments).where(eq(payments.bookingId, bookingId));
   }
 
   // Favorites operations
