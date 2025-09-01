@@ -72,12 +72,21 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
         description: `${cruise.name} has been added to your favorites.`
       });
     },
-    onError: (error) => {
-      toast({
-        title: "Failed to Add Favorite",
-        description: "Please try again.",
-        variant: "destructive"
-      });
+    onError: (error: any) => {
+      // Handle duplicate favorites gracefully
+      if (error.status === 409) {
+        queryClient.invalidateQueries({ queryKey: ["/api/favorites", cruise.id, "check"] });
+        toast({
+          title: "Already in Favorites",
+          description: `${cruise.name} is already in your favorites.`
+        });
+      } else {
+        toast({
+          title: "Failed to Add Favorite",
+          description: "Please try again.",
+          variant: "destructive"
+        });
+      }
     }
   });
 

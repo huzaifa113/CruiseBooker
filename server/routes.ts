@@ -21,8 +21,9 @@ const isAuthenticated = async (req: any, res: any, next: any) => {
   
   return res.status(401).json({ message: "Authentication required" });
 };
-// Authentication middleware for favorites
+// Authentication middleware for favorites - support both JWT and session
 const requireAuth = async (req: any, res: any, next: any) => {
+  // First check Authorization header for JWT token
   const authHeader = req.headers.authorization;
   const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
   
@@ -35,6 +36,17 @@ const requireAuth = async (req: any, res: any, next: any) => {
     } catch (error) {
       return res.status(401).json({ message: "Invalid token" });
     }
+  }
+  
+  // If no JWT token, check for Replit session user
+  if (req.replit?.user) {
+    req.user = {
+      id: req.replit.user.id,
+      email: req.replit.user.email,
+      firstName: req.replit.user.firstName,
+      lastName: req.replit.user.lastName
+    };
+    return next();
   }
   
   return res.status(401).json({ message: "Authentication required" });
@@ -727,6 +739,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!cruiseId) {
         return res.status(400).json({ message: "Cruise ID is required" });
+      }
+      
+      // Check if already favorited to prevent duplicates
+      const alreadyFavorited = await storage.isFavorite(userId, cruiseId);
+      if (alreadyFavorited) {
+        return res.status(409).json({ message: "Cruise is already in favorites" });
       }
       
       const favorite = await storage.addFavorite(userId, cruiseId);
