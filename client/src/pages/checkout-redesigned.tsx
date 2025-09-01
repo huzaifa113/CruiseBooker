@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { useDeals } from "@/lib/deals-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,10 +21,18 @@ const CheckoutContent = ({ bookingId }: { bookingId: string }) => {
   const [currency, setCurrency] = useState('USD');
   const [pricingBreakdown, setPricingBreakdown] = useState<PricingBreakdown | null>(null);
   const [clientSecret, setClientSecret] = useState('');
+  const { selectedDeal } = useDeals();
 
   // Fetch booking details
   const { data: booking, isLoading: bookingLoading } = useQuery({
     queryKey: ["/api/bookings", bookingId, "details"],
+    queryFn: async () => {
+      const response = await fetch(`/api/bookings/${bookingId}/details`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch booking details: ${response.status}`);
+      }
+      return response.json();
+    },
     enabled: !!bookingId
   });
 
@@ -58,20 +67,41 @@ const CheckoutContent = ({ bookingId }: { bookingId: string }) => {
     };
 
     // Transform promotions to match PromotionRule interface
-    const promotionRules: PromotionRule[] = promotions.map((p: any) => ({
+    let promotionRules: PromotionRule[] = promotions.map((p: any) => ({
       id: p.id,
       name: p.name,
       description: p.description,
-      discountType: p.discount_type,
-      discountValue: parseFloat(p.discount_value),
+      discountType: (p.discountType || p.discount_type) === 'fixed_amount' ? 'fixed' : (p.discountType || p.discount_type),
+      discountValue: parseFloat(p.discountValue || p.discount_value),
       maxDiscount: p.max_discount ? parseFloat(p.max_discount) : undefined,
       conditions: p.conditions || {},
-      validFrom: new Date(p.valid_from),
-      validTo: new Date(p.valid_to),
-      isActive: p.is_active,
+      validFrom: new Date(p.validFrom || p.valid_from),
+      validTo: new Date(p.validTo || p.valid_to),
+      isActive: p.isActive !== undefined ? p.isActive : p.is_active,
       isCombinable: p.combinable_with?.length > 0,
       priority: p.priority || 1
     }));
+
+    // If there's a selected deal from context or booking, prioritize it
+    const dealToApply = selectedDeal || (booking.selectedPromotionId ? 
+      promotionRules.find(p => p.id === booking.selectedPromotionId) : null);
+    
+    if (dealToApply && !promotionRules.find(p => p.id === dealToApply.id)) {
+      // Add the selected deal to the promotion rules if it's not already there
+      promotionRules.unshift({
+        id: dealToApply.id,
+        name: dealToApply.name,
+        description: dealToApply.description,
+        discountType: dealToApply.discountType === 'fixed_amount' ? 'fixed' : dealToApply.discountType,
+        discountValue: dealToApply.discountValue,
+        conditions: dealToApply.conditions || {},
+        validFrom: new Date(),
+        validTo: new Date(),
+        isActive: true,
+        isCombinable: false,
+        priority: 1
+      });
+    }
 
     // Calculate pricing breakdown
     const breakdown = PricingEngine.calculatePricing(
@@ -217,6 +247,23 @@ const CheckoutContent = ({ bookingId }: { bookingId: string }) => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Selected Deal Banner */}
+          {(selectedDeal || booking.selectedPromotionId) && (
+            <Card className="border-green-200 bg-green-50">
+              <CardHeader>
+                <CardTitle className="text-green-800 flex items-center gap-2">
+                  🎉 Deal Applied
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-green-700">
+                  <h3 className="font-semibold">{selectedDeal?.name || 'Special Promotion'}</h3>
+                  <p className="text-sm">{selectedDeal?.description || 'Promotional discount has been applied to your booking.'}</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Currency Selection */}
           <Card>

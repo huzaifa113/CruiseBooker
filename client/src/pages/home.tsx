@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { useDeals } from "@/lib/deals-context";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 import HeroSearch from "@/components/hero-search";
@@ -16,6 +17,7 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const [selectedCruise, setSelectedCruise] = useState<Cruise | null>(null);
   const [isItineraryModalOpen, setIsItineraryModalOpen] = useState(false);
+  const { setSelectedDeal } = useDeals();
 
   // Fetch featured cruises (limit to 6 for homepage)
   const { data: cruises, isLoading, error } = useQuery({
@@ -33,6 +35,21 @@ export default function Home() {
     }
   });
 
+  // Fetch active promotions/deals
+  const { data: promotions, isLoading: promotionsLoading } = useQuery({
+    queryKey: ["/api/promotions"],
+    queryFn: async () => {
+      const response = await fetch("/api/promotions", {
+        credentials: "include"
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch promotions: ${response.status} ${errorText}`);
+      }
+      return response.json();
+    }
+  });
+
   const handleViewItinerary = (cruise: Cruise) => {
     setSelectedCruise(cruise);
     setIsItineraryModalOpen(true);
@@ -47,9 +64,20 @@ export default function Home() {
     setLocation(`/booking/${cruise.id}`);
   };
 
-  const handleDealClick = (deal: any) => {
-    // Navigate to search with applied filters or deals and scroll to top
-    setLocation(`/search?deal=${encodeURIComponent(deal.title)}`);
+  const handleDealClick = (promotion: any) => {
+    // Store the selected promotion using the deals context
+    setSelectedDeal({
+      id: promotion.id,
+      name: promotion.name,
+      description: promotion.description,
+      discountType: promotion.discountType,
+      discountValue: promotion.discountValue,
+      selectedAt: new Date().toISOString(),
+      conditions: promotion.conditions
+    });
+    
+    // Navigate to search page to select a cruise for this deal
+    setLocation('/search?promotion=' + encodeURIComponent(promotion.id));
     setTimeout(() => window.scrollTo(0, 0), 100);
   };
 
@@ -173,53 +201,95 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                title: "Early Bird Special",
-                description: "Book 6 months in advance and save up to 30%",
-                discount: "30% OFF",
-                validUntil: "Dec 31, 2024",
-                color: "bg-green-600"
-              },
-              {
-                title: "Last Minute Deals",
-                description: "Book within 30 days and enjoy significant savings",
-                discount: "25% OFF",
-                validUntil: "Limited time",
-                color: "bg-orange-600"
-              },
-              {
-                title: "Group Bookings",
-                description: "Special rates for groups of 8 or more guests",
-                discount: "20% OFF",
-                validUntil: "Year round",
-                color: "bg-blue-600"
-              }
-            ].map((deal, index) => (
-              <Card key={index} className="relative overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => handleDealClick(deal)}>
-                <CardContent className="p-6 flex flex-col h-full">
-                  <div className={`absolute top-4 right-4 ${deal.color} text-white px-3 py-1 rounded-full text-sm font-bold`}>
-                    {deal.discount}
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{deal.title}</h3>
-                  <p className="text-gray-600 mb-4 flex-1">{deal.description}</p>
-                  <div className="text-sm text-gray-500 mb-4">
-                    Valid until: {deal.validUntil}
-                  </div>
-                  <button 
-                    className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDealClick(deal);
-                    }}
+          {/* Loading state for promotions */}
+          {promotionsLoading && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {Array(3).fill(0).map((_, index) => (
+                <Card key={index} className="overflow-hidden">
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      <Skeleton className="h-6 w-3/4" />
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-2/3" />
+                      <Skeleton className="h-8 w-20 rounded-full" />
+                      <Skeleton className="h-9 w-full" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {/* Dynamic promotions grid */}
+          {!promotionsLoading && promotions && promotions.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {promotions.slice(0, 6).map((promotion: any, index: number) => {
+                const discountText = promotion.discountType === 'percentage' 
+                  ? `${promotion.discountValue}% OFF`
+                  : `$${promotion.discountValue} OFF`;
+                
+                const colorClasses = [
+                  "bg-green-600", "bg-orange-600", "bg-blue-600", 
+                  "bg-purple-600", "bg-red-600", "bg-indigo-600"
+                ];
+                const colorClass = colorClasses[index % colorClasses.length];
+
+                return (
+                  <Card 
+                    key={promotion.id} 
+                    className="relative overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group" 
+                    onClick={() => handleDealClick(promotion)}
+                    data-testid={`deal-card-${promotion.id}`}
                   >
-                    Apply Deal
-                  </button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    <CardContent className="p-6 flex flex-col h-full">
+                      <div className={`absolute top-4 right-4 ${colorClass} text-white px-3 py-1 rounded-full text-sm font-bold`}>
+                        {discountText}
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2 pr-16" data-testid={`deal-title-${promotion.id}`}>
+                        {promotion.name}
+                      </h3>
+                      <p className="text-gray-600 mb-4 flex-1" data-testid={`deal-description-${promotion.id}`}>
+                        {promotion.description}
+                      </p>
+                      <div className="text-sm text-gray-500 mb-4">
+                        Valid until: {new Date(promotion.validTo).toLocaleDateString()}
+                      </div>
+                      {promotion.conditions?.minBookingAmount && (
+                        <div className="text-xs text-gray-400 mb-4">
+                          Minimum booking: ${promotion.conditions.minBookingAmount}
+                        </div>
+                      )}
+                      <button 
+                        className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors group-hover:bg-blue-700"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDealClick(promotion);
+                        }}
+                        data-testid={`button-apply-deal-${promotion.id}`}
+                      >
+                        Select This Deal
+                      </button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Empty state for promotions */}
+          {!promotionsLoading && (!promotions || promotions.length === 0) && (
+            <div className="text-center py-12">
+              <div className="text-gray-400 mb-4">
+                <DollarSign className="w-12 h-12 mx-auto" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                No Active Deals
+              </h3>
+              <p className="text-gray-600">
+                Check back soon for exciting cruise deals and special offers!
+              </p>
+            </div>
+          )}
         </div>
       </section>
 

@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/components/language-provider";
+import { DealsProvider } from "@/lib/deals-context";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import Home from "@/pages/home";
@@ -58,8 +59,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <LanguageProvider>
-          <Toaster />
-          <Router />
+          <DealsProvider>
+            <Toaster />
+            <Router />
+          </DealsProvider>
         </LanguageProvider>
       </TooltipProvider>
     </QueryClientProvider>

@@ -75,6 +75,7 @@ export const bookings = pgTable("bookings", {
   userId: varchar("user_id").references(() => users.id),
   cruiseId: varchar("cruise_id").notNull().references(() => cruises.id),
   cabinTypeId: varchar("cabin_type_id").notNull().references(() => cabinTypes.id),
+  selectedPromotionId: varchar("selected_promotion_id").references(() => promotions.id), // Track selected deal from home page
   guestCount: integer("guest_count").notNull(),
   adultCount: integer("adult_count").notNull(),
   childCount: integer("child_count").notNull(),

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { useDeals } from "@/lib/deals-context";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 import BookingProgress from "@/components/booking-progress";
@@ -10,6 +11,8 @@ import ExtrasSelection from "@/components/extras-selection";
 import GuestDetails from "@/components/guest-details";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { X, Tag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useCruiseId } from "@/hooks/use-route-params";
 import type { CabinType, Extra } from "@shared/schema";
@@ -19,6 +22,7 @@ export default function Booking() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const cruiseId = useCruiseId();
+  const { selectedDeal, getDealText, clearSelectedDeal } = useDeals();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [bookingData, setBookingData] = useState<Partial<BookingFormData>>({
@@ -223,7 +227,9 @@ export default function Booking() {
         primaryGuestEmail: bookingData.primaryGuestEmail!,
         primaryGuestPhone: bookingData.primaryGuestPhone,
         guests: bookingData.guests || [],
-        extras: bookingData.extras || []
+        extras: bookingData.extras || [],
+        // Include selected deal information for checkout
+        selectedPromotionId: selectedDeal?.id
       };
 
       const response = await fetch("/api/bookings", {
@@ -351,6 +357,35 @@ export default function Booking() {
       </section>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 lg:py-16">
+        {/* Selected Deal Banner */}
+        {selectedDeal && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Tag className="h-5 w-5 text-green-600" />
+                <div>
+                  <h3 className="text-sm font-medium text-green-800">
+                    Deal Applied: {selectedDeal.name}
+                  </h3>
+                  <div className="mt-1 text-sm text-green-700">
+                    {selectedDeal.description} • Save {selectedDeal.discountType === 'percentage' ? `${selectedDeal.discountValue}%` : `$${selectedDeal.discountValue}`}
+                  </div>
+                </div>
+                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  {selectedDeal.discountType === 'percentage' ? `${selectedDeal.discountValue}% OFF` : `$${selectedDeal.discountValue} OFF`}
+                </Badge>
+              </div>
+              <button
+                onClick={clearSelectedDeal}
+                className="text-green-600 hover:text-green-800 transition-colors"
+                data-testid="button-remove-deal"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Edit Mode Banner */}
         {new URLSearchParams(window.location.search).get('edit') === 'true' && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
