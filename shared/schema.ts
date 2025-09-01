@@ -91,6 +91,7 @@ export const bookings = pgTable("bookings", {
   primaryGuestName: text("primary_guest_name").notNull(),
   primaryGuestEmail: text("primary_guest_email").notNull(),
   primaryGuestPhone: text("primary_guest_phone"),
+  couponCode: text("coupon_code"), // For promotion validation
   guests: json("guests").$type<Array<{
     firstName: string;
     lastName: string;
@@ -149,9 +150,22 @@ export const promotions = pgTable("promotions", {
   combinableWith: json("combinable_with").$type<string[]>(), // Array of promotion IDs
   conditions: json("conditions").$type<{
     minBookingAmount?: number;
+    maxBookingAmount?: number;
+    minGuests?: number;
+    maxGuests?: number;
+    earlyBookingDays?: number; // Days before departure required for booking
     cruiseLines?: string[];
     destinations?: string[];
     cabinTypes?: string[];
+    requiredCouponCode?: string; // Optional coupon code requirement
+    ageRequirements?: {
+      minSeniors?: number; // Minimum senior count
+      maxChildren?: number; // Maximum child count
+    };
+    groupBooking?: {
+      enabled: boolean;
+      minCabins?: number; // Minimum cabins for group discount
+    };
   }>(),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow()

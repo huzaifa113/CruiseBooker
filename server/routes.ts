@@ -352,6 +352,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Check promotion eligibility (useful for admin/preview)
+  app.post("/api/promotions/check-eligibility", async (req, res) => {
+    try {
+      const { bookingAmount, promotionIds, bookingData } = req.body;
+      
+      if (!bookingAmount || !promotionIds || !bookingData) {
+        return res.status(400).json({ message: "bookingAmount, promotionIds, and bookingData are required" });
+      }
+      
+      const eligibilityResult = await storage.checkPromotionEligibility(bookingAmount, promotionIds, bookingData);
+      res.json(eligibilityResult);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error checking promotion eligibility: " + error.message });
+    }
+  });
+
   // Get user's bookings (for logged-in users)
   app.get("/api/user/bookings", optionalAuth, async (req: any, res) => {
     try {

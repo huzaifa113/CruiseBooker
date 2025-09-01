@@ -333,17 +333,77 @@ export class DatabaseStorage implements IStorage {
       // Check promotion conditions
       const conditions = promotion.conditions as any;
       let eligible = true;
+      let eligibilityReason = '';
       
+      // Basic amount conditions
       if (conditions?.minBookingAmount && bookingAmount < conditions.minBookingAmount) {
         eligible = false;
+        eligibilityReason = `Minimum booking amount of $${conditions.minBookingAmount} required`;
       }
       
+      if (conditions?.maxBookingAmount && bookingAmount > conditions.maxBookingAmount) {
+        eligible = false;
+        eligibilityReason = `Booking amount exceeds maximum of $${conditions.maxBookingAmount}`;
+      }
+      
+      // Guest count conditions
+      if (conditions?.minGuests && bookingData.guestCount < conditions.minGuests) {
+        eligible = false;
+        eligibilityReason = `Minimum ${conditions.minGuests} guests required`;
+      }
+      
+      if (conditions?.maxGuests && bookingData.guestCount > conditions.maxGuests) {
+        eligible = false;
+        eligibilityReason = `Maximum ${conditions.maxGuests} guests allowed`;
+      }
+      
+      // Early booking condition
+      if (conditions?.earlyBookingDays && bookingData.departureDate) {
+        const departureDate = new Date(bookingData.departureDate);
+        const bookingDate = new Date();
+        const daysUntilDeparture = Math.ceil((departureDate.getTime() - bookingDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (daysUntilDeparture < conditions.earlyBookingDays) {
+          eligible = false;
+          eligibilityReason = `Must book at least ${conditions.earlyBookingDays} days before departure`;
+        }
+      }
+      
+      // Age-based conditions
+      if (conditions?.ageRequirements) {
+        if (conditions.ageRequirements.minSeniors && bookingData.seniorCount < conditions.ageRequirements.minSeniors) {
+          eligible = false;
+          eligibilityReason = `Minimum ${conditions.ageRequirements.minSeniors} senior guests required`;
+        }
+        
+        if (conditions.ageRequirements.maxChildren && bookingData.childCount > conditions.ageRequirements.maxChildren) {
+          eligible = false;
+          eligibilityReason = `Maximum ${conditions.ageRequirements.maxChildren} children allowed`;
+        }
+      }
+      
+      // Cruise line restrictions
       if (conditions?.cruiseLines && !conditions.cruiseLines.includes(bookingData.cruiseLine)) {
         eligible = false;
+        eligibilityReason = `Only valid for ${conditions.cruiseLines.join(', ')} cruise lines`;
       }
       
+      // Destination restrictions
       if (conditions?.destinations && !conditions.destinations.includes(bookingData.destination)) {
         eligible = false;
+        eligibilityReason = `Only valid for ${conditions.destinations.join(', ')} destinations`;
+      }
+      
+      // Cabin type restrictions
+      if (conditions?.cabinTypes && !conditions.cabinTypes.includes(bookingData.cabinType)) {
+        eligible = false;
+        eligibilityReason = `Only valid for ${conditions.cabinTypes.join(', ')} cabin types`;
+      }
+      
+      // Coupon code requirement (if promotion requires specific coupon)
+      if (conditions?.requiredCouponCode && bookingData.couponCode !== conditions.requiredCouponCode) {
+        eligible = false;
+        eligibilityReason = `Requires coupon code: ${conditions.requiredCouponCode}`;
       }
       
       if (eligible) {
@@ -355,16 +415,133 @@ export class DatabaseStorage implements IStorage {
         }
         
         totalDiscount += discount;
-        appliedPromotions.push(promotion);
+        appliedPromotions.push({
+          ...promotion,
+          eligibilityChecked: true,
+          eligibilityReason: null,
+          discountAmount: discount
+        });
         
         // Update usage count
         await db.update(promotions)
           .set({ currentUses: sql`${promotions.currentUses} + 1` })
           .where(eq(promotions.id, promotionId));
+      } else {
+        // Track ineligible promotions for admin purposes
+        console.log(`Promotion ${promotion.name} not eligible: ${eligibilityReason}`);
       }
     }
     
-    return { discountAmount: totalDiscount, appliedPromotions };
+    return { 
+      discountAmount: totalDiscount, 
+      appliedPromotions,
+      eligibilityDetails: appliedPromotions.length === 0 ? 'No eligible promotions found' : null
+    };
+  }
+
+  // Check promotion eligibility without applying (for admin/preview purposes)
+  async checkPromotionEligibility(bookingAmount: number, promotionIds: string[], bookingData: any): Promise<{
+    eligiblePromotions: any[];
+    ineligiblePromotions: any[];
+    totalPotentialDiscount: number;
+  }> {
+    const eligiblePromotions: any[] = [];
+    const ineligiblePromotions: any[] = [];
+    let totalPotentialDiscount = 0;
+    
+    for (const promotionId of promotionIds) {
+      const [promotion] = await db.select().from(promotions).where(eq(promotions.id, promotionId));
+      
+      if (!promotion || !promotion.isActive) {
+        ineligiblePromotions.push({
+          ...promotion,
+          reason: 'Promotion not found or inactive'
+        });
+        continue;
+      }
+      
+      const conditions = promotion.conditions as any;
+      let eligible = true;
+      let eligibilityReason = '';
+      
+      // Same condition checking logic as applyPromotion
+      if (conditions?.minBookingAmount && bookingAmount < conditions.minBookingAmount) {
+        eligible = false;
+        eligibilityReason = `Minimum booking amount of $${conditions.minBookingAmount} required`;
+      }
+      
+      if (conditions?.maxBookingAmount && bookingAmount > conditions.maxBookingAmount) {
+        eligible = false;
+        eligibilityReason = `Booking amount exceeds maximum of $${conditions.maxBookingAmount}`;
+      }
+      
+      if (conditions?.minGuests && bookingData.guestCount < conditions.minGuests) {
+        eligible = false;
+        eligibilityReason = `Minimum ${conditions.minGuests} guests required`;
+      }
+      
+      if (conditions?.maxGuests && bookingData.guestCount > conditions.maxGuests) {
+        eligible = false;
+        eligibilityReason = `Maximum ${conditions.maxGuests} guests allowed`;
+      }
+      
+      if (conditions?.earlyBookingDays && bookingData.departureDate) {
+        const departureDate = new Date(bookingData.departureDate);
+        const bookingDate = new Date();
+        const daysUntilDeparture = Math.ceil((departureDate.getTime() - bookingDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (daysUntilDeparture < conditions.earlyBookingDays) {
+          eligible = false;
+          eligibilityReason = `Must book at least ${conditions.earlyBookingDays} days before departure`;
+        }
+      }
+      
+      if (conditions?.cruiseLines && !conditions.cruiseLines.includes(bookingData.cruiseLine)) {
+        eligible = false;
+        eligibilityReason = `Only valid for ${conditions.cruiseLines.join(', ')} cruise lines`;
+      }
+      
+      if (conditions?.destinations && !conditions.destinations.includes(bookingData.destination)) {
+        eligible = false;
+        eligibilityReason = `Only valid for ${conditions.destinations.join(', ')} destinations`;
+      }
+      
+      if (conditions?.cabinTypes && !conditions.cabinTypes.includes(bookingData.cabinType)) {
+        eligible = false;
+        eligibilityReason = `Only valid for ${conditions.cabinTypes.join(', ')} cabin types`;
+      }
+      
+      if (conditions?.requiredCouponCode && bookingData.couponCode !== conditions.requiredCouponCode) {
+        eligible = false;
+        eligibilityReason = `Requires coupon code: ${conditions.requiredCouponCode}`;
+      }
+      
+      if (eligible) {
+        let discount = 0;
+        if (promotion.discountType === 'percentage') {
+          discount = (bookingAmount * parseFloat(promotion.discountValue)) / 100;
+        } else {
+          discount = parseFloat(promotion.discountValue);
+        }
+        
+        eligiblePromotions.push({
+          ...promotion,
+          potentialDiscount: discount
+        });
+        totalPotentialDiscount += discount;
+      } else {
+        ineligiblePromotions.push({
+          ...promotion,
+          reason: eligibilityReason
+        });
+      }
+    }
+    
+    return {
+      eligiblePromotions,
+      ineligiblePromotions,
+      totalPotentialDiscount
+    };
   }
   
   // Calendar Events

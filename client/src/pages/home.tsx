@@ -242,7 +242,7 @@ export default function Home() {
                     data-testid={`deal-card-${promotion.id}`}
                   >
                     <CardContent className="p-6 flex flex-col h-full">
-                      <div className={`absolute top-4 right-4 ${colorClass} text-white px-3 py-1 rounded-full text-sm font-bold`}>
+                      <div className={`absolute top-4 right-4 ${colorClass} text-white px-3 py-1 rounded-full text-sm font-bold whitespace-nowrap z-10`}>
                         {discountText}
                       </div>
                       <h3 className="text-xl font-bold text-gray-900 mb-2 pr-16" data-testid={`deal-title-${promotion.id}`}>

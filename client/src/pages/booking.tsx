@@ -229,7 +229,9 @@ export default function Booking() {
         guests: bookingData.guests || [],
         extras: bookingData.extras || [],
         // Include selected deal information for checkout
-        selectedPromotionId: selectedDeal?.id
+        selectedPromotionId: selectedDeal?.id,
+        // Include any coupon code for promotion validation
+        couponCode: bookingData.couponCode
       };
 
       const response = await fetch("/api/bookings", {

@@ -62,6 +62,7 @@ const guestDetailsSchema = z.object({
   primaryGuestEmail: z.string().email("Valid email is required"),
   primaryGuestPhone: z.string().regex(/^\+?[\d\s\-\(\)]+$/, "Please enter a valid phone number").optional().or(z.literal("")),
   specialRequests: z.string().optional(),
+  couponCode: z.string().optional(),
   guests: z.array(guestSchema).refine((guests) => {
     // At least one guest must have complete information
     const completeGuests = guests.filter(guest => 
@@ -106,6 +107,7 @@ export default function GuestDetails({
       primaryGuestEmail: formData.primaryGuestEmail || user?.email || "",
       primaryGuestPhone: formData.primaryGuestPhone || user?.phone || "",
       specialRequests: formData.specialRequests || "",
+      couponCode: formData.couponCode || "",
       guests: formData.guests || Array(totalGuests).fill(null).map((_, index) => ({
         firstName: "",
         lastName: "",
@@ -338,18 +340,33 @@ export default function GuestDetails({
                   )}
                 </div>
               </div>
-              <div>
-                <Label htmlFor="primaryGuestPhone">Phone Number</Label>
-                <Input
-                  id="primaryGuestPhone"
-                  {...register("primaryGuestPhone")}
-                  placeholder="Enter phone number"
-                  className={errors.primaryGuestPhone ? "border-red-500 focus:border-red-500 ring-red-500" : "placeholder:text-gray-400"}
-                  data-testid="input-primary-phone"
-                />
-                {errors.primaryGuestPhone && (
-                  <p className="text-red-500 text-sm mt-1">{errors.primaryGuestPhone.message}</p>
-                )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="primaryGuestPhone">Phone Number</Label>
+                  <Input
+                    id="primaryGuestPhone"
+                    {...register("primaryGuestPhone")}
+                    placeholder="Enter phone number"
+                    className={errors.primaryGuestPhone ? "border-red-500 focus:border-red-500 ring-red-500" : "placeholder:text-gray-400"}
+                    data-testid="input-primary-phone"
+                  />
+                  {errors.primaryGuestPhone && (
+                    <p className="text-red-500 text-sm mt-1">{errors.primaryGuestPhone.message}</p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="couponCode">Coupon Code <span className="text-sm text-gray-500">(Optional)</span></Label>
+                  <Input
+                    id="couponCode"
+                    {...register("couponCode")}
+                    placeholder="Enter coupon code"
+                    className="placeholder:text-gray-400"
+                    data-testid="input-coupon-code"
+                  />
+                  {errors.couponCode && (
+                    <p className="text-red-500 text-sm mt-1">{errors.couponCode.message}</p>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>

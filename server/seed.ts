@@ -417,7 +417,9 @@ export async function seedDatabase() {
         currentUses: 0,
         conditions: {
           minBookingAmount: 1000,
-          cruiseLines: ['Royal Caribbean', 'Celebrity']
+          cruiseLines: ['Royal Caribbean', 'Celebrity'],
+          earlyBookingDays: 90,
+          minGuests: 2
         },
         isActive: true
       },
@@ -432,7 +434,8 @@ export async function seedDatabase() {
         maxUses: 500,
         currentUses: 0,
         conditions: {
-          destinations: ['Mediterranean']
+          destinations: ['Mediterranean'],
+          maxGuests: 8
         },
         isActive: true
       },
@@ -447,7 +450,62 @@ export async function seedDatabase() {
         maxUses: null,
         currentUses: 0,
         conditions: {
-          minBookingAmount: 2000
+          minBookingAmount: 2000,
+          minGuests: 4
+        },
+        isActive: true
+      },
+      {
+        id: 'promo-senior-special',
+        name: 'Senior Traveler Special',
+        description: '20% off for cruises with 2+ senior guests',
+        discountType: 'percentage',
+        discountValue: '20.00',
+        validFrom: new Date('2024-01-01'),
+        validTo: new Date('2025-12-31'),
+        maxUses: 300,
+        currentUses: 0,
+        conditions: {
+          minBookingAmount: 1500,
+          ageRequirements: {
+            minSeniors: 2
+          }
+        },
+        isActive: true
+      },
+      {
+        id: 'promo-coupon-save100',
+        name: 'Exclusive $100 Off',
+        description: 'Use coupon code SAVE100 for $100 off your booking',
+        discountType: 'fixed_amount',
+        discountValue: '100.00',
+        validFrom: new Date('2024-01-01'),
+        validTo: new Date('2025-12-31'),
+        maxUses: 1000,
+        currentUses: 0,
+        conditions: {
+          minBookingAmount: 800,
+          requiredCouponCode: 'SAVE100'
+        },
+        isActive: true
+      },
+      {
+        id: 'promo-family-deal',
+        name: 'Family Vacation Deal',
+        description: '15% off for families with 1-3 children',
+        discountType: 'percentage',
+        discountValue: '15.00',
+        validFrom: new Date('2024-01-01'),
+        validTo: new Date('2025-12-31'),
+        maxUses: 500,
+        currentUses: 0,
+        conditions: {
+          minBookingAmount: 1200,
+          minGuests: 3,
+          maxGuests: 10,
+          ageRequirements: {
+            maxChildren: 3
+          }
         },
         isActive: true
       }
