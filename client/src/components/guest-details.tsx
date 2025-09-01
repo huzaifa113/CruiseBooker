@@ -78,7 +78,7 @@ export default function GuestDetails({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const totalGuests = adultCount + childCount + seniorCount;
   
-  const { register, formState: { errors }, handleSubmit, watch, setValue } = useForm<GuestDetailsForm>({
+  const { register, formState: { errors, isValid, isDirty }, handleSubmit, watch, setValue, getValues } = useForm<GuestDetailsForm>({
     resolver: zodResolver(guestDetailsSchema),
     defaultValues: {
       primaryGuestName: formData.primaryGuestName || (user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : ""),
@@ -115,10 +115,28 @@ export default function GuestDetails({
   });
 
   const onSubmit = async (data: GuestDetailsForm) => {
-    if (isSubmitting) return; // Prevent double submission
+    console.log("🔥 Continue to Payment button clicked!");
+    console.log("📋 Form validation state:", {
+      isValid: Object.keys(errors).length === 0,
+      errors: errors,
+      formState: Object.keys(errors)
+    });
+    
+    if (isSubmitting) {
+      console.log("⏳ Already submitting, preventing double submission");
+      return; // Prevent double submission
+    }
     
     setIsSubmitting(true);
-    console.log("Guest details form submitted:", data);
+    console.log("✅ Starting form submission process");
+    console.log("📊 Complete form data:", JSON.stringify(data, null, 2));
+    console.log("👥 Guest count validation:", {
+      totalGuests: totalGuests,
+      adultCount,
+      childCount, 
+      seniorCount,
+      guestsArrayLength: data.guests?.length
+    });
     
     try {
       // Validate passport expiry for filled passports
@@ -145,9 +163,20 @@ export default function GuestDetails({
         }
       }
       
+      console.log("💾 Calling onFormDataChange with data");
       onFormDataChange(data);
+      
+      console.log("🚀 Calling onContinue to proceed to payment");
       onContinue();
+    } catch (error) {
+      console.error("❌ Error in guest form submission:", error);
+      toast({
+        title: "Form Submission Error",
+        description: "There was an error processing your information. Please try again.",
+        variant: "destructive"
+      });
     } finally {
+      console.log("🏁 Form submission completed, resetting isSubmitting");
       setIsSubmitting(false);
     }
   };
@@ -401,11 +430,9 @@ export default function GuestDetails({
                       <div>
                         <Label htmlFor={`guests.${index}.passportCountry`}>Passport Country</Label>
                         <Select onValueChange={(value) => {
-                          const currentValue = watch(`guests.${index}.passportCountry`) || "";
-                          if (value !== currentValue) {
-                            // Update the form value
-                          }
-                        }}>
+                          console.log(`🌍 Setting passport country for guest ${index}:`, value);
+                          setValue(`guests.${index}.passportCountry`, value);
+                        }} value={watch(`guests.${index}.passportCountry`) || ""}>
                           <SelectTrigger 
                             className={errors.guests?.[index]?.passportCountry ? "border-red-500 focus:border-red-500 ring-red-500" : ""}
                             data-testid={`select-guest-country-${index}`}
@@ -489,6 +516,18 @@ export default function GuestDetails({
               disabled={isSubmitting}
               className="bg-ocean-600 text-white hover:bg-ocean-700 font-semibold px-8 py-3"
               data-testid="button-continue-guests"
+              onClick={() => {
+                console.log("🎯 Continue to Payment button CLICKED!");
+                console.log("📝 Form state details:", {
+                  errors: errors,
+                  isValid: isValid,
+                  isDirty: isDirty,
+                  isSubmitting: isSubmitting,
+                  hasErrors: Object.keys(errors).length > 0,
+                  errorCount: Object.keys(errors).length
+                });
+                console.log("📊 Current form values:", getValues());
+              }}
             >
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
