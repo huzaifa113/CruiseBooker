@@ -1,0 +1,96 @@
+chunk-WERSD76P.js?v=62bbb1ea:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+/api/favorites/cruise-7/check:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)
+/api/favorites/cruise-4/check:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)
+/api/favorites/cruise-6/check:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)
+@radix-ui_react-dialog.js?v=62bbb1ea:1043 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ @radix-ui_react-dialog.js?v=62bbb1ea:1043
+use-route-params.ts:11 🔍 Extracting param: cruiseId from location: /booking/cruise-6
+use-route-params.ts:34 ✅ Found param value: cruise-6 using pattern: ^\/booking\/([^/?]+)$
+booking.tsx:304 ⏳ Booking page loading... Object
+use-route-params.ts:11 🔍 Extracting param: cruiseId from location: /booking/cruise-6
+use-route-params.ts:34 ✅ Found param value: cruise-6 using pattern: ^\/booking\/([^/?]+)$
+booking.tsx:304 ⏳ Booking page loading... Object
+use-route-params.ts:11 🔍 Extracting param: cruiseId from location: /booking/cruise-6
+use-route-params.ts:34 ✅ Found param value: cruise-6 using pattern: ^\/booking\/([^/?]+)$
+use-route-params.ts:11 🔍 Extracting param: cruiseId from location: /booking/cruise-6
+use-route-params.ts:34 ✅ Found param value: cruise-6 using pattern: ^\/booking\/([^/?]+)$
+booking.tsx:150 ✨ handleStepContinue called!
+booking.tsx:151 📊 Step navigation: Object
+booking.tsx:159 ➡️ Moving to next step: Dining
+use-route-params.ts:11 🔍 Extracting param: cruiseId from location: /booking/cruise-6
+use-route-params.ts:34 ✅ Found param value: cruise-6 using pattern: ^\/booking\/([^/?]+)$
+use-route-params.ts:11 🔍 Extracting param: cruiseId from location: /booking/cruise-6
+use-route-params.ts:34 ✅ Found param value: cruise-6 using pattern: ^\/booking\/([^/?]+)$
+booking.tsx:150 ✨ handleStepContinue called!
+booking.tsx:151 📊 Step navigation: Object
+booking.tsx:159 ➡️ Moving to next step: Extras
+use-route-params.ts:11 🔍 Extracting param: cruiseId from location: /booking/cruise-6
+use-route-params.ts:34 ✅ Found param value: cruise-6 using pattern: ^\/booking\/([^/?]+)$
+booking.tsx:150 ✨ handleStepContinue called!
+booking.tsx:151 📊 Step navigation: Object
+booking.tsx:159 ➡️ Moving to next step: Guests
+use-route-params.ts:11 🔍 Extracting param: cruiseId from location: /booking/cruise-6
+use-route-params.ts:34 ✅ Found param value: cruise-6 using pattern: ^\/booking\/([^/?]+)$
+use-route-params.ts:11 🔍 Extracting param: cruiseId from location: /booking/cruise-6
+use-route-params.ts:34 ✅ Found param value: cruise-6 using pattern: ^\/booking\/([^/?]+)$
+guest-details.tsx:433 🌍 Setting passport country for guest 0: US
+guest-details.tsx:520 🎯 Continue to Payment button CLICKED!
+guest-details.tsx:521 📝 Form state details: Object
+guest-details.tsx:529 📊 Current form values: Object
+guest-details.tsx:520 🎯 Continue to Payment button CLICKED!
+guest-details.tsx:521 📝 Form state details: Object
+guest-details.tsx:529 📊 Current form values: Object
+guest-details.tsx:520 🎯 Continue to Payment button CLICKED!
+guest-details.tsx:521 📝 Form state details: Object
+guest-details.tsx:529 📊 Current form values: Object
+guest-details.tsx:520 🎯 Continue to Payment button CLICKED!
+guest-details.tsx:521 📝 Form state details: Object
+guest-details.tsx:529 📊 Current form values: Object
+guest-details.tsx:520 🎯 Continue to Payment button CLICKED!
+guest-details.tsx:521 📝 Form state details: Object
+guest-details.tsx:529 📊 Current form values: Object
+guest-details.tsx:520 🎯 Continue to Payment button CLICKED!
+guest-details.tsx:521 📝 Form state details: Object
+guest-details.tsx:529 📊 Current form values: Object
+guest-details.tsx:520 🎯 Continue to Payment button CLICKED!
+guest-details.tsx:521 📝 Form state details: Object
+guest-details.tsx:529 📊 Current form values: Object
+guest-details.tsx:520 🎯 Continue to Payment button CLICKED!
+guest-details.tsx:521 📝 Form state details: Object
+guest-details.tsx:529 📊 Current form values: Object
+guest-details.tsx:520 🎯 Continue to Payment button CLICKED!
+guest-details.tsx:521 📝 Form state details: Object
+guest-details.tsx:529 📊 Current form values: Object
+guest-details.tsx:520 🎯 Continue to Payment button CLICKED!
+guest-details.tsx:521 📝 Form state details: Object
+guest-details.tsx:529 📊 Current form values: Object
+guest-details.tsx:520 🎯 Continue to Payment button CLICKED!
+guest-details.tsx:521 📝 Form state details: Object
+guest-details.tsx:529 📊 Current form values: Object
+guest-details.tsx:520 🎯 Continue to Payment button CLICKED!
+guest-details.tsx:521 📝 Form state details: Object
+guest-details.tsx:529 📊 Current form values: Object
+guest-details.tsx:520 🎯 Continue to Payment button CLICKED!
+guest-details.tsx:521 📝 Form state details: Object
+guest-details.tsx:529 📊 Current form values: Object
+guest-details.tsx:520 🎯 Continue to Payment button CLICKED!
+guest-details.tsx:521 📝 Form state details: Object
+guest-details.tsx:529 📊 Current form values: Object
+guest-details.tsx:520 🎯 Continue to Payment button CLICKED!
+guest-details.tsx:521 📝 Form state details: Object
+guest-details.tsx:529 📊 Current form values: Object
+guest-details.tsx:520 🎯 Continue to Payment button CLICKED!
+guest-details.tsx:521 📝 Form state details: Object
+guest-details.tsx:529 📊 Current form values: Object
+guest-details.tsx:520 🎯 Continue to Payment button CLICKED!
+guest-details.tsx:521 📝 Form state details: Object
+guest-details.tsx:529 📊 Current form values: Object
+guest-details.tsx:520 🎯 Continue to Payment button CLICKED!
+guest-details.tsx:521 📝 Form state details: Object
+guest-details.tsx:529 📊 Current form values: Object
+guest-details.tsx:520 🎯 Continue to Payment button CLICKED!
+guest-details.tsx:521 📝 Form state details: Object
+guest-details.tsx:529 📊 Current form values: Object
+guest-details.tsx:520 🎯 Continue to Payment button CLICKED!
+guest-details.tsx:521 📝 Form state details: ObjecterrorCount: 1errors: {guests: Array(2)}hasErrors: trueisDirty: trueisSubmitting: falseisValid: false[[Prototype]]: Object
+guest-details.tsx:529 📊 Current form values: Objectguests: (2) [{…}, {…}]primaryGuestEmail: "huzaifa6807@gmail.com"primaryGuestName: "Huzaifa Arshad"primaryGuestPhone: ""specialRequests: ""[[Prototype]]: Object

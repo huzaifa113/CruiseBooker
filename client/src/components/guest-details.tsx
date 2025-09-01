@@ -527,6 +527,28 @@ export default function GuestDetails({
                   errorCount: Object.keys(errors).length
                 });
                 console.log("📊 Current form values:", getValues());
+                
+                // Detailed error analysis
+                if (errors.guests) {
+                  console.log("❌ GUEST VALIDATION ERRORS:");
+                  errors.guests.forEach((guestError, index) => {
+                    if (guestError) {
+                      console.log(`Guest ${index + 1} errors:`, guestError);
+                    }
+                  });
+                }
+                
+                if (errors.primaryGuestName) {
+                  console.log("❌ Primary guest name error:", errors.primaryGuestName.message);
+                }
+                if (errors.primaryGuestEmail) {
+                  console.log("❌ Primary guest email error:", errors.primaryGuestEmail.message);
+                }
+                if (errors.primaryGuestPhone) {
+                  console.log("❌ Primary guest phone error:", errors.primaryGuestPhone.message);
+                }
+                
+                console.log("🤔 Form will", isValid ? "SUBMIT" : "NOT SUBMIT due to validation errors");
               }}
             >
               {isSubmitting ? (
