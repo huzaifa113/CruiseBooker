@@ -21,35 +21,21 @@ const isAuthenticated = async (req: any, res: any, next: any) => {
   
   return res.status(401).json({ message: "Authentication required" });
 };
-// Authentication middleware for favorites - support both JWT and session
+// Authentication middleware for favorites - use same approach as working auth endpoints
 const requireAuth = async (req: any, res: any, next: any) => {
-  // First check Authorization header for JWT token
-  const authHeader = req.headers.authorization;
-  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
-  
-  if (token) {
-    const { default: jwt } = await import('jsonwebtoken');
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key-change-in-production');
-      req.user = decoded;
+  // Use optionalAuth to set req.user, then check if user exists
+  const authResult = optionalAuth(req, res, () => {
+    // If user was set by optionalAuth, continue
+    if (req.user) {
       return next();
-    } catch (error) {
-      return res.status(401).json({ message: "Invalid token" });
     }
-  }
+    
+    // No user found, return 401
+    return res.status(401).json({ message: "Authentication required" });
+  });
   
-  // If no JWT token, check for Replit session user
-  if (req.replit?.user) {
-    req.user = {
-      id: req.replit.user.id,
-      email: req.replit.user.email,
-      firstName: req.replit.user.firstName,
-      lastName: req.replit.user.lastName
-    };
-    return next();
-  }
-  
-  return res.status(401).json({ message: "Authentication required" });
+  // If optionalAuth returned early (error), don't continue
+  return authResult;
 };
 import { sendWelcomeEmail, sendPaymentStatusEmail, sendBookingStatusEmail } from "./emailService";
 
@@ -728,7 +714,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Favorites routes
-  app.post("/api/favorites", requireAuth, async (req, res) => {
+  app.post("/api/favorites", optionalAuth, async (req, res) => {
     try {
       const { cruiseId } = req.body;
       const userId = (req.user as any)?.id;
@@ -755,7 +741,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/favorites/:cruiseId", requireAuth, async (req, res) => {
+  app.delete("/api/favorites/:cruiseId", optionalAuth, async (req, res) => {
     try {
       const { cruiseId } = req.params;
       const userId = (req.user as any)?.id;
@@ -772,7 +758,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/favorites", requireAuth, async (req, res) => {
+  app.get("/api/favorites", optionalAuth, async (req, res) => {
     try {
       const userId = (req.user as any)?.id;
       
@@ -788,7 +774,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/favorites/:cruiseId/check", requireAuth, async (req, res) => {
+  app.get("/api/favorites/:cruiseId/check", optionalAuth, async (req, res) => {
     try {
       const { cruiseId } = req.params;
       const userId = (req.user as any)?.id;
