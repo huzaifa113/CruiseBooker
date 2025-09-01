@@ -257,6 +257,129 @@ export class DatabaseStorage implements IStorage {
     return booking;
   }
 
+  // Inventory Hold System
+  async createCabinHold(cruiseId: string, cabinTypeId: string, quantity: number, userId?: string, sessionId?: string): Promise<any> {
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 15); // 15-minute hold
+    
+    const [hold] = await db.insert(cabinHolds).values({
+      cruiseId,
+      cabinTypeId,
+      userId,
+      sessionId,
+      quantity,
+      expiresAt
+    }).returning();
+    
+    return hold;
+  }
+  
+  async releaseCabinHold(holdId: string): Promise<void> {
+    await db.delete(cabinHolds).where(eq(cabinHolds.id, holdId));
+  }
+  
+  async releaseExpiredHolds(): Promise<void> {
+    const now = new Date();
+    await db.delete(cabinHolds).where(sql`${cabinHolds.expiresAt} < ${now}`);
+  }
+  
+  async checkCabinAvailability(cruiseId: string, cabinTypeId: string, quantity: number): Promise<boolean> {
+    // Release expired holds first
+    await this.releaseExpiredHolds();
+    
+    // Get cabin type availability
+    const [cabinType] = await db.select().from(cabinTypes).where(
+      and(eq(cabinTypes.id, cabinTypeId), eq(cabinTypes.cruiseId, cruiseId))
+    );
+    
+    if (!cabinType) return false;
+    
+    // Count current holds
+    const holds = await db.select().from(cabinHolds).where(
+      and(
+        eq(cabinHolds.cruiseId, cruiseId),
+        eq(cabinHolds.cabinTypeId, cabinTypeId),
+        sql`${cabinHolds.expiresAt} > ${new Date()}`
+      )
+    );
+    
+    const heldQuantity = holds.reduce((sum, hold) => sum + hold.quantity, 0);
+    const availableQuantity = cabinType.availableCount - heldQuantity;
+    
+    return availableQuantity >= quantity;
+  }
+  
+  // Promotion System
+  async getActivePromotions(): Promise<any[]> {
+    const now = new Date();
+    return await db.select().from(promotions).where(
+      and(
+        eq(promotions.isActive, true),
+        sql`${promotions.validFrom} <= ${now}`,
+        sql`${promotions.validTo} >= ${now}`
+      )
+    );
+  }
+  
+  async applyPromotion(bookingAmount: number, promotionIds: string[], bookingData: any): Promise<{ discountAmount: number; appliedPromotions: any[] }> {
+    const appliedPromotions: any[] = [];
+    let totalDiscount = 0;
+    
+    for (const promotionId of promotionIds) {
+      const [promotion] = await db.select().from(promotions).where(eq(promotions.id, promotionId));
+      
+      if (!promotion || !promotion.isActive) continue;
+      
+      // Check promotion conditions
+      const conditions = promotion.conditions as any;
+      let eligible = true;
+      
+      if (conditions?.minBookingAmount && bookingAmount < conditions.minBookingAmount) {
+        eligible = false;
+      }
+      
+      if (conditions?.cruiseLines && !conditions.cruiseLines.includes(bookingData.cruiseLine)) {
+        eligible = false;
+      }
+      
+      if (conditions?.destinations && !conditions.destinations.includes(bookingData.destination)) {
+        eligible = false;
+      }
+      
+      if (eligible) {
+        let discount = 0;
+        if (promotion.discountType === 'percentage') {
+          discount = (bookingAmount * parseFloat(promotion.discountValue)) / 100;
+        } else {
+          discount = parseFloat(promotion.discountValue);
+        }
+        
+        totalDiscount += discount;
+        appliedPromotions.push(promotion);
+        
+        // Update usage count
+        await db.update(promotions)
+          .set({ currentUses: sql`${promotions.currentUses} + 1` })
+          .where(eq(promotions.id, promotionId));
+      }
+    }
+    
+    return { discountAmount: totalDiscount, appliedPromotions };
+  }
+  
+  // Calendar Events
+  async createCalendarEvent(bookingId: string, eventData: any): Promise<any> {
+    const [event] = await db.insert(calendarEvents).values({
+      bookingId,
+      ...eventData
+    }).returning();
+    return event;
+  }
+  
+  async getCalendarEventsByBooking(bookingId: string): Promise<any[]> {
+    return await db.select().from(calendarEvents).where(eq(calendarEvents.bookingId, bookingId));
+  }
+
   // Favorites operations
   async addFavorite(userId: string, cruiseId: string): Promise<any> {
     try {
