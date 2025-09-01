@@ -1,18 +1,27 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import Header from "@/components/header";
+import Footer from "@/components/footer";
+import CruiseCard from "@/components/cruise-card";
+import ItineraryModal from "@/components/itinerary-modal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Heart, MapPin, Calendar, Users, Trash2, ExternalLink } from "lucide-react";
 import { Link } from "wouter";
-import { useEffect } from "react";
+import type { Cruise } from "@shared/schema";
 
 export default function Favorites() {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
+  const [selectedCruise, setSelectedCruise] = useState<Cruise | null>(null);
+  const [isItineraryModalOpen, setIsItineraryModalOpen] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -34,6 +43,21 @@ export default function Favorites() {
     enabled: isAuthenticated,
     retry: false,
   });
+
+  // Handle cruise actions (same as home page)
+  const handleViewItinerary = (cruise: Cruise) => {
+    setSelectedCruise(cruise);
+    setIsItineraryModalOpen(true);
+  };
+
+  const handleSelectCruise = (cruise: Cruise) => {
+    setLocation(`/booking/${cruise.id}`);
+  };
+
+  const handleBookCruise = (cruise: Cruise) => {
+    setIsItineraryModalOpen(false);
+    setLocation(`/booking/${cruise.id}`);
+  };
 
   // Remove favorite mutation
   const removeFavoriteMutation = useMutation({
@@ -112,8 +136,10 @@ export default function Favorites() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+      <Header />
+      
+      {/* Page Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
@@ -158,69 +184,43 @@ export default function Favorites() {
               {favorites.map((favorite: any) => {
                 const cruise = favorite.cruise;
                 return (
-                  <Card key={favorite.id} className="group hover:shadow-lg transition-shadow">
-                    <div className="relative">
-                      <img
-                        src={cruise.imageUrl}
-                        alt={cruise.name}
-                        className="w-full h-48 object-cover rounded-t-lg"
-                      />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="absolute top-2 right-2 bg-white/80 hover:bg-white"
-                        onClick={() => removeFavoriteMutation.mutate(cruise.id)}
-                        disabled={removeFavoriteMutation.isPending}
-                        data-testid={`button-remove-favorite-${cruise.id}`}
-                      >
-                        <Trash2 className="w-4 h-4 text-red-500" />
-                      </Button>
-                    </div>
+                  <div key={favorite.id} className="relative">
+                    {/* Remove favorite button overlay */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute top-2 right-2 z-10 bg-white/90 hover:bg-white shadow-sm"
+                      onClick={() => removeFavoriteMutation.mutate(cruise.id)}
+                      disabled={removeFavoriteMutation.isPending}
+                      data-testid={`button-remove-favorite-${cruise.id}`}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
                     
-                    <CardHeader>
-                      <div className="flex justify-between items-start mb-2">
-                        <CardTitle className="text-lg">{cruise.name}</CardTitle>
-                        <Badge variant="secondary">{cruise.duration} days</Badge>
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600 mb-2">
-                        <MapPin className="w-4 h-4 mr-1" />
-                        <span>{cruise.destination}</span>
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600 mb-2">
-                        <Calendar className="w-4 h-4 mr-1" />
-                        <span>{new Date(cruise.departureDate).toLocaleDateString()}</span>
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Users className="w-4 h-4 mr-1" />
-                        <span>From ${cruise.startingPrice}/person</span>
-                      </div>
-                    </CardHeader>
-
-                    <CardContent>
-                      <CardDescription className="mb-4 line-clamp-2">
-                        {cruise.description}
-                      </CardDescription>
-                      
-                      <div className="flex gap-2">
-                        <Link href={`/cruise/${cruise.id}`}>
-                          <Button size="sm" className="flex-1" data-testid={`button-view-cruise-${cruise.id}`}>
-                            View Details
-                          </Button>
-                        </Link>
-                        <Link href={`/booking?cruise=${cruise.id}`}>
-                          <Button size="sm" variant="outline" data-testid={`button-book-cruise-${cruise.id}`}>
-                            Book Now
-                          </Button>
-                        </Link>
-                      </div>
-                    </CardContent>
-                  </Card>
+                    {/* Use same CruiseCard component as home page */}
+                    <CruiseCard
+                      cruise={cruise}
+                      onViewItinerary={handleViewItinerary}
+                      onSelectCruise={handleSelectCruise}
+                      compact={true}
+                    />
+                  </div>
                 );
               })}
             </div>
           </>
         )}
       </div>
+
+      <Footer />
+
+      {/* Itinerary Modal - same as home page */}
+      <ItineraryModal
+        cruise={selectedCruise}
+        isOpen={isItineraryModalOpen}
+        onClose={() => setIsItineraryModalOpen(false)}
+        onBook={handleBookCruise}
+      />
     </div>
   );
 }
