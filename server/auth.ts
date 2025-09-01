@@ -197,9 +197,32 @@ export function setupSimpleAuth(app: Express) {
     }
   });
   
-  // Get current user endpoint
-  app.get("/api/auth/user", optionalAuth, (req: any, res) => {
-    res.json(req.user || null);
+  // Get current user endpoint - auto-create user if doesn't exist
+  app.get("/api/auth/user", optionalAuth, async (req: any, res) => {
+    try {
+      if (!req.user) {
+        return res.json(null);
+      }
+
+      // Ensure user exists in database (auto-create if missing)
+      const userData = {
+        id: req.user.id,
+        email: req.user.email || `user-${req.user.id}@replit.com`,
+        firstName: req.user.firstName || 'User',
+        lastName: req.user.lastName || '',
+        phone: req.user.phone || null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      // Upsert user to database (create if doesn't exist)
+      const dbUser = await storage.upsertUser(userData);
+      
+      res.json(dbUser);
+    } catch (error: any) {
+      console.error("Error in /api/auth/user:", error);
+      res.status(500).json({ message: "Error fetching user: " + error.message });
+    }
   });
   
   // Logout endpoint (client-side token removal)

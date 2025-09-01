@@ -38,7 +38,7 @@ export default function Favorites() {
   }, [isAuthenticated, user, toast]);
 
   // Fetch user's favorites
-  const { data: favorites, isLoading, error } = useQuery({
+  const { data: favorites, isLoading, error } = useQuery<any[]>({
     queryKey: ["/api/favorites"],
     enabled: isAuthenticated,
     retry: false,
@@ -154,7 +154,7 @@ export default function Favorites() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {!favorites || favorites.length === 0 ? (
+        {!favorites || !Array.isArray(favorites) || favorites.length === 0 ? (
           <div className="text-center py-12">
             <Heart className="w-16 h-16 text-gray-300 mx-auto mb-6" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No Saved Cruises</h3>
@@ -173,7 +173,7 @@ export default function Favorites() {
           <>
             <div className="mb-6">
               <h2 className="text-xl font-semibold text-gray-900">
-                {favorites.length} Saved Cruise{favorites.length !== 1 ? 's' : ''}
+                {favorites?.length || 0} Saved Cruise{(favorites?.length || 0) !== 1 ? 's' : ''}
               </h2>
               <p className="text-gray-600">
                 Click on any cruise to view details and book your next adventure.
@@ -181,7 +181,7 @@ export default function Favorites() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {favorites.map((favorite: any) => {
+              {(favorites || []).map((favorite: any) => {
                 const cruise = favorite.cruise;
                 return (
                   <div key={favorite.id} className="relative">
@@ -219,7 +219,6 @@ export default function Favorites() {
         cruise={selectedCruise}
         isOpen={isItineraryModalOpen}
         onClose={() => setIsItineraryModalOpen(false)}
-        onBook={handleBookCruise}
       />
     </div>
   );

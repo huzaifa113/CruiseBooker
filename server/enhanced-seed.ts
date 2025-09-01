@@ -19,47 +19,24 @@ export async function enhancedSeedDatabase() {
   console.log("Starting enhanced database seeding...");
 
   try {
-    // Clear data in proper order to avoid foreign key conflicts
-    console.log("Clearing existing data for fresh seed...");
-    await db.delete(calendarEvents);
-    await db.delete(payments); // Delete payments first
-    await db.delete(cabinHolds); // Delete holds
-    await db.delete(favorites); // Delete favorites
-    await db.delete(bookings);
+    // Only clear cruise-related data, NOT user data (favorites, bookings, etc.)
+    console.log("Checking if cruise data needs seeding...");
+    
+    // Check if cruise data already exists
+    const existingCruises = await db.select().from(cruises);
+    if (existingCruises.length > 0) {
+      console.log("Cruise data already exists, skipping seed");
+      return;
+    }
+    
+    console.log("Seeding cruise data only (preserving user data)...");
+    // Only clear cruise-related master data, keep user data intact
     await db.delete(promotions);
     await db.delete(extras);
     await db.delete(cabinTypes);
     await db.delete(cruises);
-    await db.delete(users);
 
-    // Create test users
-    console.log("Creating test users...");
-    const hashedPassword = await bcrypt.hash("password123", 10);
-    const testUsers = [
-      {
-        id: "user-1",
-        email: "test@example.com",
-        password: hashedPassword,
-        firstName: "Test",
-        lastName: "User",
-        phone: "+1234567890",
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
-      {
-        id: "user-2", 
-        email: "demo@example.com",
-        password: hashedPassword,
-        firstName: "Demo",
-        lastName: "User",
-        phone: "+1987654321",
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    ];
-
-    await db.insert(users).values(testUsers);
-    console.log(`Created ${testUsers.length} test users`);
+    // Do NOT create test users - preserve real user data
 
 
     // Enhanced cruise data with comprehensive details
