@@ -300,6 +300,7 @@ export default function SearchResults() {
                       onViewItinerary={handleViewItinerary}
                       onSelectCruise={handleSelectCruise}
                       compact={false}
+                      hideRightFavoriteButton={true}
                     />
                   ))}
                 </div>

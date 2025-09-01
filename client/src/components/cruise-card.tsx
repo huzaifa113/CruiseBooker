@@ -15,9 +15,11 @@ interface CruiseCardProps {
   onViewItinerary?: (cruise: Cruise) => void;
   onSelectCruise?: (cruise: Cruise) => void;
   compact?: boolean;
+  hideFavoriteButton?: boolean;
+  hideRightFavoriteButton?: boolean;
 }
 
-export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, compact = false }: CruiseCardProps) {
+export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, compact = false, hideFavoriteButton = false, hideRightFavoriteButton = false }: CruiseCardProps) {
   const [showCabinCarousel, setShowCabinCarousel] = useState(false);
   const [selectedCabinType, setSelectedCabinType] = useState<any>(null);
   const { isAuthenticated } = useAuth();
@@ -162,6 +164,7 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
               }}
             />
 
+{!hideFavoriteButton && (
             <Button
               variant="ghost"
               size="sm"
@@ -191,6 +194,7 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
                 className={`w-4 h-4 ${favoriteData?.isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-400 hover:text-red-500'}`} 
               />
             </Button>
+            )}
           </div>
           <CardContent className="p-6">
             <div className="flex items-center mb-3">
@@ -295,6 +299,7 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
               </Badge>
             </div>
             
+{!hideFavoriteButton && (
             <Button
               variant="ghost"
               size="sm"
@@ -324,6 +329,7 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
                 className={`w-5 h-5 ${favoriteData?.isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-400 hover:text-red-500'}`} 
               />
             </Button>
+            )}
           </div>
           
           <div className="p-6 md:w-3/5 flex flex-col justify-between">
@@ -356,14 +362,35 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
                   <span data-testid={`text-destination-${cruise.id}`}>{cruise.destination}</span>
                 </div>
               </div>
+{!hideFavoriteButton && !hideRightFavoriteButton && (
               <Button
                 variant="ghost"
                 size="sm"
                 className="text-gray-400 hover:text-red-500 transition-colors"
                 data-testid={`button-favorite-${cruise.id}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!isAuthenticated) {
+                    toast({
+                      title: "Login Required",
+                      description: "Please log in to save favorites.",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
+                  
+                  const isFav = favoriteData?.isFavorite;
+                  if (isFav) {
+                    removeFavoriteMutation.mutate();
+                  } else {
+                    addFavoriteMutation.mutate();
+                  }
+                }}
+                disabled={addFavoriteMutation.isPending || removeFavoriteMutation.isPending}
               >
-                <Heart className="w-5 h-5" />
+                <Heart className={`w-5 h-5 ${favoriteData?.isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-400 hover:text-red-500'}`} />
               </Button>
+              )}
             </div>
             
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">

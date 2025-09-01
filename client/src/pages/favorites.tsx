@@ -185,11 +185,11 @@ export default function Favorites() {
                 const cruise = favorite.cruise;
                 return (
                   <div key={favorite.id} className="relative">
-                    {/* Remove favorite button overlay */}
+                    {/* Delete favorite button positioned exactly where heart button would be */}
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="absolute top-2 right-2 z-10 bg-white/90 hover:bg-white shadow-sm"
+                      className="absolute top-4 right-4 z-10 bg-white/90 hover:bg-white shadow-sm p-2 rounded-lg"
                       onClick={() => removeFavoriteMutation.mutate(cruise.id)}
                       disabled={removeFavoriteMutation.isPending}
                       data-testid={`button-remove-favorite-${cruise.id}`}
@@ -203,6 +203,7 @@ export default function Favorites() {
                       onViewItinerary={handleViewItinerary}
                       onSelectCruise={handleSelectCruise}
                       compact={true}
+                      hideFavoriteButton={true}
                     />
                   </div>
                 );
@@ -219,6 +220,7 @@ export default function Favorites() {
         cruise={selectedCruise}
         isOpen={isItineraryModalOpen}
         onClose={() => setIsItineraryModalOpen(false)}
+        onBookCruise={handleSelectCruise}
       />
     </div>
   );
