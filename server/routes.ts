@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { setupSimpleAuth, optionalAuth } from "./auth";
 
 // Create isAuthenticated middleware for compatibility
-const isAuthenticated = (req: any, res: any, next: any) => {
+const isAuthenticated = async (req: any, res: any, next: any) => {
   const authHeader = req.headers.authorization;
   const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
   
@@ -22,7 +22,7 @@ const isAuthenticated = (req: any, res: any, next: any) => {
   return res.status(401).json({ message: "Authentication required" });
 };
 // Authentication middleware for favorites
-const requireAuth = (req: any, res: any, next: any) => {
+const requireAuth = async (req: any, res: any, next: any) => {
   const authHeader = req.headers.authorization;
   const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
   

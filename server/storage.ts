@@ -216,6 +216,46 @@ export class DatabaseStorage implements IStorage {
     return updatedBooking;
   }
 
+  async getUserBookings(userId: string): Promise<Booking[]> {
+    return await db.select().from(bookings).where(eq(bookings.userId, userId));
+  }
+
+  async getExtras(): Promise<Extra[]> {
+    return await db.select().from(extras);
+  }
+
+  async getExtrasByCategory(category: string): Promise<Extra[]> {
+    return await db.select().from(extras).where(eq(extras.category, category));
+  }
+
+  async createExtra(extra: InsertExtra): Promise<Extra> {
+    const [newExtra] = await db.insert(extras).values(extra).returning();
+    return newExtra;
+  }
+
+  async updateBookingPayment(bookingId: string, paymentData: {
+    paymentIntentId: string;
+    paymentStatus: string;
+    paidAmount: number;
+    paidCurrency: string;
+    paidAt: Date;
+  }): Promise<Booking> {
+    const [booking] = await db
+      .update(bookings)
+      .set({
+        stripePaymentIntentId: paymentData.paymentIntentId,
+        paymentStatus: paymentData.paymentStatus,
+        updatedAt: new Date(),
+      })
+      .where(eq(bookings.id, bookingId))
+      .returning();
+    return booking;
+  }
+
+  async getBooking(bookingId: string): Promise<any> {
+    const [booking] = await db.select().from(bookings).where(eq(bookings.id, bookingId));
+    return booking;
+  }
 
   // Favorites operations
   async addFavorite(userId: string, cruiseId: string): Promise<any> {
