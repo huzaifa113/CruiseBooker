@@ -44,19 +44,20 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
     retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000)
   });
 
-  // Check if cruise is favorited
+  // Check if cruise is favorited (works for all users - returns false if not authenticated)
   const { data: favoriteData } = useQuery({
     queryKey: ["/api/favorites", cruise.id, "check"],
-    enabled: isAuthenticated,
     queryFn: async () => {
       const response = await fetch(`/api/favorites/${cruise.id}/check`, {
         credentials: "include"
       });
       if (!response.ok) {
-        throw new Error(`Failed to check favorite status: ${response.status}`);
+        // If request fails, assume not favorited
+        return { isFavorite: false };
       }
       return response.json();
-    }
+    },
+    retry: false
   });
 
   // Add/remove favorite mutations

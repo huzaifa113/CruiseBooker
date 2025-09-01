@@ -779,8 +779,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { cruiseId } = req.params;
       const userId = (req.user as any)?.id;
       
+      // Debug logging
+      console.log("Favorites check debug:", { 
+        hasUser: !!req.user, 
+        userId, 
+        cruiseId,
+        userObj: req.user 
+      });
+      
       if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
+        // For unauthenticated users, return false instead of 401
+        console.log("No user found, returning isFavorite: false");
+        return res.json({ isFavorite: false });
       }
       
       const isFavorite = await storage.isFavorite(userId, cruiseId);
