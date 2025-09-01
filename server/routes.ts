@@ -10,7 +10,7 @@ const isAuthenticated = (req: any, res: any, next: any) => {
   
   if (token) {
     try {
-      const jwt = require('jsonwebtoken');
+      const { default: jwt } = await import('jsonwebtoken');
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key-change-in-production');
       req.user = decoded;
       return next();
@@ -27,7 +27,7 @@ const requireAuth = (req: any, res: any, next: any) => {
   const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
   
   if (token) {
-    const jwt = require('jsonwebtoken');
+    const { default: jwt } = await import('jsonwebtoken');
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key-change-in-production');
       req.user = decoded;
