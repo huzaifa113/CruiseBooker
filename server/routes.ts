@@ -33,13 +33,11 @@ const requireAuth = (req: any, res: any, next: any) => {
       req.user = decoded;
       return next();
     } catch (error) {
-      // Invalid token, continue to check for session-based auth
+      return res.status(401).json({ message: "Invalid token" });
     }
   }
   
-  // For now, allow all requests for testing - will be enhanced later
-  req.user = { id: 'temp-user-id' }; // Temporary user ID for testing
-  next();
+  return res.status(401).json({ message: "Authentication required" });
 };
 import { sendWelcomeEmail, sendPaymentStatusEmail, sendBookingStatusEmail } from "./emailService";
 
@@ -228,7 +226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create a new booking
-  app.post("/api/bookings", isAuthenticated, async (req, res) => {
+  app.post("/api/bookings", optionalAuth, async (req, res) => {
     try {
       const validatedData = insertBookingSchema.parse(req.body);
       // Add user ID to booking data
@@ -633,7 +631,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Favorites routes
-  app.post("/api/favorites", isAuthenticated, async (req, res) => {
+  app.post("/api/favorites", requireAuth, async (req, res) => {
     try {
       const { cruiseId } = req.body;
       const userId = (req.user as any)?.id;
@@ -654,7 +652,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/favorites/:cruiseId", isAuthenticated, async (req, res) => {
+  app.delete("/api/favorites/:cruiseId", requireAuth, async (req, res) => {
     try {
       const { cruiseId } = req.params;
       const userId = (req.user as any)?.id;
@@ -671,7 +669,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/favorites", isAuthenticated, async (req, res) => {
+  app.get("/api/favorites", requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any)?.id;
       
@@ -687,7 +685,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/favorites/:cruiseId/check", isAuthenticated, async (req, res) => {
+  app.get("/api/favorites/:cruiseId/check", requireAuth, async (req, res) => {
     try {
       const { cruiseId } = req.params;
       const userId = (req.user as any)?.id;

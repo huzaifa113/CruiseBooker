@@ -328,11 +328,20 @@ export async function enhancedSeedDatabase() {
     ];
 
     // Insert enhanced cruises
-    await db.insert(cruises).values(enhancedCruises);
+    await db.insert(cruises).values(
+      enhancedCruises.map((cruise) => ({
+        ...cruise,
+        basePrice: cruise.basePrice.toString(),
+        rating: cruise.rating?.toString() || null,
+        itinerary: cruise.itinerary.map((item: any) => ({
+          ...item,
+          country: item.country === null ? "" : item.country
+        }))
+      }))
+    );
 
     // Enhanced cabin types - basic set for all cruises
-    const enhancedCabinTypes = [];
-    
+    const enhancedCabinTypes: any[] = [];
     // Create standard cabin types for each cruise with cabin images
     for (const cruise of enhancedCruises) {
       enhancedCabinTypes.push(
@@ -342,7 +351,7 @@ export async function enhancedSeedDatabase() {
           type: "Interior", 
           name: "Interior Stateroom", 
           description: "Comfortable interior cabin with modern amenities", 
-          priceModifier: 1.0, 
+          priceModifier: "1.00", 
           maxOccupancy: 2, 
           amenities: ["Private bathroom", "TV", "Safe"], 
           imageUrl: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=300&fit=crop", 
@@ -359,7 +368,7 @@ export async function enhancedSeedDatabase() {
           type: "Ocean View", 
           name: "Ocean View Stateroom", 
           description: "Room with window overlooking the ocean", 
-          priceModifier: 1.25, 
+          priceModifier: "1.25", 
           maxOccupancy: 2, 
           amenities: ["Ocean view", "Private bathroom", "TV", "Safe"], 
           imageUrl: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&h=300&fit=crop", 
@@ -376,7 +385,7 @@ export async function enhancedSeedDatabase() {
           type: "Balcony", 
           name: "Balcony Stateroom", 
           description: "Private balcony with ocean views", 
-          priceModifier: 1.55, 
+          priceModifier: "1.55", 
           maxOccupancy: 2, 
           amenities: ["Private balcony", "Ocean view", "Premium bathroom"], 
           imageUrl: "https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=400&h=300&fit=crop", 
@@ -393,7 +402,7 @@ export async function enhancedSeedDatabase() {
           type: "Suite", 
           name: "Junior Suite", 
           description: "Spacious suite with separate living area", 
-          priceModifier: 2.25, 
+          priceModifier: "2.25", 
           maxOccupancy: 4, 
           amenities: ["Separate living area", "Large balcony", "Butler service"], 
           imageUrl: "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=400&h=300&fit=crop", 
