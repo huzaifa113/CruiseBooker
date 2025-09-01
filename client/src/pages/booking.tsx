@@ -147,23 +147,12 @@ export default function Booking() {
   };
 
   const handleStepContinue = () => {
-    console.log("✨ handleStepContinue called!");
-    console.log("📊 Step navigation:", {
-      currentStep: currentStep,
-      totalSteps: steps.length,
-      currentStepName: steps[currentStep - 1],
-      isLastStep: currentStep >= steps.length
-    });
-    
     if (currentStep < steps.length) {
-      console.log("➡️ Moving to next step:", steps[currentStep]);
       setCurrentStep(prev => prev + 1);
       // Scroll to top of page on step change
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       // Proceed to checkout/payment
-      console.log("💳 LAST STEP REACHED - Proceeding to checkout!");
-      console.log("📋 Final booking data before checkout:", JSON.stringify(bookingData, null, 2));
       proceedToCheckout();
     }
   };
@@ -180,20 +169,9 @@ export default function Booking() {
   };
 
   const proceedToCheckout = async () => {
-    console.log("🚀 proceedToCheckout function called!");
-    
     try {
-      console.log("🔍 Validating booking data:", {
-        cabinTypeId: bookingData.cabinTypeId,
-        primaryGuestName: bookingData.primaryGuestName,
-        primaryGuestEmail: bookingData.primaryGuestEmail,
-        guestCount: bookingData.guestCount,
-        hasGuests: bookingData.guests ? bookingData.guests.length : 0
-      });
-      
       // Validate required fields
       if (!bookingData.cabinTypeId) {
-        console.log("❌ Validation failed: Missing cabin type");
         toast({
           title: "Cabin Required",
           description: "Please select a cabin before proceeding.",
@@ -204,10 +182,6 @@ export default function Booking() {
       }
 
       if (!bookingData.primaryGuestName || !bookingData.primaryGuestEmail) {
-        console.log("❌ Validation failed: Missing guest details", {
-          primaryGuestName: bookingData.primaryGuestName,
-          primaryGuestEmail: bookingData.primaryGuestEmail
-        });
         toast({
           title: "Guest Details Required",
           description: "Please complete all required guest information.",
@@ -230,8 +204,6 @@ export default function Booking() {
       const gratuityAmount = subtotal * 0.15; // 15% gratuity
       const totalAmount = subtotal + taxAmount + gratuityAmount;
 
-      console.log("✅ All validation passed, creating booking request");
-      
       // Create booking
       const bookingRequest = {
         cruiseId: bookingData.cruiseId!,
@@ -254,8 +226,6 @@ export default function Booking() {
         extras: bookingData.extras || []
       };
 
-      console.log("📦 Sending booking request to API:", JSON.stringify(bookingRequest, null, 2));
-      
       const response = await fetch("/api/bookings", {
         method: "POST",
         headers: {
@@ -264,33 +234,19 @@ export default function Booking() {
         credentials: "include",
         body: JSON.stringify(bookingRequest)
       });
-      
-      console.log("🔄 API Response status:", response.status);
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("❌ API Error response:", {
-          status: response.status,
-          statusText: response.statusText,
-          errorText: errorText
-        });
         throw new Error(`Failed to create booking: ${response.status} ${errorText}`);
       }
 
       const booking = await response.json();
-      console.log("✅ Booking created successfully:", booking);
       
       // Redirect to checkout
-      console.log("🔄 Redirecting to checkout page:", `/checkout/${booking.id}`);
       setLocation(`/checkout/${booking.id}`);
       
     } catch (error) {
-      console.error("🚨 CRITICAL ERROR in proceedToCheckout:", {
-        error: error,
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        bookingData: bookingData
-      });
+      console.error("Booking error:", error);
       toast({
         title: "Booking Error",
         description: "There was an error creating your booking. Please try again.",

@@ -14,17 +14,9 @@ import { useToast } from "@/hooks/use-toast";
 import type { GuestInfo } from "@/lib/types";
 
 const guestSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  dateOfBirth: z.string().min(1, "Date of birth is required").refine((date) => {
-    const birthDate = new Date(date);
-    const today = new Date();
-    const hundredYearsAgo = new Date();
-    hundredYearsAgo.setFullYear(today.getFullYear() - 100);
-    
-    // Must be in the past but not more than 100 years ago
-    return birthDate < today && birthDate > hundredYearsAgo;
-  }, "Please enter a valid date of birth (not in the future, not more than 100 years ago)"),
+  firstName: z.string(),
+  lastName: z.string(),
+  dateOfBirth: z.string(),
   passportNumber: z.string().optional(),
   passportCountry: z.string().optional(),
   passportExpiry: z.string().optional().refine((date) => {
@@ -40,6 +32,29 @@ const guestSchema = z.object({
   specialNeeds: z.string().optional(),
   isChild: z.boolean(),
   isSenior: z.boolean()
+}).refine((guest) => {
+  // If any basic field is filled, all basic fields must be filled
+  const hasAnyBasicInfo = guest.firstName.trim() || guest.lastName.trim() || guest.dateOfBirth.trim();
+  
+  if (hasAnyBasicInfo) {
+    // Validate all required fields are filled
+    if (!guest.firstName.trim()) return false;
+    if (!guest.lastName.trim()) return false;
+    if (!guest.dateOfBirth.trim()) return false;
+    
+    // Validate date of birth
+    const birthDate = new Date(guest.dateOfBirth);
+    const today = new Date();
+    const hundredYearsAgo = new Date();
+    hundredYearsAgo.setFullYear(today.getFullYear() - 100);
+    
+    return birthDate < today && birthDate > hundredYearsAgo;
+  }
+  
+  return true; // Allow empty guests
+}, {
+  message: "Please complete all required fields (first name, last name, date of birth) or leave guest information empty",
+  path: ["firstName"] // This will show the error on the firstName field
 });
 
 const guestDetailsSchema = z.object({
@@ -47,7 +62,13 @@ const guestDetailsSchema = z.object({
   primaryGuestEmail: z.string().email("Valid email is required"),
   primaryGuestPhone: z.string().regex(/^\+?[\d\s\-\(\)]+$/, "Please enter a valid phone number").optional().or(z.literal("")),
   specialRequests: z.string().optional(),
-  guests: z.array(guestSchema).min(1, "At least one guest is required")
+  guests: z.array(guestSchema).refine((guests) => {
+    // At least one guest must have complete information
+    const completeGuests = guests.filter(guest => 
+      guest.firstName.trim() && guest.lastName.trim() && guest.dateOfBirth.trim()
+    );
+    return completeGuests.length >= 1;
+  }, "At least one guest must have complete information")
 });
 
 type GuestDetailsForm = z.infer<typeof guestDetailsSchema>;
@@ -115,28 +136,9 @@ export default function GuestDetails({
   });
 
   const onSubmit = async (data: GuestDetailsForm) => {
-    console.log("🔥 Continue to Payment button clicked!");
-    console.log("📋 Form validation state:", {
-      isValid: Object.keys(errors).length === 0,
-      errors: errors,
-      formState: Object.keys(errors)
-    });
-    
-    if (isSubmitting) {
-      console.log("⏳ Already submitting, preventing double submission");
-      return; // Prevent double submission
-    }
+    if (isSubmitting) return; // Prevent double submission
     
     setIsSubmitting(true);
-    console.log("✅ Starting form submission process");
-    console.log("📊 Complete form data:", JSON.stringify(data, null, 2));
-    console.log("👥 Guest count validation:", {
-      totalGuests: totalGuests,
-      adultCount,
-      childCount, 
-      seniorCount,
-      guestsArrayLength: data.guests?.length
-    });
     
     try {
       // Validate passport expiry for filled passports
@@ -163,20 +165,9 @@ export default function GuestDetails({
         }
       }
       
-      console.log("💾 Calling onFormDataChange with data");
       onFormDataChange(data);
-      
-      console.log("🚀 Calling onContinue to proceed to payment");
       onContinue();
-    } catch (error) {
-      console.error("❌ Error in guest form submission:", error);
-      toast({
-        title: "Form Submission Error",
-        description: "There was an error processing your information. Please try again.",
-        variant: "destructive"
-      });
     } finally {
-      console.log("🏁 Form submission completed, resetting isSubmitting");
       setIsSubmitting(false);
     }
   };
@@ -516,40 +507,6 @@ export default function GuestDetails({
               disabled={isSubmitting}
               className="bg-ocean-600 text-white hover:bg-ocean-700 font-semibold px-8 py-3"
               data-testid="button-continue-guests"
-              onClick={() => {
-                console.log("🎯 Continue to Payment button CLICKED!");
-                console.log("📝 Form state details:", {
-                  errors: errors,
-                  isValid: isValid,
-                  isDirty: isDirty,
-                  isSubmitting: isSubmitting,
-                  hasErrors: Object.keys(errors).length > 0,
-                  errorCount: Object.keys(errors).length
-                });
-                console.log("📊 Current form values:", getValues());
-                
-                // Detailed error analysis
-                if (errors.guests) {
-                  console.log("❌ GUEST VALIDATION ERRORS:");
-                  errors.guests.forEach((guestError, index) => {
-                    if (guestError) {
-                      console.log(`Guest ${index + 1} errors:`, guestError);
-                    }
-                  });
-                }
-                
-                if (errors.primaryGuestName) {
-                  console.log("❌ Primary guest name error:", errors.primaryGuestName.message);
-                }
-                if (errors.primaryGuestEmail) {
-                  console.log("❌ Primary guest email error:", errors.primaryGuestEmail.message);
-                }
-                if (errors.primaryGuestPhone) {
-                  console.log("❌ Primary guest phone error:", errors.primaryGuestPhone.message);
-                }
-                
-                console.log("🤔 Form will", isValid ? "SUBMIT" : "NOT SUBMIT due to validation errors");
-              }}
             >
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
