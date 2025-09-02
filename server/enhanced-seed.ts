@@ -19,13 +19,19 @@ export async function enhancedSeedDatabase() {
   console.log("Starting enhanced database seeding...");
 
   try {
-    // Only clear cruise-related data, NOT user data (favorites, bookings, etc.)
-    console.log("Checking if cruise data needs seeding...");
+    // Check each data type separately and seed what's missing
+    console.log("Checking which data needs seeding...");
     
     // Check if cruise data already exists
     const existingCruises = await db.select().from(cruises);
-    if (existingCruises.length > 0) {
-      console.log("Cruise data already exists, skipping seed");
+    const existingPromotions = await db.select().from(promotions);
+    const existingExtras = await db.select().from(extras);
+    
+    console.log(`Found: ${existingCruises.length} cruises, ${existingPromotions.length} promotions, ${existingExtras.length} extras`);
+    
+    // If all data exists, skip seeding
+    if (existingCruises.length > 0 && existingPromotions.length > 0 && existingExtras.length > 0) {
+      console.log("All data already exists, skipping seed");
       return;
     }
     
@@ -404,36 +410,36 @@ export async function enhancedSeedDatabase() {
     // Enhanced extras with more categories
     const enhancedExtras = [
       // Dining packages
-      { id: "dining-specialty", name: "Specialty Dining Package", description: "Access to all specialty restaurants", price: 299.00, category: "dining", available: true },
-      { id: "dining-wine", name: "Premium Wine Package", description: "Unlimited premium wines and cocktails", price: 599.00, category: "dining", available: true },
-      { id: "dining-chef", name: "Chef's Table Experience", description: "Multi-course meal with wine pairings", price: 199.00, category: "dining", available: true },
+      { id: "dining-specialty", name: "Specialty Dining Package", description: "Access to all specialty restaurants", price: "299.00", category: "dining", available: true },
+      { id: "dining-wine", name: "Premium Wine Package", description: "Unlimited premium wines and cocktails", price: "599.00", category: "dining", available: true },
+      { id: "dining-chef", name: "Chef's Table Experience", description: "Multi-course meal with wine pairings", price: "199.00", category: "dining", available: true },
 
       // Spa & Wellness
-      { id: "spa-package", name: "Ultimate Spa Package", description: "Full day spa treatments and relaxation", price: 399.00, category: "spa", available: true },
-      { id: "spa-couples", name: "Couples Massage", description: "Relaxing couples massage treatment", price: 299.00, category: "spa", available: true },
-      { id: "spa-fitness", name: "Personal Training Sessions", description: "Private fitness training sessions", price: 149.00, category: "spa", available: true },
+      { id: "spa-package", name: "Ultimate Spa Package", description: "Full day spa treatments and relaxation", price: "399.00", category: "spa", available: true },
+      { id: "spa-couples", name: "Couples Massage", description: "Relaxing couples massage treatment", price: "299.00", category: "spa", available: true },
+      { id: "spa-fitness", name: "Personal Training Sessions", description: "Private fitness training sessions", price: "149.00", category: "spa", available: true },
 
       // Shore Excursions
-      { id: "excursion-premium", name: "Premium Shore Excursions", description: "Small group premium excursions", price: 899.00, category: "excursions", available: true },
-      { id: "excursion-cultural", name: "Cultural Immersion Tours", description: "Deep dive into local culture", price: 599.00, category: "excursions", available: true },
-      { id: "excursion-adventure", name: "Adventure Activities", description: "Thrilling outdoor adventures", price: 799.00, category: "excursions", available: true },
+      { id: "excursion-premium", name: "Premium Shore Excursions", description: "Small group premium excursions", price: "899.00", category: "excursions", available: true },
+      { id: "excursion-cultural", name: "Cultural Immersion Tours", description: "Deep dive into local culture", price: "599.00", category: "excursions", available: true },
+      { id: "excursion-adventure", name: "Adventure Activities", description: "Thrilling outdoor adventures", price: "799.00", category: "excursions", available: true },
 
       // Internet & Communications
-      { id: "internet-unlimited", name: "Unlimited Internet Package", description: "High-speed internet throughout cruise", price: 199.00, category: "internet", available: true },
-      { id: "internet-social", name: "Social Media Package", description: "Access to social media platforms", price: 99.00, category: "internet", available: true },
+      { id: "internet-unlimited", name: "Unlimited Internet Package", description: "High-speed internet throughout cruise", price: "199.00", category: "internet", available: true },
+      { id: "internet-social", name: "Social Media Package", description: "Access to social media platforms", price: "99.00", category: "internet", available: true },
 
       // Beverages
-      { id: "beverage-ultimate", name: "Ultimate Beverage Package", description: "All alcoholic and non-alcoholic drinks", price: 79.00, category: "beverages", available: true },
-      { id: "beverage-premium", name: "Premium Beverage Package", description: "Premium alcoholic beverages", price: 59.00, category: "beverages", available: true },
-      { id: "beverage-soft", name: "Soft Drink Package", description: "Unlimited soft drinks and juices", price: 29.00, category: "beverages", available: true },
+      { id: "beverage-ultimate", name: "Ultimate Beverage Package", description: "All alcoholic and non-alcoholic drinks", price: "79.00", category: "beverages", available: true },
+      { id: "beverage-premium", name: "Premium Beverage Package", description: "Premium alcoholic beverages", price: "59.00", category: "beverages", available: true },
+      { id: "beverage-soft", name: "Soft Drink Package", description: "Unlimited soft drinks and juices", price: "29.00", category: "beverages", available: true },
 
       // Photo Services
-      { id: "photo-professional", name: "Professional Photo Package", description: "Professional photos throughout cruise", price: 299.00, category: "photo", available: true },
-      { id: "photo-memories", name: "Digital Memory Package", description: "All cruise photos in digital format", price: 199.00, category: "photo", available: true },
+      { id: "photo-professional", name: "Professional Photo Package", description: "Professional photos throughout cruise", price: "299.00", category: "photo", available: true },
+      { id: "photo-memories", name: "Digital Memory Package", description: "All cruise photos in digital format", price: "199.00", category: "photo", available: true },
 
       // Laundry & Services
-      { id: "laundry-package", name: "Laundry Service Package", description: "Unlimited laundry and pressing", price: 199.00, category: "services", available: true },
-      { id: "room-service", name: "24/7 Room Service", description: "Round-the-clock room service", price: 99.00, category: "services", available: true }
+      { id: "laundry-package", name: "Laundry Service Package", description: "Unlimited laundry and pressing", price: "199.00", category: "services", available: true },
+      { id: "room-service", name: "24/7 Room Service", description: "Round-the-clock room service", price: "99.00", category: "services", available: true }
     ];
 
     await db.insert(extras).values(enhancedExtras);
@@ -446,7 +452,7 @@ export async function enhancedSeedDatabase() {
         name: "Early Bird Special",
         description: "Book 6 months in advance and save up to 30%",
         discountType: "percentage",
-        discountValue: 30.0,
+        discountValue: "30.00",
         conditions: { minBookingAmount: 2000.0 },
         validFrom: new Date("2024-12-01"),
         validTo: new Date("2025-12-31"),
@@ -461,7 +467,7 @@ export async function enhancedSeedDatabase() {
         name: "Last Minute Deals",
         description: "Book within 30 days and enjoy 25% savings",
         discountType: "percentage",
-        discountValue: 25.0,
+        discountValue: "25.00",
         conditions: { minBookingAmount: 1500.0 },
         validFrom: new Date("2025-01-01"),
         validTo: new Date("2025-12-31"),
@@ -476,7 +482,7 @@ export async function enhancedSeedDatabase() {
         name: "Group Booking Discount",
         description: "Special rates for groups of 8 or more",
         discountType: "percentage",
-        discountValue: 20.0,
+        discountValue: "20.00",
         conditions: { minBookingAmount: 10000.0 },
         validFrom: new Date("2025-01-01"),
         validTo: new Date("2025-12-31"),
@@ -491,7 +497,7 @@ export async function enhancedSeedDatabase() {
         name: "Loyalty Member Exclusive",
         description: "Exclusive discount for returning customers",
         discountType: "percentage",
-        discountValue: 15.0,
+        discountValue: "15.00",
         conditions: { minBookingAmount: 1000.0 },
         validFrom: new Date("2025-01-01"),
         validTo: new Date("2025-12-31"),
@@ -506,7 +512,7 @@ export async function enhancedSeedDatabase() {
         name: "Family Fun Package",
         description: "Fixed $300 discount for families with children",
         discountType: "fixed_amount",
-        discountValue: 300.0,
+        discountValue: "300.00",
         conditions: { minBookingAmount: 3000.0 },
         validFrom: new Date("2025-02-01"),
         validTo: new Date("2025-08-31"),
