@@ -109,7 +109,7 @@ export default function HeroSearch() {
               
               <div>
                 <Label htmlFor="departureDate" className="block text-sm font-medium text-gray-700 mb-2">
-                  Departure Date <span className="text-xs text-gray-500">(From tomorrow)</span>
+                  Departure Date
                 </Label>
                 <Input
                   id="departureDate"

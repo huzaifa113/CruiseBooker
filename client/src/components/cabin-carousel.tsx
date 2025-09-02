@@ -23,7 +23,9 @@ export default function CabinCarousel({ isOpen, onClose, cabinType }: CabinCarou
   console.log('🖼️ Cabin Carousel opened with:', { 
     cabinType, 
     images, 
-    imageCount: images.length 
+    imageCount: images.length,
+    imageType: typeof images,
+    isArray: Array.isArray(images)
   });
   
   const nextImage = () => {

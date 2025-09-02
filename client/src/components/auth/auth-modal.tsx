@@ -23,7 +23,7 @@ export default function AuthModal({ isOpen, onClose, defaultMode = "login" }: Au
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         {mode === "login" ? (
           <LoginForm
             onSuccess={handleSuccess}
