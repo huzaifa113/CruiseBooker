@@ -62,7 +62,7 @@ const guestDetailsSchema = z.object({
   primaryGuestEmail: z.string().email("Valid email is required"),
   primaryGuestPhone: z.string().regex(/^\+?[\d\s\-\(\)]+$/, "Please enter a valid phone number").optional().or(z.literal("")),
   specialRequests: z.string().optional(),
-  couponCode: z.string().optional(),
+  departureDate: z.string().min(1, "Departure date is required for discount verification"),
   guests: z.array(guestSchema).refine((guests) => {
     // At least one guest must have complete information
     const completeGuests = guests.filter(guest => 
@@ -113,7 +113,7 @@ export default function GuestDetails({
       primaryGuestEmail: formData.primaryGuestEmail || user?.email || "",
       primaryGuestPhone: formData.primaryGuestPhone || user?.phone || "",
       specialRequests: formData.specialRequests || "",
-      couponCode: formData.couponCode || "",
+      departureDate: formData.departureDate || (cruise?.departureDate ? new Date(cruise.departureDate).toISOString().split('T')[0] : ""),
       guests: formData.guests || Array(totalGuests).fill(null).map((_, index) => ({
         firstName: "",
         lastName: "",
@@ -410,18 +410,29 @@ export default function GuestDetails({
                   )}
                 </div>
                 <div>
-                  <Label htmlFor="couponCode">Coupon Code <span className="text-sm text-gray-500">(Optional)</span></Label>
+                  <Label htmlFor="departureDate">Departure Date *</Label>
                   <Input
-                    id="couponCode"
-                    {...register("couponCode")}
-                    placeholder="Enter coupon code"
-                    className="placeholder:text-gray-400"
-                    data-testid="input-coupon-code"
+                    id="departureDate"
+                    type="date"
+                    {...register("departureDate")}
+                    className={errors.departureDate ? "border-red-500" : "placeholder:text-gray-400"}
+                    data-testid="input-departure-date"
                   />
-                  {errors.couponCode && (
-                    <p className="text-red-500 text-sm mt-1">{errors.couponCode.message}</p>
+                  {errors.departureDate && (
+                    <p className="text-red-500 text-sm mt-1">{errors.departureDate.message}</p>
                   )}
+                  <p className="text-sm text-gray-500 mt-1">Required for early booking discount verification</p>
                 </div>
+              </div>
+              <div>
+                <Label htmlFor="specialRequests">Special Requests</Label>
+                <textarea
+                  id="specialRequests"
+                  {...register("specialRequests")}
+                  placeholder="Any dietary restrictions, accessibility needs, or special occasions?"
+                  className="w-full min-h-[100px] p-3 border border-gray-300 rounded-md resize-none placeholder:text-gray-400"
+                  data-testid="textarea-special-requests"
+                />
               </div>
             </CardContent>
           </Card>

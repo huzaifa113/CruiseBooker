@@ -59,6 +59,9 @@ export interface IStorage {
   // Promotions
   getActivePromotions(): Promise<any[]>;
   applyPromotion(bookingAmount: number, promotionIds: string[], bookingData: any): Promise<{ discountAmount: number; appliedPromotions: any[] }>;
+  createPromotion(promotionData: any): Promise<any>;
+  updatePromotion(id: string, updateData: any): Promise<any>;
+  getPromotionStats(): Promise<any>;
   
   // Calendar Events
   createCalendarEvent(bookingId: string, eventData: any): Promise<any>;
@@ -631,6 +634,54 @@ export class DatabaseStorage implements IStorage {
         )
       );
     return !!favorite;
+  }
+
+  // Admin promotion management methods
+  async createPromotion(promotionData: any): Promise<any> {
+    const [promotion] = await db.insert(promotions).values(promotionData).returning();
+    return promotion;
+  }
+
+  async updatePromotion(id: string, updateData: any): Promise<any> {
+    const [promotion] = await db
+      .update(promotions)
+      .set(updateData)
+      .where(eq(promotions.id, id))
+      .returning();
+    return promotion;
+  }
+
+  async getPromotionStats(): Promise<any> {
+    const allPromotions = await db
+      .select({
+        id: promotions.id,
+        name: promotions.name,
+        discountType: promotions.discountType,
+        discountValue: promotions.discountValue,
+        maxUses: promotions.maxUses,
+        currentUses: promotions.currentUses,
+        isActive: promotions.isActive,
+        validFrom: promotions.validFrom,
+        validTo: promotions.validTo,
+        conditions: promotions.conditions
+      })
+      .from(promotions);
+    
+    // Calculate usage statistics
+    const stats = {
+      totalPromotions: allPromotions.length,
+      activePromotions: allPromotions.filter(p => p.isActive).length,
+      inactivePromotions: allPromotions.filter(p => !p.isActive).length,
+      totalUses: allPromotions.reduce((sum, p) => sum + (p.currentUses || 0), 0),
+      promotions: allPromotions.map(p => ({
+        ...p,
+        usageRate: p.maxUses ? ((p.currentUses || 0) / p.maxUses * 100).toFixed(1) + '%' : 'Unlimited',
+        isExpired: new Date() > new Date(p.validTo),
+        daysRemaining: Math.ceil((new Date(p.validTo).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+      }))
+    };
+    
+    return stats;
   }
 
   private generateConfirmationNumber(): string {

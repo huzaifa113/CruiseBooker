@@ -17,6 +17,7 @@ import ConfirmationSuccess from "@/pages/confirmation-success";
 import Reservations from "@/pages/reservations";
 import MyReservations from "@/pages/my-reservations-fixed";
 import Favorites from "@/pages/favorites";
+import AdminPage from "@/pages/admin";
 import NotFound from "@/pages/not-found";
 
 // Component to handle scrolling to top on route changes
@@ -46,6 +47,7 @@ function Router() {
         <Route path="/reservations" component={Reservations} />
         <Route path="/my-reservations" component={MyReservations} />
         <Route path="/favorites" component={Favorites} />
+        <Route path="/admin" component={AdminPage} />
         <Route path="/landing" component={Landing} />
         
         <Route component={NotFound} />

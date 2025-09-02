@@ -89,8 +89,8 @@ export class PricingEngine {
     
     const totalBeforeDiscounts = subtotal + taxAmount + gratuityAmount;
     
-    // Step 3: Apply eligible promotions
-    const eligiblePromotions = this.getEligiblePromotions(promotions, bookingData, totalBeforeDiscounts);
+    // Step 3: Apply eligible promotions (check eligibility against subtotal before taxes/gratuity)
+    const eligiblePromotions = this.getEligiblePromotions(promotions, bookingData, subtotal);
     const { discountAmount, appliedPromotions } = this.calculateDiscounts(eligiblePromotions, totalBeforeDiscounts);
     
     const finalTotal = Math.max(0, totalBeforeDiscounts - discountAmount);
@@ -121,7 +121,7 @@ export class PricingEngine {
   private static getEligiblePromotions(
     promotions: PromotionRule[],
     bookingData: any,
-    totalAmount: number
+    subtotalAmount: number
   ): PromotionRule[] {
     const now = new Date();
     
@@ -137,9 +137,9 @@ export class PricingEngine {
       if (conditions.minGuests && bookingData.guestCount < conditions.minGuests) return false;
       if (conditions.maxGuests && bookingData.guestCount > conditions.maxGuests) return false;
       
-      // Check booking amount conditions
-      if (conditions.minBookingAmount && totalAmount < conditions.minBookingAmount) return false;
-      if (conditions.maxBookingAmount && totalAmount > conditions.maxBookingAmount) return false;
+      // Check booking amount conditions (against subtotal before taxes/gratuity)
+      if (conditions.minBookingAmount && subtotalAmount < conditions.minBookingAmount) return false;
+      if (conditions.maxBookingAmount && subtotalAmount > conditions.maxBookingAmount) return false;
       
       // Check early booking conditions
       if (conditions.earlyBookingDays) {

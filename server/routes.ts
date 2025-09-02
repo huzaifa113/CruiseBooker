@@ -817,6 +817,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin Routes - Promotional Deal Management
+  
+  // Get all promotions (admin view)
+  app.get("/api/admin/promotions", async (req, res) => {
+    try {
+      const promotions = await storage.getActivePromotions();
+      res.json(promotions);
+    } catch (error: any) {
+      console.error("Error fetching admin promotions:", error);
+      res.status(500).json({ message: "Error fetching promotions: " + error.message });
+    }
+  });
+
+  // Create new promotion
+  app.post("/api/admin/promotions", async (req, res) => {
+    try {
+      const { 
+        name, 
+        description, 
+        discountType, 
+        discountValue, 
+        validFrom, 
+        validTo, 
+        maxUses,
+        conditions,
+        couponCode 
+      } = req.body;
+
+      // Validate required fields
+      if (!name || !description || !discountType || !discountValue) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      // Create promotion object
+      const promotionData = {
+        id: `promo-${Date.now()}`,
+        name,
+        description,
+        discountType,
+        discountValue: discountValue.toString(),
+        validFrom: new Date(validFrom),
+        validTo: new Date(validTo),
+        maxUses: maxUses || 1000,
+        currentUses: 0,
+        conditions: {
+          ...conditions,
+          ...(couponCode && { requiredCouponCode: couponCode })
+        },
+        isActive: true
+      };
+
+      // Insert into database
+      await storage.createPromotion(promotionData);
+      
+      res.json({ success: true, promotion: promotionData });
+    } catch (error: any) {
+      console.error("Error creating promotion:", error);
+      res.status(500).json({ message: "Error creating promotion: " + error.message });
+    }
+  });
+
+  // Update existing promotion
+  app.put("/api/admin/promotions/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+
+      await storage.updatePromotion(id, updateData);
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Error updating promotion:", error);
+      res.status(500).json({ message: "Error updating promotion: " + error.message });
+    }
+  });
+
+  // Deactivate promotion
+  app.delete("/api/admin/promotions/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      await storage.updatePromotion(id, { isActive: false });
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Error deactivating promotion:", error);
+      res.status(500).json({ message: "Error deactivating promotion: " + error.message });
+    }
+  });
+
+  // Get promotion usage statistics
+  app.get("/api/admin/promotions/stats", async (req, res) => {
+    try {
+      const stats = await storage.getPromotionStats();
+      res.json(stats);
+    } catch (error: any) {
+      console.error("Error fetching promotion stats:", error);
+      res.status(500).json({ message: "Error fetching promotion stats: " + error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
