@@ -230,7 +230,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Add user ID to booking data
       const bookingData = {
         ...validatedData,
-        userId: (req.user as any)?.id
+        userId: (req as any).user?.id
       };
       // Create cabin hold before booking
       const canBook = await storage.checkCabinAvailability(
@@ -248,8 +248,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         validatedData.cruiseId,
         validatedData.cabinTypeId,
         validatedData.guestCount,
-        (req.user as any)?.id,
-        req.sessionID
+        (req as any).user?.id,
+        (req as any).sessionID
       );
       
       const booking = await storage.createBooking(bookingData);
@@ -620,7 +620,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'paid',
         paymentMethod: 'card',
         stripePaymentIntentId: paymentIntentId,
-        processedAt: new Date()
+        transactionId: paymentIntentId
       });
 
       // Release any cabin holds for this booking (payment confirmed, no longer need hold)
@@ -733,7 +733,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/favorites", optionalAuth, async (req, res) => {
     try {
       const { cruiseId } = req.body;
-      const userId = (req.user as any)?.id;
+      const userId = (req as any).user?.id;
       
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
@@ -760,7 +760,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/favorites/:cruiseId", optionalAuth, async (req, res) => {
     try {
       const { cruiseId } = req.params;
-      const userId = (req.user as any)?.id;
+      const userId = (req as any).user?.id;
       
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
@@ -776,7 +776,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/favorites", optionalAuth, async (req, res) => {
     try {
-      const userId = (req.user as any)?.id;
+      const userId = (req as any).user?.id;
       
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
@@ -793,14 +793,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/favorites/:cruiseId/check", optionalAuth, async (req, res) => {
     try {
       const { cruiseId } = req.params;
-      const userId = (req.user as any)?.id;
+      const userId = (req as any).user?.id;
       
       // Debug logging
       console.log("Favorites check debug:", { 
-        hasUser: !!req.user, 
+        hasUser: !!(req as any).user, 
         userId, 
         cruiseId,
-        userObj: req.user 
+        userObj: (req as any).user 
       });
       
       if (!userId) {

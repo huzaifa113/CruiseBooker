@@ -114,7 +114,7 @@ export class DatabaseStorage implements IStorage {
       }
       
       if (conditions.length > 0) {
-        query = query.where(and(...conditions));
+        query = query.where(and(...conditions)) as any;
       }
       
       // Apply sorting
@@ -122,22 +122,22 @@ export class DatabaseStorage implements IStorage {
         const order = filters.sortOrder === 'desc' ? desc : asc;
         switch (filters.sortBy) {
           case 'price':
-            query = query.orderBy(order(cruises.basePrice));
+            query = query.orderBy(order(cruises.basePrice)) as any;
             break;
           case 'rating':
-            query = query.orderBy(order(cruises.rating));
+            query = query.orderBy(order(cruises.rating)) as any;
             break;
           case 'duration':
-            query = query.orderBy(order(cruises.duration));
+            query = query.orderBy(order(cruises.duration)) as any;
             break;
           default:
-            query = query.orderBy(desc(cruises.rating));
+            query = query.orderBy(desc(cruises.rating)) as any;
         }
       } else {
-        query = query.orderBy(desc(cruises.rating));
+        query = query.orderBy(desc(cruises.rating)) as any;
       }
     } else {
-      query = query.orderBy(desc(cruises.rating));
+      query = query.orderBy(desc(cruises.rating)) as any;
     }
     
     return await query;
@@ -434,8 +434,7 @@ export class DatabaseStorage implements IStorage {
     
     return { 
       discountAmount: totalDiscount, 
-      appliedPromotions,
-      eligibilityDetails: appliedPromotions.length === 0 ? 'No eligible promotions found' : null
+      appliedPromotions
     };
   }
 
