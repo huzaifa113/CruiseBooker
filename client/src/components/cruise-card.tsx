@@ -114,11 +114,9 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
 
   const handleViewCabins = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    console.log('🚪 View Cabins clicked!', { cabinTypes, length: cabinTypes?.length, loading: cabinTypesLoading, error: cabinTypesError });
     
     // If still loading, don't proceed
     if (cabinTypesLoading) {
-      console.log('⏳ Still loading cabin data...');
       return;
     }
     
@@ -130,7 +128,6 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
     
     if (cabinTypes && cabinTypes.length > 0) {
       const firstCabin = cabinTypes[0];
-      console.log('🏠 Setting cabin data:', firstCabin);
       
       setSelectedCabinType({
         name: firstCabin.name,
@@ -138,7 +135,6 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
         cabinImages: firstCabin.cabinImages || []
       });
       setShowCabinCarousel(true);
-      console.log('✅ Cabin carousel should open now');
     } else {
       console.error('❌ No cabin types available!', cabinTypes);
     }
@@ -277,7 +273,7 @@ export default function CruiseCard({ cruise, onViewItinerary, onSelectCruise, co
 
   return (
     <>
-      <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-ocean-400 overflow-hidden" data-testid={`cruise-card-${cruise.id}`}>
+      <Card className="hover:shadow-lg transition-all duration-300 overflow-hidden" data-testid={`cruise-card-${cruise.id}`}>
         <div className="flex flex-col md:flex-row">
           <div className="relative md:w-2/5 min-h-[200px] md:min-h-[280px]">
             <img

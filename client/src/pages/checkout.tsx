@@ -40,7 +40,7 @@ const StripePaymentWrapper = ({ booking, totalAmount }: { booking: any; totalAmo
                          currency === 'THB' ? Math.min(totalAmount * 0.03, 999999) : totalAmount;
 
   const handlePaymentSuccess = (paymentIntentId: string) => {
-    console.log("Payment successful:", paymentIntentId);
+    // Payment successful
   };
 
   // Create payment intent when component mounts
@@ -58,7 +58,7 @@ const StripePaymentWrapper = ({ booking, totalAmount }: { booking: any; totalAmo
           })
         });
         const paymentData = await response.json();
-        console.log('Payment intent created:', paymentData);
+        // Payment intent created
         setClientSecret(paymentData.clientSecret);
       } catch (error) {
         console.error('Failed to create payment intent:', error);
@@ -143,7 +143,7 @@ const CheckoutForm = ({ booking, totalAmount }: { booking: any; totalAmount: num
   });
 
   const handlePaymentSuccess = (paymentIntentId: string) => {
-    console.log("Payment successful:", paymentIntentId);
+    // Payment successful
   };
 
   const handlePromotionApplied = (discount: number, promotions: any[]) => {

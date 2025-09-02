@@ -63,7 +63,7 @@ const guestDetailsSchema = z.object({
   primaryGuestEmail: z.string().email("Valid email is required"),
   primaryGuestPhone: z.string().regex(/^\+?[\d\s\-\(\)]+$/, "Please enter a valid phone number").optional().or(z.literal("")),
   specialRequests: z.string().optional(),
-  departureDate: z.string().min(1, "Departure date is required for discount verification"),
+  departureDate: z.string().optional(),
   guests: z.array(guestSchema).refine((guests) => {
     // At least one guest must have complete information
     const completeGuests = guests.filter(guest => 
@@ -115,7 +115,7 @@ export default function GuestDetails({
       primaryGuestEmail: formData.primaryGuestEmail || user?.email || "",
       primaryGuestPhone: formData.primaryGuestPhone || user?.phone || "",
       specialRequests: formData.specialRequests || "",
-      departureDate: formData.departureDate || (cruise?.departureDate ? new Date(cruise.departureDate).toISOString().split('T')[0] : ""),
+      departureDate: cruise?.departureDate ? new Date(cruise.departureDate).toISOString().split('T')[0] : "",
       guests: formData.guests || Array(totalGuests).fill(null).map((_, index) => ({
         firstName: "",
         lastName: "",
@@ -190,8 +190,8 @@ export default function GuestDetails({
         }
         
         // Check early booking requirements (using earlyBookingDays from database)
-        if ((conditions as any).earlyBookingDays && data.departureDate) {
-          const departureDate = new Date(data.departureDate);
+        if ((conditions as any).earlyBookingDays && cruise?.departureDate) {
+          const departureDate = new Date(cruise.departureDate);
           const today = new Date();
           const daysUntilDeparture = Math.ceil((departureDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
           
@@ -428,34 +428,18 @@ export default function GuestDetails({
                   )}
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="primaryGuestPhone">Phone Number</Label>
-                  <Input
-                    id="primaryGuestPhone"
-                    {...register("primaryGuestPhone")}
-                    placeholder="Enter phone number"
-                    className={errors.primaryGuestPhone ? "border-red-500 focus:border-red-500 ring-red-500" : "placeholder:text-gray-400"}
-                    data-testid="input-primary-phone"
-                  />
-                  {errors.primaryGuestPhone && (
-                    <p className="text-red-500 text-sm mt-1">{errors.primaryGuestPhone.message}</p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="departureDate">Departure Date *</Label>
-                  <Input
-                    id="departureDate"
-                    type="date"
-                    {...register("departureDate")}
-                    className={errors.departureDate ? "border-red-500" : "placeholder:text-gray-400"}
-                    data-testid="input-departure-date"
-                  />
-                  {errors.departureDate && (
-                    <p className="text-red-500 text-sm mt-1">{errors.departureDate.message}</p>
-                  )}
-                  <p className="text-sm text-gray-500 mt-1">Required for early booking discount verification</p>
-                </div>
+              <div>
+                <Label htmlFor="primaryGuestPhone">Phone Number</Label>
+                <Input
+                  id="primaryGuestPhone"
+                  {...register("primaryGuestPhone")}
+                  placeholder="Enter phone number"
+                  className={errors.primaryGuestPhone ? "border-red-500 focus:border-red-500 ring-red-500" : "placeholder:text-gray-400"}
+                  data-testid="input-primary-phone"
+                />
+                {errors.primaryGuestPhone && (
+                  <p className="text-red-500 text-sm mt-1">{errors.primaryGuestPhone.message}</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="specialRequests">Special Requests</Label>
@@ -608,12 +592,12 @@ export default function GuestDetails({
             </CardContent>
           </Card>
 
-          <div className="flex justify-between">
+          <div className="flex flex-col sm:flex-row gap-4 sm:justify-between">
             <Button
               type="button"
               variant="outline"
               onClick={onBack}
-              className="text-gray-600 hover:text-gray-800"
+              className="text-gray-600 hover:text-gray-800 w-full sm:w-auto"
               data-testid="button-back-guests"
             >
               Back to Extras
@@ -621,7 +605,7 @@ export default function GuestDetails({
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-ocean-600 text-white hover:bg-ocean-700 font-semibold px-8 py-3"
+              className="bg-ocean-600 text-white hover:bg-ocean-700 font-semibold px-8 py-3 w-full sm:w-auto"
               data-testid="button-continue-guests"
             >
               {isSubmitting ? (

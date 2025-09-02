@@ -1,6 +1,7 @@
 export interface SearchFormData {
   destination: string;
   departureDate: string;
+  returnDate: string;
   guestCount: string;
 }
 

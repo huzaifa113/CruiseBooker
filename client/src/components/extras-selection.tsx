@@ -196,18 +196,18 @@ export default function ExtrasSelection({
         )}
       </div>
 
-      <div className="flex justify-between">
+      <div className="flex flex-col sm:flex-row gap-4 sm:justify-between">
         <Button
           variant="outline"
           onClick={onBack}
-          className="text-gray-600 hover:text-gray-800"
+          className="text-gray-600 hover:text-gray-800 w-full sm:w-auto"
           data-testid="button-back-extras"
         >
           Back to Dining
         </Button>
         <Button
           onClick={onContinue}
-          className="bg-ocean-600 text-white hover:bg-ocean-700 font-semibold px-8 py-3"
+          className="bg-ocean-600 text-white hover:bg-ocean-700 font-semibold px-8 py-3 w-full sm:w-auto"
           data-testid="button-continue-extras"
         >
           Continue to Guest Details

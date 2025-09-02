@@ -48,7 +48,6 @@ export default function Booking() {
       const diningTime = urlParams.get('diningTime');
       const extrasParam = urlParams.get('extras');
       
-      console.log('🔄 Edit mode detected, pre-populating booking data...');
       
       // Pre-populate booking data with existing values
       setBookingData(prev => ({
@@ -89,7 +88,6 @@ export default function Booking() {
   const { data: cabinTypes, isLoading: cabinsLoading, error: cabinsError } = useQuery({
     queryKey: ["/api/cruises", cruiseId, "cabins"],
     queryFn: async () => {
-      console.log('📡 Fetching cabin types for cruise:', cruiseId);
       const response = await fetch(`/api/cruises/${cruiseId}/cabins`, {
         credentials: "include"
       });
@@ -99,7 +97,6 @@ export default function Booking() {
         throw new Error(`Failed to fetch cabin types: ${response.status} ${errorText}`);
       }
       const data = await response.json();
-      console.log('✅ Cabin types loaded:', data?.length || 0, 'cabins');
       return data;
     },
     enabled: !!cruiseId,
@@ -267,7 +264,6 @@ export default function Booking() {
 
   // Show loading state
   if (cruiseLoading || cabinsLoading || extrasLoading) {
-    console.log('⏳ Booking page loading...', { cruiseLoading, cabinsLoading, extrasLoading });
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />

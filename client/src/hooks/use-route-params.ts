@@ -8,7 +8,6 @@ export function useRouteParams() {
   const [location] = useLocation();
 
   const getParam = (paramName: string): string | null => {
-    console.log('🔍 Extracting param:', paramName, 'from location:', location);
     
     // Handle different URL patterns that might occur in different environments
     const patterns = [
@@ -31,34 +30,28 @@ export function useRouteParams() {
     for (const pattern of patterns) {
       const match = location.match(pattern);
       if (match && match[1]) {
-        console.log('✅ Found param value:', match[1], 'using pattern:', pattern.source);
         return match[1];
       }
     }
     
     // Fallback: split by '/' and find parameter by position
     const segments = location.split('/').filter(Boolean);
-    console.log('🔄 URL segments:', segments);
     
     // Common parameter positions in our routes
     if (paramName === 'cruiseId' && segments.length >= 2 && segments[0] === 'booking') {
-      console.log('✅ Found cruiseId via segments:', segments[1]);
       return segments[1];
     }
     
     if (paramName === 'bookingId' && segments.length >= 2) {
       if (segments[0] === 'checkout' || segments[0] === 'confirmation-success') {
-        console.log('✅ Found bookingId via segments:', segments[1]);
         return segments[1];
       }
     }
     
     if (paramName === 'confirmationNumber' && segments.length >= 2 && segments[0] === 'confirmation') {
-      console.log('✅ Found confirmationNumber via segments:', segments[1]);
       return segments[1];
     }
     
-    console.warn('❌ Could not extract param:', paramName, 'from:', location);
     return null;
   };
 

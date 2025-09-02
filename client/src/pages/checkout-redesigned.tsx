@@ -243,7 +243,7 @@ const CheckoutContent = ({ bookingId }: { bookingId: string }) => {
   };
 
   const handlePaymentSuccess = (paymentIntentId: string) => {
-    console.log("Payment successful:", paymentIntentId);
+    // Payment successful
   };
 
   if (bookingLoading || promotionsLoading) {

@@ -176,14 +176,14 @@ export default function PromotionsSection({ bookingAmount, onPromotionApplied, b
               
               return (
                 <div key={promotion.id} className="border rounded-lg p-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Tag className="h-4 w-4 text-blue-600" />
-                      <span className="font-medium">{promotion.name}</span>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Tag className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                      <span className="font-medium text-sm sm:text-base">{promotion.name}</span>
                       {promotion.discountType === 'percentage' ? (
-                        <Badge variant="secondary">{promotion.discountValue}% OFF</Badge>
+                        <Badge variant="secondary" className="flex-shrink-0">{promotion.discountValue}% OFF</Badge>
                       ) : (
-                        <Badge variant="secondary">${promotion.discountValue} OFF</Badge>
+                        <Badge variant="secondary" className="flex-shrink-0">${promotion.discountValue} OFF</Badge>
                       )}
                     </div>
                     {isApplied ? (
