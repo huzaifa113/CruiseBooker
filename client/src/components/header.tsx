@@ -162,11 +162,11 @@ export default function Header() {
               </Button>
             </div>
             
-            {/* User Menu - hidden on small screens */}
+            {/* User Menu - show on all screens */}
             {isAuthenticated && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="hidden md:flex relative h-10 w-10 rounded-full" data-testid="button-user-menu">
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full" data-testid="button-user-menu">
                     <Avatar className="h-10 w-10">
                       <AvatarImage src={user?.profileImageUrl || ''} alt={user?.firstName || 'User'} />
                       <AvatarFallback className="bg-blue-600 text-white">
@@ -210,7 +210,7 @@ export default function Header() {
               <Button 
                 variant="ghost"
                 size="sm"
-                className="hidden md:flex text-gray-600 hover:text-blue-600 font-medium"
+                className="text-gray-600 hover:text-blue-600 font-medium"
                 onClick={handleLoginClick}
                 data-testid="button-signin"
               >

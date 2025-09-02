@@ -72,7 +72,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
 
   return (
     <Card className="w-full max-w-md mx-auto shadow-lg border-0">
-      <CardHeader className="text-center space-y-2 pb-6">
+      <CardHeader className="text-center space-y-1 pb-4">
         <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-2">
           <User className="w-6 h-6 text-white" />
         </div>
@@ -82,7 +82,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-3">
           {registerError && (
             <Alert variant="destructive" className="animate-in slide-in-from-top-2">
               <AlertDescription>
@@ -91,8 +91,8 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
             </Alert>
           )}
           
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
               <Label htmlFor="firstName" className="text-sm font-medium">First Name</Label>
               <div className="relative">
                 <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -108,7 +108,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
               </div>
               {errors.firstName && <p className="text-xs text-red-500 mt-1">{errors.firstName}</p>}
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1">
               <Label htmlFor="lastName" className="text-sm font-medium">Last Name</Label>
               <div className="relative">
                 <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -126,7 +126,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
             </div>
           </div>
           
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="email" className="text-sm font-medium">Email Address *</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -144,7 +144,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
             {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
           </div>
           
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="phone" className="text-sm font-medium">Phone Number <span className="text-gray-400">(optional)</span></Label>
             <div className="relative">
               <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -161,7 +161,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
             {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
           </div>
           
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="password" className="text-sm font-medium">Password *</Label>
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />

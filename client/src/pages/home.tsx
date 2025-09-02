@@ -46,9 +46,7 @@ export default function Home() {
         const errorText = await response.text();
         throw new Error(`Failed to fetch promotions: ${response.status} ${errorText}`);
       }
-      const data = await response.json();
-      console.log('🎉 Promotions fetched:', { data, length: data?.length, loading: promotionsLoading });
-      return data;
+      return response.json();
     }
   });
 
