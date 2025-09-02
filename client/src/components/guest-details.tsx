@@ -11,6 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useDeals } from "@/lib/deals-context";
 import type { GuestInfo } from "@/lib/types";
 
 const guestSchema = z.object({
@@ -103,6 +104,7 @@ export default function GuestDetails({
 }: GuestDetailsProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { selectedDeal } = useDeals();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const totalGuests = adultCount + childCount + seniorCount;
   
@@ -170,6 +172,37 @@ export default function GuestDetails({
             variant: "destructive"
           });
           return;
+        }
+      }
+
+      // Validate deal requirements if a deal is selected
+      if (selectedDeal && selectedDeal.conditions) {
+        const conditions = selectedDeal.conditions;
+        
+        // Check minimum guest count for group deals (using minGuests from database)
+        if (conditions.minGuests && totalGuests < conditions.minGuests) {
+          toast({
+            title: "Deal Requirements Not Met",
+            description: `${selectedDeal.name} requires at least ${conditions.minGuests} guests. You currently have ${totalGuests} guests.`,
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        // Check early booking requirements (using earlyBookingDays from database)
+        if ((conditions as any).earlyBookingDays && data.departureDate) {
+          const departureDate = new Date(data.departureDate);
+          const today = new Date();
+          const daysUntilDeparture = Math.ceil((departureDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          
+          if (daysUntilDeparture < (conditions as any).earlyBookingDays) {
+            toast({
+              title: "Deal Requirements Not Met",
+              description: `${selectedDeal.name} requires booking at least ${(conditions as any).earlyBookingDays} days in advance. Your departure is only ${daysUntilDeparture} days away.`,
+              variant: "destructive"
+            });
+            return;
+          }
         }
       }
       

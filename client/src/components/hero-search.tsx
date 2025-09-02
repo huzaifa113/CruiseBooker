@@ -17,9 +17,7 @@ export default function HeroSearch() {
   const [formData, setFormData] = useState<SearchFormData>({
     destination: "",
     departureDate: "",
-    returnDate: "",
-    guestCount: "",
-    departurePort: ""
+    guestCount: ""
   });
   
   const [guestDetails, setGuestDetails] = useState({
@@ -43,10 +41,10 @@ export default function HeroSearch() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.destination || !formData.departureDate || !formData.returnDate || totalGuests === 0) {
+    if (!formData.destination || !formData.departureDate || totalGuests === 0) {
       toast({
         title: "Required fields missing",
-        description: "Please fill in all required fields to search for cruises.",
+        description: "Please fill in destination, departure date, and guest count.",
         variant: "destructive"
       });
       return;
@@ -55,12 +53,10 @@ export default function HeroSearch() {
     const params = new URLSearchParams({
       destination: formData.destination,
       departureDate: formData.departureDate,
-      returnDate: formData.returnDate,
       guestCount: totalGuests.toString(),
       adults: guestDetails.adults.toString(),
       children: guestDetails.children.toString(),
-      seniors: guestDetails.seniors.toString(),
-      ...(formData.departurePort && { departurePort: formData.departurePort })
+      seniors: guestDetails.seniors.toString()
     });
 
     setLocation(`/search?${params.toString()}`);
@@ -88,7 +84,7 @@ export default function HeroSearch() {
 
         <Card className="p-6 md:p-8 max-w-5xl mx-auto">
           <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div>
                 <Label htmlFor="destination" className="block text-sm font-medium text-gray-700 mb-2">
                   Destination
@@ -115,38 +111,11 @@ export default function HeroSearch() {
                   id="departureDate"
                   type="date"
                   value={formData.departureDate}
-                  onChange={(e) => {
-                    const newDepartureDate = e.target.value;
-                    setFormData(prev => ({ 
-                      ...prev, 
-                      departureDate: newDepartureDate,
-                      // Clear return date if it's before the new departure date
-                      returnDate: prev.returnDate && prev.returnDate <= newDepartureDate ? "" : prev.returnDate
-                    }));
-                  }}
+                  onChange={(e) => setFormData(prev => ({ ...prev, departureDate: e.target.value }))}
                   min={new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]} // Tomorrow
                   max={new Date(new Date().getFullYear() + 2, 11, 31).toISOString().split('T')[0]} // 2 years from now
                   className="focus:ring-2 focus:ring-ocean-500 focus:border-ocean-500"
                   data-testid="input-departure-date"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="returnDate" className="block text-sm font-medium text-gray-700 mb-2">
-                  Return Date <span className="text-xs text-gray-500">(Optional)</span>
-                </Label>
-                <Input
-                  id="returnDate"
-                  type="date"
-                  value={formData.returnDate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, returnDate: e.target.value }))}
-                  min={formData.departureDate ? 
-                    new Date(new Date(formData.departureDate).getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0] : 
-                    new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // Day after departure or day after tomorrow
-                  }
-                  max={new Date(new Date().getFullYear() + 2, 11, 31).toISOString().split('T')[0]} // 2 years from now
-                  className="focus:ring-2 focus:ring-ocean-500 focus:border-ocean-500"
-                  data-testid="input-return-date"
                 />
               </div>
               
@@ -265,77 +234,7 @@ export default function HeroSearch() {
               </div>
             </div>
             
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <Sheet open={showAdvancedFilters} onOpenChange={setShowAdvancedFilters}>
-                <SheetTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="text-blue-600 font-medium hover:text-blue-700 transition-colors flex items-center"
-                    data-testid="button-advanced-filters"
-                  >
-                    <SlidersHorizontal className="w-4 h-4 mr-2" />
-                    Advanced Filters
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="w-96">
-                  <SheetHeader>
-                    <SheetTitle>Advanced Search Filters</SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-6 space-y-6">
-                    <div>
-                      <Label htmlFor="priceRange" className="text-sm font-medium">Price Range (USD)</Label>
-                      <div className="mt-2 space-y-2">
-                        <Input placeholder="Minimum price" type="number" />
-                        <Input placeholder="Maximum price" type="number" />
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="duration" className="text-sm font-medium">Duration</Label>
-                      <Select>
-                        <SelectTrigger className="mt-2">
-                          <SelectValue placeholder="Select duration" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="3-5">3-5 days</SelectItem>
-                          <SelectItem value="6-8">6-8 days</SelectItem>
-                          <SelectItem value="9-14">9-14 days</SelectItem>
-                          <SelectItem value="15+">15+ days</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="cruiseLine" className="text-sm font-medium">Cruise Line</Label>
-                      <Select>
-                        <SelectTrigger className="mt-2">
-                          <SelectValue placeholder="Select cruise line" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="royal-caribbean">Royal Caribbean</SelectItem>
-                          <SelectItem value="celebrity">Celebrity Cruises</SelectItem>
-                          <SelectItem value="norwegian">Norwegian Cruise Line</SelectItem>
-                          <SelectItem value="princess">Princess Cruises</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="departurePort" className="text-sm font-medium">Departure Port</Label>
-                      <Input 
-                        className="mt-2"
-                        placeholder="e.g., Miami, Barcelona"
-                        value={formData.departurePort}
-                        onChange={(e) => setFormData(prev => ({ ...prev, departurePort: e.target.value }))}
-                      />
-                    </div>
-                    <Button 
-                      className="w-full bg-blue-600 hover:bg-blue-700"
-                      onClick={() => setShowAdvancedFilters(false)}
-                    >
-                      Apply Filters
-                    </Button>
-                  </div>
-                </SheetContent>
-              </Sheet>
+            <div className="flex justify-center">
               <Button
                 type="submit"
                 size="lg"

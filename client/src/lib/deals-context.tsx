@@ -9,9 +9,13 @@ export interface SelectedDeal {
   selectedAt: string;
   conditions?: {
     minBookingAmount?: number;
+    minGuests?: number;
+    earlyBookingDays?: number;
     cruiseLines?: string[];
     destinations?: string[];
     cabinTypes?: string[];
+    requiredCouponCode?: string;
+    [key: string]: any; // Allow additional dynamic conditions
   };
 }
 
