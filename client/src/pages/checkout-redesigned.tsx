@@ -70,7 +70,7 @@ const CheckoutContent = ({ bookingId }: { bookingId: string }) => {
       adultCount: booking.adultCount,
       childCount: booking.childCount,
       seniorCount: booking.seniorCount,
-      departureDate: cruise.departureDate,
+      departureDate: booking.departureDate || cruise.departureDate,
       cruiseLine: cruise.cruiseLine,
       destination: cruise.destination,
       cabinType: cabinType.type
@@ -191,7 +191,7 @@ const CheckoutContent = ({ bookingId }: { bookingId: string }) => {
         adultCount: booking.adultCount,
         childCount: booking.childCount,
         seniorCount: booking.seniorCount,
-        departureDate: booking.cruise.departureDate,
+        departureDate: booking.departureDate || booking.cruise.departureDate,
         cruiseLine: booking.cruise.cruiseLine,
         destination: booking.cruise.destination,
         cabinType: booking.cabinType?.type,

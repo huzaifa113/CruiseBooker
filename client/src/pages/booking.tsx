@@ -231,7 +231,9 @@ export default function Booking() {
         // Include selected deal information for checkout
         selectedPromotionId: selectedDeal?.id,
         // Include any coupon code for promotion validation
-        couponCode: bookingData.couponCode
+        couponCode: bookingData.couponCode,
+        // Include user-entered departure date for promotion validation
+        departureDate: bookingData.departureDate
       };
 
       const response = await fetch("/api/bookings", {

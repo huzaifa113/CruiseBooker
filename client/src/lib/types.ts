@@ -28,6 +28,7 @@ export interface BookingFormData {
   primaryGuestName: string;
   primaryGuestEmail: string;
   primaryGuestPhone?: string;
+  departureDate?: string; // User-entered departure date for promotion validation
   couponCode?: string; // For promotional discounts
   guests: GuestInfo[];
   extras: BookingExtra[];

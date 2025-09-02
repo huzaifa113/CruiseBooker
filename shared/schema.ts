@@ -92,6 +92,7 @@ export const bookings = pgTable("bookings", {
   primaryGuestEmail: text("primary_guest_email").notNull(),
   primaryGuestPhone: text("primary_guest_phone"),
   couponCode: text("coupon_code"), // For promotion validation
+  departureDate: text("departure_date"), // User-entered departure date for promotion validation
   guests: json("guests").$type<Array<{
     firstName: string;
     lastName: string;
