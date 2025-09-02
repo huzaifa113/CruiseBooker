@@ -7,6 +7,10 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import Header from "@/components/header";
@@ -21,6 +25,12 @@ const CheckoutContent = ({ bookingId }: { bookingId: string }) => {
   const [currency, setCurrency] = useState('USD');
   const [pricingBreakdown, setPricingBreakdown] = useState<PricingBreakdown | null>(null);
   const [clientSecret, setClientSecret] = useState('');
+  const [couponCode, setCouponCode] = useState('');
+  const [couponValidation, setCouponValidation] = useState<{
+    isValid: boolean;
+    message: string;
+    promotion?: any;
+  } | null>(null);
   const { selectedDeal } = useDeals();
 
   // Fetch booking details
@@ -152,6 +162,86 @@ const CheckoutContent = ({ bookingId }: { bookingId: string }) => {
     }
   };
 
+  // Validate coupon code
+  const validateCouponCode = async (code: string) => {
+    if (!code.trim()) {
+      setCouponValidation(null);
+      return;
+    }
+
+    try {
+      // Find promotion with matching coupon code
+      const matchingPromotion = promotions?.find((promo: any) => 
+        promo.conditions?.requiredCouponCode === code
+      );
+
+      if (!matchingPromotion) {
+        setCouponValidation({
+          isValid: false,
+          message: "Invalid coupon code",
+        });
+        return;
+      }
+
+      // Check if promotion is eligible
+      if (!booking || !booking.cruise) return;
+
+      const bookingData = {
+        guestCount: booking.guestCount,
+        adultCount: booking.adultCount,
+        childCount: booking.childCount,
+        seniorCount: booking.seniorCount,
+        departureDate: booking.cruise.departureDate,
+        cruiseLine: booking.cruise.cruiseLine,
+        destination: booking.cruise.destination,
+        cabinType: booking.cabinType?.type,
+        couponCode: code
+      };
+
+      const response = await fetch('/api/promotions/check-eligibility', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          promotionIds: [matchingPromotion.id],
+          bookingData,
+          bookingAmount: pricingBreakdown?.subtotal || 0
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.eligible) {
+        setCouponValidation({
+          isValid: true,
+          message: `Valid! ${matchingPromotion.discountType === 'percentage' 
+            ? `${matchingPromotion.discountValue}% discount` 
+            : `$${matchingPromotion.discountValue} off`}`,
+          promotion: matchingPromotion
+        });
+      } else {
+        setCouponValidation({
+          isValid: false,
+          message: result.reason || "Coupon not eligible for this booking",
+        });
+      }
+    } catch (error) {
+      setCouponValidation({
+        isValid: false,
+        message: "Error validating coupon code",
+      });
+    }
+  };
+
+  // Handle coupon code change with debouncing
+  const handleCouponCodeChange = (value: string) => {
+    setCouponCode(value);
+    
+    // Clear validation when input changes
+    if (couponValidation) {
+      setCouponValidation(null);
+    }
+  };
+
   const handlePaymentSuccess = (paymentIntentId: string) => {
     console.log("Payment successful:", paymentIntentId);
   };
@@ -264,6 +354,59 @@ const CheckoutContent = ({ bookingId }: { bookingId: string }) => {
               </CardContent>
             </Card>
           )}
+
+          {/* Coupon Code Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Coupon Code</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <Label htmlFor="couponCode">Enter Coupon Code (Optional)</Label>
+                    <Input
+                      id="couponCode"
+                      value={couponCode}
+                      onChange={(e) => handleCouponCodeChange(e.target.value)}
+                      placeholder="Enter coupon code"
+                      className="mt-1"
+                      data-testid="input-coupon-code"
+                    />
+                  </div>
+                  <div className="flex-shrink-0 flex items-end">
+                    <Button 
+                      type="button" 
+                      onClick={() => validateCouponCode(couponCode)}
+                      disabled={!couponCode.trim()}
+                      variant="outline"
+                      data-testid="button-validate-coupon"
+                    >
+                      Validate
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Coupon Validation Message */}
+                {couponValidation && (
+                  <div className={`flex items-center gap-2 p-3 rounded-lg ${
+                    couponValidation.isValid 
+                      ? 'bg-green-50 border border-green-200 text-green-800' 
+                      : 'bg-red-50 border border-red-200 text-red-800'
+                  }`}>
+                    {couponValidation.isValid ? (
+                      <CheckCircle className="h-4 w-4" />
+                    ) : (
+                      <XCircle className="h-4 w-4" />
+                    )}
+                    <span className="text-sm font-medium">
+                      {couponValidation.message}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Currency Selection */}
           <Card>

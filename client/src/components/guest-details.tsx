@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Minus, User, Users } from "lucide-react";
+import { Plus, Minus, User, Users, Calendar } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,6 +83,11 @@ interface GuestDetailsProps {
   onFormDataChange: (data: Partial<GuestDetailsForm>) => void;
   onContinue: () => void;
   onBack: () => void;
+  cruise?: {
+    name: string;
+    departureDate: string;
+    destination: string;
+  };
 }
 
 export default function GuestDetails({
@@ -93,7 +98,8 @@ export default function GuestDetails({
   formData,
   onFormDataChange,
   onContinue,
-  onBack
+  onBack,
+  cruise
 }: GuestDetailsProps) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -183,10 +189,59 @@ export default function GuestDetails({
     onGuestCountChange(newCounts.adults, newCounts.children, newCounts.seniors);
   };
 
+  // Calculate days until departure for early bird validation
+  const daysUntilDeparture = cruise?.departureDate ? 
+    Math.ceil((new Date(cruise.departureDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
+
   return (
     <div className="space-y-8" data-testid="guest-details">
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Guest Details</h2>
+        
+        {/* Booking Information Display */}
+        {cruise && (
+          <Card className="mb-6 bg-blue-50 border-blue-200">
+            <CardHeader>
+              <CardTitle className="flex items-center text-blue-800">
+                <Calendar className="w-5 h-5 mr-2" />
+                Booking Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <div className="font-medium text-gray-700">Cruise</div>
+                  <div className="text-gray-900">{cruise.name}</div>
+                </div>
+                <div>
+                  <div className="font-medium text-gray-700">Destination</div>
+                  <div className="text-gray-900">{cruise.destination}</div>
+                </div>
+                <div>
+                  <div className="font-medium text-gray-700">Departure Date</div>
+                  <div className="text-gray-900">
+                    {new Date(cruise.departureDate).toLocaleDateString()}
+                  </div>
+                  {daysUntilDeparture !== null && (
+                    <div className="text-xs text-blue-600 mt-1">
+                      {daysUntilDeparture > 0 ? 
+                        `${daysUntilDeparture} days from now` : 
+                        'Departure date has passed'
+                      }
+                    </div>
+                  )}
+                </div>
+              </div>
+              {daysUntilDeparture !== null && daysUntilDeparture >= 30 && (
+                <div className="mt-3 p-3 bg-green-100 border border-green-200 rounded-lg">
+                  <div className="text-green-800 text-sm font-medium">
+                    🎉 Early Bird Eligible! You may qualify for advance booking discounts.
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
         
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           {/* Guest Count Selection */}

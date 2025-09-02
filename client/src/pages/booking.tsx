@@ -454,6 +454,11 @@ export default function Booking() {
                 onFormDataChange={handleGuestDetailsChange}
                 onContinue={handleStepContinue}
                 onBack={handleStepBack}
+                cruise={cruise ? {
+                  name: cruise.name,
+                  departureDate: cruise.departureDate,
+                  destination: cruise.destination
+                } : undefined}
               />
             )}
           </CardContent>
