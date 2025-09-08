@@ -2,6 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupSimpleAuth, optionalAuth } from "./auth";
+import { config } from 'dotenv';
+config();
 
 // Create isAuthenticated middleware for compatibility
 const isAuthenticated = async (req: any, res: any, next: any) => {

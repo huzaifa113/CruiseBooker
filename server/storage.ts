@@ -2,6 +2,8 @@ import { cruises, cabinTypes, bookings, extras, users, cabinHolds, promotions, c
 import { db } from "./db";
 import { eq, and, gte, lte, ilike, sql, desc, asc } from "drizzle-orm";
 import { randomUUID } from "crypto";
+import { config } from 'dotenv';
+config();
 
 export interface SearchFilters {
   destination?: string;

@@ -1,17 +1,23 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
-import Header from "@/components/header";
-import Footer from "@/components/footer";
-import FilterSidebar from "@/components/filter-sidebar";
-import CruiseCard from "@/components/cruise-card";
-import ItineraryModal from "@/components/itinerary-modal";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import type { Cruise } from "@shared/schema";
-import type { FilterState } from "@/lib/types";
+import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
+import Header from '@/components/header';
+import Footer from '@/components/footer';
+import FilterSidebar from '@/components/filter-sidebar';
+import CruiseCard from '@/components/cruise-card';
+import ItineraryModal from '@/components/itinerary-modal';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import type { Cruise } from '@shared/schema';
+import type { FilterState } from '@/lib/types';
 
 export default function SearchResults() {
   const [location, setLocation] = useLocation();
@@ -19,17 +25,24 @@ export default function SearchResults() {
   const [isItineraryModalOpen, setIsItineraryModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const resultsPerPage = 10;
-  
+
   // Parse URL search params
   const searchParams = new URLSearchParams(location.split('?')[1] || '');
   const initialFilters: FilterState = {
     minPrice: parseInt(searchParams.get('minPrice') || '500'),
     maxPrice: parseInt(searchParams.get('maxPrice') || '5000'),
-    duration: searchParams.get('duration') ? searchParams.get('duration')!.split(',').map(Number) : [],
-    cruiseLines: searchParams.get('cruiseLines') ? searchParams.get('cruiseLines')!.split(',') : [],
-    cabinTypes: searchParams.get('cabinTypes') ? searchParams.get('cabinTypes')!.split(',') : [],
+    duration: searchParams.get('duration')
+      ? searchParams.get('duration')!.split(',').map(Number)
+      : [],
+    cruiseLines: searchParams.get('cruiseLines')
+      ? searchParams.get('cruiseLines')!.split(',')
+      : [],
+    cabinTypes: searchParams.get('cabinTypes')
+      ? searchParams.get('cabinTypes')!.split(',')
+      : [],
     sortBy: (searchParams.get('sortBy') as FilterState['sortBy']) || 'price',
-    sortOrder: (searchParams.get('sortOrder') as FilterState['sortOrder']) || 'asc'
+    sortOrder:
+      (searchParams.get('sortOrder') as FilterState['sortOrder']) || 'asc',
   };
 
   const [filters, setFilters] = useState<FilterState>(initialFilters);
@@ -37,41 +50,55 @@ export default function SearchResults() {
   // Build query parameters for API call
   const buildQueryParams = () => {
     const params = new URLSearchParams();
-    
+
     // Add search criteria from URL
-    if (searchParams.get('destination')) params.append('destination', searchParams.get('destination')!);
-    if (searchParams.get('departurePort')) params.append('departurePort', searchParams.get('departurePort')!);
-    if (searchParams.get('departureDate')) params.append('departureDate', searchParams.get('departureDate')!);
-    if (searchParams.get('returnDate')) params.append('returnDate', searchParams.get('returnDate')!);
-    if (searchParams.get('guestCount')) params.append('guestCount', searchParams.get('guestCount')!);
-    if (searchParams.get('deal')) params.append('deal', searchParams.get('deal')!); // Add deal parameter
-    
+    if (searchParams.get('destination'))
+      params.append('destination', searchParams.get('destination')!);
+    if (searchParams.get('departurePort'))
+      params.append('departurePort', searchParams.get('departurePort')!);
+    if (searchParams.get('departureDate'))
+      params.append('departureDate', searchParams.get('departureDate')!);
+    if (searchParams.get('returnDate'))
+      params.append('returnDate', searchParams.get('returnDate')!);
+    if (searchParams.get('guestCount'))
+      params.append('guestCount', searchParams.get('guestCount')!);
+    if (searchParams.get('promotion'))
+      params.append('promotion', searchParams.get('promotion')!); // Add promotion parameter
+
     // Add filter criteria
-    if (filters.minPrice !== 500) params.append('minPrice', filters.minPrice.toString());
-    if (filters.maxPrice !== 5000) params.append('maxPrice', filters.maxPrice.toString());
+    if (filters.minPrice !== 500)
+      params.append('minPrice', filters.minPrice.toString());
+    if (filters.maxPrice !== 5000)
+      params.append('maxPrice', filters.maxPrice.toString());
     if (filters.duration.length > 0) {
       // Send duration as individual parameters for proper array handling
-      filters.duration.forEach(d => params.append('duration', d.toString()));
+      filters.duration.forEach((d) => params.append('duration', d.toString()));
     }
-    if (filters.cruiseLines.length > 0) params.append('cruiseLines', filters.cruiseLines.join(','));
-    if (filters.cabinTypes.length > 0) params.append('cabinTypes', filters.cabinTypes.join(','));
+    if (filters.cruiseLines.length > 0)
+      params.append('cruiseLines', filters.cruiseLines.join(','));
+    if (filters.cabinTypes.length > 0)
+      params.append('cabinTypes', filters.cabinTypes.join(','));
     params.append('sortBy', filters.sortBy);
     params.append('sortOrder', filters.sortOrder);
-    
+
     return params.toString();
   };
 
   // Fetch cruises based on search and filter criteria
-  const { data: allCruises, isLoading, error } = useQuery({
-    queryKey: ["/api/cruises", buildQueryParams()],
+  const {
+    data: allCruises,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['/api/cruises', buildQueryParams()],
     queryFn: async () => {
       const queryString = buildQueryParams();
       const response = await fetch(`/api/cruises?${queryString}`);
       if (!response.ok) {
-        throw new Error("Failed to fetch cruise results");
+        throw new Error('Failed to fetch cruise results');
       }
       return response.json();
-    }
+    },
   });
 
   // Pagination logic
@@ -87,7 +114,10 @@ export default function SearchResults() {
   };
 
   const handleSortChange = (value: string) => {
-    const [sortBy, sortOrder] = value.split('-') as [FilterState['sortBy'], FilterState['sortOrder']];
+    const [sortBy, sortOrder] = value.split('-') as [
+      FilterState['sortBy'],
+      FilterState['sortOrder'],
+    ];
     handleFiltersChange({ ...filters, sortBy, sortOrder });
   };
 
@@ -114,19 +144,21 @@ export default function SearchResults() {
     destination: searchParams.get('destination'),
     departureDate: searchParams.get('departureDate'),
     returnDate: searchParams.get('returnDate'),
-    guestCount: searchParams.get('guestCount')
+    guestCount: searchParams.get('guestCount'),
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       {/* Search Summary */}
       <section className="bg-white border-b border-gray-200 py-4 md:py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900">Cruise Search Results</h1>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900">
+                Cruise Search Results
+              </h1>
               <div className="flex flex-wrap gap-2 mt-2 text-xs md:text-sm text-gray-600">
                 {searchCriteria.destination && (
                   <span className="bg-ocean-100 text-ocean-800 px-2 py-1 rounded-full">
@@ -135,7 +167,10 @@ export default function SearchResults() {
                 )}
                 {searchCriteria.departureDate && (
                   <span className="bg-ocean-100 text-ocean-800 px-2 py-1 rounded-full">
-                    Departs: {new Date(searchCriteria.departureDate).toLocaleDateString()}
+                    Departs:{' '}
+                    {new Date(
+                      searchCriteria.departureDate
+                    ).toLocaleDateString()}
                   </span>
                 )}
                 {searchCriteria.guestCount && (
@@ -158,27 +193,32 @@ export default function SearchResults() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
         <div className="flex flex-col lg:flex-row gap-4 md:gap-8">
-          
           {/* Filter Sidebar */}
           <div className="lg:w-1/4">
-            <FilterSidebar filters={filters} onFiltersChange={handleFiltersChange} />
+            <FilterSidebar
+              filters={filters}
+              onFiltersChange={handleFiltersChange}
+            />
           </div>
 
           {/* Main Results */}
           <div className="lg:w-3/4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 gap-4">
-              <p className="text-sm md:text-base text-gray-600" data-testid="results-count">
+              <p
+                className="text-sm md:text-base text-gray-600"
+                data-testid="results-count"
+              >
                 {isLoading ? (
                   <Skeleton className="h-4 w-32" />
                 ) : error ? (
-                  "Error loading results"
+                  'Error loading results'
                 ) : (
                   `Showing ${startIndex + 1}-${Math.min(endIndex, totalResults)} of ${totalResults} cruises`
                 )}
               </p>
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-gray-600">Sort by:</span>
-                <Select 
+                <Select
                   value={`${filters.sortBy}-${filters.sortOrder}`}
                   onValueChange={handleSortChange}
                 >
@@ -188,10 +228,18 @@ export default function SearchResults() {
                   <SelectContent>
                     <SelectItem value="price-asc">Lowest Price</SelectItem>
                     <SelectItem value="price-desc">Highest Price</SelectItem>
-                    <SelectItem value="departure-asc">Soonest Departure</SelectItem>
-                    <SelectItem value="departure-desc">Latest Departure</SelectItem>
-                    <SelectItem value="duration-asc">Shortest Duration</SelectItem>
-                    <SelectItem value="duration-desc">Longest Duration</SelectItem>
+                    <SelectItem value="departure-asc">
+                      Soonest Departure
+                    </SelectItem>
+                    <SelectItem value="departure-desc">
+                      Latest Departure
+                    </SelectItem>
+                    <SelectItem value="duration-asc">
+                      Shortest Duration
+                    </SelectItem>
+                    <SelectItem value="duration-desc">
+                      Longest Duration
+                    </SelectItem>
                     <SelectItem value="rating-desc">Best Rating</SelectItem>
                   </SelectContent>
                 </Select>
@@ -201,38 +249,43 @@ export default function SearchResults() {
             {/* Loading State */}
             {isLoading && (
               <div className="space-y-6">
-                {Array(5).fill(0).map((_, index) => (
-                  <div key={index} className="bg-white rounded-xl shadow-sm overflow-hidden">
-                    <div className="flex flex-col lg:flex-row">
-                      <div className="lg:w-1/3">
-                        <Skeleton className="w-full h-48 lg:h-full" />
-                      </div>
-                      <div className="lg:w-2/3 p-6 space-y-4">
-                        <div className="flex items-center">
-                          <Skeleton className="w-16 h-10 rounded mr-3" />
+                {Array(5)
+                  .fill(0)
+                  .map((_, index) => (
+                    <div
+                      key={index}
+                      className="bg-white rounded-xl shadow-sm overflow-hidden"
+                    >
+                      <div className="flex flex-col lg:flex-row">
+                        <div className="lg:w-1/3">
+                          <Skeleton className="w-full h-48 lg:h-full" />
+                        </div>
+                        <div className="lg:w-2/3 p-6 space-y-4">
+                          <div className="flex items-center">
+                            <Skeleton className="w-16 h-10 rounded mr-3" />
+                            <div className="space-y-2">
+                              <Skeleton className="h-5 w-48" />
+                              <Skeleton className="h-4 w-32" />
+                            </div>
+                          </div>
                           <div className="space-y-2">
-                            <Skeleton className="h-5 w-48" />
-                            <Skeleton className="h-4 w-32" />
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-3/4" />
                           </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Skeleton className="h-4 w-full" />
-                          <Skeleton className="h-4 w-3/4" />
-                        </div>
-                        <div className="flex justify-between items-end">
-                          <div className="flex space-x-3">
-                            <Skeleton className="h-9 w-24" />
-                            <Skeleton className="h-9 w-24" />
-                          </div>
-                          <div className="text-right space-y-2">
-                            <Skeleton className="h-6 w-20" />
-                            <Skeleton className="h-9 w-28" />
+                          <div className="flex justify-between items-end">
+                            <div className="flex space-x-3">
+                              <Skeleton className="h-9 w-24" />
+                              <Skeleton className="h-9 w-24" />
+                            </div>
+                            <div className="text-right space-y-2">
+                              <Skeleton className="h-6 w-20" />
+                              <Skeleton className="h-9 w-28" />
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             )}
 
@@ -246,9 +299,13 @@ export default function SearchResults() {
                   Search Error
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  We encountered an error while searching for cruises. Please try again or modify your search criteria.
+                  We encountered an error while searching for cruises. Please
+                  try again or modify your search criteria.
                 </p>
-                <Button onClick={() => window.location.reload()} data-testid="button-retry-search">
+                <Button
+                  onClick={() => window.location.reload()}
+                  data-testid="button-retry-search"
+                >
                   Try Again
                 </Button>
               </div>
@@ -264,25 +321,31 @@ export default function SearchResults() {
                   No Cruises Found
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  We couldn't find any cruises matching your search criteria. Try adjusting your filters or search terms.
+                  We couldn't find any cruises matching your search criteria.
+                  Try adjusting your filters or search terms.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Button
                     variant="outline"
-                    onClick={() => handleFiltersChange({
-                      minPrice: 500,
-                      maxPrice: 5000,
-                      duration: [],
-                      cruiseLines: [],
-                      cabinTypes: [],
-                      sortBy: 'price',
-                      sortOrder: 'asc'
-                    })}
+                    onClick={() =>
+                      handleFiltersChange({
+                        minPrice: 500,
+                        maxPrice: 5000,
+                        duration: [],
+                        cruiseLines: [],
+                        cabinTypes: [],
+                        sortBy: 'price',
+                        sortOrder: 'asc',
+                      })
+                    }
                     data-testid="button-clear-filters"
                   >
                     Clear All Filters
                   </Button>
-                  <Button onClick={() => setLocation('/')} data-testid="button-new-search">
+                  <Button
+                    onClick={() => setLocation('/')}
+                    data-testid="button-new-search"
+                  >
                     Start New Search
                   </Button>
                 </div>
@@ -318,33 +381,44 @@ export default function SearchResults() {
                       >
                         <ChevronLeft className="w-4 h-4" />
                       </Button>
-                      
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        let pageNumber;
-                        if (totalPages <= 5) {
-                          pageNumber = i + 1;
-                        } else if (currentPage <= 3) {
-                          pageNumber = i + 1;
-                        } else if (currentPage >= totalPages - 2) {
-                          pageNumber = totalPages - 4 + i;
-                        } else {
-                          pageNumber = currentPage - 2 + i;
+
+                      {Array.from(
+                        { length: Math.min(5, totalPages) },
+                        (_, i) => {
+                          let pageNumber;
+                          if (totalPages <= 5) {
+                            pageNumber = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNumber = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNumber = totalPages - 4 + i;
+                          } else {
+                            pageNumber = currentPage - 2 + i;
+                          }
+
+                          return (
+                            <Button
+                              key={pageNumber}
+                              variant={
+                                currentPage === pageNumber
+                                  ? 'default'
+                                  : 'outline'
+                              }
+                              size="sm"
+                              onClick={() => handlePageChange(pageNumber)}
+                              className={
+                                currentPage === pageNumber
+                                  ? 'bg-ocean-600 text-white'
+                                  : ''
+                              }
+                              data-testid={`button-page-${pageNumber}`}
+                            >
+                              {pageNumber}
+                            </Button>
+                          );
                         }
-                        
-                        return (
-                          <Button
-                            key={pageNumber}
-                            variant={currentPage === pageNumber ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => handlePageChange(pageNumber)}
-                            className={currentPage === pageNumber ? "bg-ocean-600 text-white" : ""}
-                            data-testid={`button-page-${pageNumber}`}
-                          >
-                            {pageNumber}
-                          </Button>
-                        );
-                      })}
-                      
+                      )}
+
                       {totalPages > 5 && currentPage < totalPages - 2 && (
                         <>
                           <span className="px-3 py-2 text-gray-500">...</span>
@@ -358,7 +432,7 @@ export default function SearchResults() {
                           </Button>
                         </>
                       )}
-                      
+
                       <Button
                         variant="outline"
                         size="sm"

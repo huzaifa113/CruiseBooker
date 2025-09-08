@@ -31,6 +31,7 @@ export default function HeroSearch() {
 
   const totalGuests = guestDetails.adults + guestDetails.children + guestDetails.seniors;
   
+  
   const updateGuestCount = (type: 'adults' | 'children' | 'seniors', increment: boolean) => {
     setGuestDetails(prev => {
       const newValue = increment ? prev[type] + 1 : Math.max(0, prev[type] - 1);

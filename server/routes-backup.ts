@@ -2,7 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 // import Stripe from "stripe";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { config } from 'dotenv';
+config();
 
 // Helper function to generate iCal content
 function generateICalendar(booking: any, cruise: any): string {

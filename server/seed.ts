@@ -1,6 +1,8 @@
 import { db } from "./db";
 import { cruises, cabinTypes, extras, promotions } from "@shared/schema";
 import { sql } from "drizzle-orm";
+import { config } from 'dotenv';
+config();
 
 export async function seedDatabase() {
   try {

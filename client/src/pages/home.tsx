@@ -31,7 +31,7 @@ export default function Home() {
         throw new Error(`Failed to fetch cruises: ${response.status} ${errorText}`);
       }
       const data = await response.json();
-      return data.slice(-3); // Show last 3 cruises for featured section
+      return data; 
     }
   });
 
@@ -223,7 +223,7 @@ export default function Home() {
           {/* Dynamic promotions grid */}
           {!promotionsLoading && promotions && promotions.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {promotions.slice(0, 6).map((promotion: any, index: number) => {
+              {promotions.map((promotion: any, index: number) => {
                 const discountText = promotion.discountType === 'percentage' 
                   ? `${promotion.discountValue}% OFF`
                   : `$${promotion.discountValue} OFF`;
@@ -363,7 +363,7 @@ export default function Home() {
                   }
                   return acc;
                 }, {})
-              ).slice(0, 4).map((destination: any) => (
+              ).map((destination: any) => (
               <Card key={destination.name} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => handleDestinationClick(destination.name)}>
                 <div className="relative h-48">
                   <img

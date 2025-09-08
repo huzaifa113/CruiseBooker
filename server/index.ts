@@ -3,8 +3,15 @@ import cors from 'cors';
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { enhancedSeedDatabase } from "./enhanced-seed";
+import { config } from 'dotenv';
+config();
 
 const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// For Vercel serverless
+export default registerRoutes(app);
 
 // CORS configuration
 app.use(cors({
@@ -115,5 +122,3 @@ app.use((req, res, next) => {
   });
 })();
 
-// Export the app for ES modules (Vercel)
-export default app;

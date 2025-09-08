@@ -14,6 +14,8 @@ import {
 } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcrypt";
+import { config } from 'dotenv';
+config();
 
 export async function enhancedSeedDatabase() {
   console.log("Starting enhanced database seeding...");

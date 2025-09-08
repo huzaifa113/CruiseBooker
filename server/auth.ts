@@ -2,6 +2,8 @@ import type { Express, RequestHandler } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { storage } from "./storage";
+import { config } from 'dotenv';
+config();
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
 const JWT_EXPIRES_IN = "7d";
