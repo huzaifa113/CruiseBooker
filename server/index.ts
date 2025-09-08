@@ -10,7 +10,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// For Vercel serverless
+// Export for Vercel serverless
 export default registerRoutes(app);
 
 // CORS configuration
