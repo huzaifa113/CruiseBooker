@@ -5,6 +5,13 @@ import { setupSimpleAuth, optionalAuth } from "./auth";
 import { config } from 'dotenv';
 config();
 
+async function registerRoutes(app) {
+  app.use(require('cors')({ origin: process.env.VITE_API_URL || 'http://localhost:5173', credentials: true }));
+
+  app.get('/api/health', (req, res) => {
+    res.json({ status: 'healthy' });
+  });
+
 // Create isAuthenticated middleware for compatibility
 const isAuthenticated = async (req: any, res: any, next: any) => {
   const authHeader = req.headers.authorization;
