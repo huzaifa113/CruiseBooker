@@ -13,14 +13,17 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "api/index.js"
+      "dest": "/api/index.js"
     },
     {
       "src": "/(.*)",
-      "dest": "dist/$1"
+      "dest": "/dist/$1",
+      "headers": {
+        "Cache-Control": "public, max-age=0, must-revalidate"
+      }
     }
   ],
   "env": {
-    "VITE_API_URL": "https://<your-vercel-domain>.vercel.app/api"
+    "VITE_API_URL": "https://https://cruise-booker.vercel.app/.vercel.app/api"
   }
 }
