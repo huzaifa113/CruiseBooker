@@ -24,6 +24,6 @@
     }
   ],
   "env": {
-    "VITE_API_URL": "https://<your-vercel-domain>.vercel.app/api"
+    "VITE_API_URL": "https://https://cruise-booker.vercel.app/.vercel.app/api"
   }
 }
