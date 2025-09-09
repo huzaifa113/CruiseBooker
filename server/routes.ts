@@ -2,15 +2,6 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupSimpleAuth, optionalAuth } from "./auth";
-import { config } from 'dotenv';
-config();
-
-async function registerRoutes(app) {
-  app.use(require('cors')({ origin: process.env.VITE_API_URL || 'http://localhost:5173', credentials: true }));
-
-  app.get('/api/health', (req, res) => {
-    res.json({ status: 'healthy' });
-  });
 
 // Create isAuthenticated middleware for compatibility
 const isAuthenticated = async (req: any, res: any, next: any) => {
@@ -501,78 +492,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Download Invoice PDF endpoint (fallback to print method due to environment limitations)
-  // app.get("/api/bookings/:id/invoice-pdf", async (req, res) => {
-  //   try {
-  //     const booking = await storage.getBookingWithDetails(req.params.id);
-  //     if (!booking) {
-  //       return res.status(404).json({ message: "Booking not found" });
-  //     }
+  app.get("/api/bookings/:id/invoice-pdf", async (req, res) => {
+    try {
+      const booking = await storage.getBookingWithDetails(req.params.id);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
       
-  //     // Try to generate PDF invoice
-  //     const invoiceData = {
-  //       booking,
-  //       cruise: booking.cruise,
-  //       cabinType: booking.cabinType,
-  //       generatedAt: new Date().toISOString(),
-  //       invoiceNumber: `INV-${booking.confirmationNumber}-${Date.now()}`
-  //     };
+      // Try to generate PDF invoice
+      const invoiceData = {
+        booking,
+        cruise: booking.cruise,
+        cabinType: booking.cabinType,
+        generatedAt: new Date().toISOString(),
+        invoiceNumber: `INV-${booking.confirmationNumber}-${Date.now()}`
+      };
       
-  //     const { generateInvoicePDF } = await import('./pdfService');
-  //     const pdfBuffer = await generateInvoicePDF(invoiceData);
+      const { generateInvoicePDF } = await import('./pdfService');
+      const pdfBuffer = await generateInvoicePDF(invoiceData);
       
-  //     if (pdfBuffer) {
-  //       res.setHeader('Content-Type', 'application/pdf');
-  //       res.setHeader('Content-Disposition', `attachment; filename="invoice-${booking.confirmationNumber}.pdf"`);
-  //       res.send(pdfBuffer);
-  //     } else {
-  //       // Fallback to HTML version for print dialog
-  //       return res.status(404).json({ message: "PDF generation not available, using print fallback" });
-  //     }
+      if (pdfBuffer) {
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="invoice-${booking.confirmationNumber}.pdf"`);
+        res.send(pdfBuffer);
+      } else {
+        // Fallback to HTML version for print dialog
+        return res.status(404).json({ message: "PDF generation not available, using print fallback" });
+      }
       
-  //   } catch (error: any) {
-  //     console.error("Error generating PDF:", error);
-  //     res.status(500).json({ message: "Error generating PDF invoice: " + error.message });
-  //   }
-  // });
-
-  const PDFDocument = require('pdfkit');
-const { PassThrough } = require('stream');
-
-async function generateInvoicePDF(invoiceData) {
-  const doc = new PDFDocument();
-  const stream = new PassThrough();
-  doc.pipe(stream);
-  doc.text(`Invoice: ${invoiceData.invoiceNumber}`);
-  doc.text(`Booking: ${invoiceData.booking.confirmationNumber}`);
-  doc.end();
-  return stream;
-}
-
-app.get('/api/bookings/:id/invoice-pdf', async (req, res) => {
-  try {
-    const booking = await storage.getBookingWithDetails(req.params.id);
-    if (!booking) {
-      return res.status(404).json({ message: 'Booking not found' });
+    } catch (error: any) {
+      console.error("Error generating PDF:", error);
+      res.status(500).json({ message: "Error generating PDF invoice: " + error.message });
     }
-
-    const invoiceData = {
-      booking,
-      cruise: booking.cruise,
-      cabinType: booking.cabinType,
-      generatedAt: new Date().toISOString(),
-      invoiceNumber: `INV-${booking.confirmationNumber}-${Date.now()}`
-    };
-
-    const pdfStream = await generateInvoicePDF(invoiceData);
-
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="invoice-${booking.confirmationNumber}.pdf"`);
-    pdfStream.pipe(res);
-  } catch (error) {
-    console.error('Error generating PDF:', error);
-    res.status(500).json({ message: 'Error generating PDF invoice: ' + error.message });
-  }
-});
+  });
 
   // Email Confirmation endpoint
   app.post("/api/bookings/:id/email-confirmation", async (req, res) => {
