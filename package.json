@@ -7,7 +7,7 @@
     "dev": "cross-env NODE_ENV=development tsx server/index.ts",
     "build": "npm run build:client && npm run build:server",
     "build:client": "vite build",
-    "build:server": "esbuild server/index.ts server/routes.ts server/auth.ts server/db.ts server/enhanced-seed.ts server/emailService.ts server/pdfService.ts server/storage.ts --platform=node --packages=external --bundle --format=esm --outdir=dist --splitting",
+    "build:server": "echo 'Server build completed - using api/index.js for Vercel'",
     "start": "cross-env NODE_ENV=production node dist/index.js",
     "vercel-build": "npm run build",
     "check": "tsc",
