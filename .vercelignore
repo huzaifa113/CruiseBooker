@@ -49,8 +49,6 @@ ehthumbs.db
 Thumbs.db
 
 # Development specific
-server/*.ts
-!server/routes.ts
 
 # Test files
 *.test.js
