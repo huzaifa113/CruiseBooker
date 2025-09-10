@@ -25,7 +25,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Health check endpoint
 app.get('/api/health', async (req, res) => {
   try {
-    const { db } = await import('../server/db.ts');
+    const { db } = await import('../dist/db.js');
     await db.execute('SELECT 1');
     res.json({ status: 'healthy', database: 'connected' });
   } catch (error) {
@@ -38,8 +38,8 @@ let initialized = false;
 async function initializeApp() {
   if (!initialized) {
     try {
-      const { registerRoutes } = await import('../server/routes.ts');
-      const { enhancedSeedDatabase } = await import('../server/enhanced-seed.ts');
+      const { registerRoutes } = await import('../dist/routes.js');
+      const { enhancedSeedDatabase } = await import('../dist/enhanced-seed.js');
       await enhancedSeedDatabase();
       await registerRoutes(app);
       initialized = true;
