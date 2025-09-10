@@ -1,4 +1,3 @@
-import { registerRoutes } from '../dist/routes.js';
 import express from 'express';
 import cors from 'cors';
 
@@ -23,12 +22,24 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Health check endpoint
+app.get('/api/health', async (req, res) => {
+  try {
+    const { db } = await import('../server/db.ts');
+    await db.execute('SELECT 1');
+    res.json({ status: 'healthy', database: 'connected' });
+  } catch (error) {
+    res.status(500).json({ status: 'error', database: 'disconnected', error: error.message });
+  }
+});
+
 // Initialize database and register routes
 let initialized = false;
 async function initializeApp() {
   if (!initialized) {
     try {
-      const { enhancedSeedDatabase } = await import('../dist/enhanced-seed.js');
+      const { registerRoutes } = await import('../server/routes.ts');
+      const { enhancedSeedDatabase } = await import('../server/enhanced-seed.ts');
       await enhancedSeedDatabase();
       await registerRoutes(app);
       initialized = true;
