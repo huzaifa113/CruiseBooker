@@ -7,7 +7,7 @@
     "dev": "cross-env NODE_ENV=development tsx server/index.ts",
     "build": "npm run build:client && npm run build:server",
     "build:client": "vite build",
-    "build:server": "esbuild server/routes.ts server/enhanced-seed.ts server/db.ts --platform=node --bundle --format=esm --outdir=dist --external:@neondatabase/serverless --external:drizzle-orm --external:zod --external:bcrypt --external:jsonwebtoken --external:express --external:cors --external:puppeteer --external:@sendgrid/mail --external:stripe --external:pg --external:passport --external:passport-local --external:express-session --external:connect-pg-simple --external:memorystore --external:html-pdf-node --external:ws --external:memoizee --external:dotenv",
+    "build:server": "esbuild server/routes.ts server/enhanced-seed.ts server/db.ts --platform=node --bundle --format=esm --outdir=api/dist --external:@neondatabase/serverless --external:drizzle-orm --external:zod --external:bcrypt --external:jsonwebtoken --external:express --external:cors --external:puppeteer --external:@sendgrid/mail --external:stripe --external:pg --external:passport --external:passport-local --external:express-session --external:connect-pg-simple --external:memorystore --external:html-pdf-node --external:ws --external:memoizee --external:dotenv",
     "start": "cross-env NODE_ENV=production node dist/index.js",
     "vercel-build": "npm run build",
     "check": "tsc",
