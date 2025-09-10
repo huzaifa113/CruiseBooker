@@ -316,16 +316,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send booking creation notification email
       try {
         const bookingDetails = await storage.getBookingWithDetails(booking.id);
-        await fetch(`${process.env.BACKEND_URL || 'http://localhost:5000'}/api/notify-booking`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            booking_details: bookingDetails,
-            status: 'created',
-            user_email: bookingDetails?.primaryGuestEmail,
-          }),
-        });
-        console.log(`Booking creation email sent for booking: ${booking.confirmationNumber}`);
+        if (bookingDetails?.primaryGuestEmail) {
+          console.log(`Sending booking creation email to ${bookingDetails.primaryGuestEmail} for booking ${booking.confirmationNumber}`);
+          const success = await sendBookingStatusEmail(bookingDetails.primaryGuestEmail, bookingDetails, 'created');
+          if (success) {
+            console.log(`Booking creation email sent for booking: ${booking.confirmationNumber}`);
+          } else {
+            console.log(`Failed to send booking creation email for booking: ${booking.confirmationNumber}`);
+          }
+        }
       } catch (error) {
         console.error('Failed to send booking creation email:', error);
         // Don't fail booking creation if email notification fails
@@ -670,38 +669,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Send payment confirmation email notification
       try {
-        await fetch(`${process.env.BACKEND_URL || 'http://localhost:5000'}/api/notify-payment`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            amount: amount.toString(),
-            created_at: new Date().toISOString(),
-            status: 'paid',
-            user_email: bookingWithDetails?.primaryGuestEmail,
-            confirmation_number: bookingWithDetails?.confirmationNumber,
-          }),
-        });
-        console.log(
-          `Payment confirmation email sent for booking: ${bookingWithDetails?.confirmationNumber}`
-        );
+        if (bookingWithDetails?.primaryGuestEmail) {
+          console.log(`Sending payment status email to ${bookingWithDetails.primaryGuestEmail} for amount $${amount}, status: paid`);
+          const success = await sendPaymentStatusEmail(
+            bookingWithDetails.primaryGuestEmail,
+            amount.toString(),
+            new Date().toISOString(),
+            'paid',
+            bookingWithDetails.confirmationNumber
+          );
+          if (success) {
+            console.log(`Payment confirmation email sent for booking: ${bookingWithDetails?.confirmationNumber}`);
+          } else {
+            console.log(`Failed to send payment confirmation email for booking: ${bookingWithDetails?.confirmationNumber}`);
+          }
+        }
       } catch (error) {
         console.error('Failed to send payment confirmation email:', error);
       }
 
       // Send booking confirmation email notification
       try {
-        await fetch(`${process.env.BACKEND_URL || 'http://localhost:5000'}/api/notify-booking`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            booking_details: bookingWithDetails,
-            status: 'confirmed',
-            user_email: bookingWithDetails?.primaryGuestEmail,
-          }),
-        });
-        console.log(
-          `Booking confirmation email sent for booking: ${bookingWithDetails?.confirmationNumber}`
-        );
+        if (bookingWithDetails?.primaryGuestEmail) {
+          console.log(`Sending booking status email to ${bookingWithDetails.primaryGuestEmail} for booking ${bookingWithDetails.confirmationNumber}, status: confirmed`);
+          const success = await sendBookingStatusEmail(bookingWithDetails.primaryGuestEmail, bookingWithDetails, 'confirmed');
+          if (success) {
+            console.log(`Booking confirmation email sent for booking: ${bookingWithDetails?.confirmationNumber}`);
+          } else {
+            console.log(`Failed to send booking confirmation email for booking: ${bookingWithDetails?.confirmationNumber}`);
+          }
+        }
       } catch (error) {
         console.error('Failed to send booking confirmation email:', error);
       }
@@ -735,25 +732,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Send booking confirmation email
       try {
-        await fetch(`${process.env.BACKEND_URL || 'http://localhost:5000'}/api/notify-booking`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            booking_details: bookingWithDetails,
-            status: 'confirmed',
-            user_email: bookingWithDetails.primaryGuestEmail,
-          }),
-        });
+        console.log(`Sending booking status email to ${bookingWithDetails.primaryGuestEmail} for booking ${bookingWithDetails.confirmationNumber}, status: confirmed`);
+        const success = await sendBookingStatusEmail(bookingWithDetails.primaryGuestEmail, bookingWithDetails, 'confirmed');
 
-        console.log(
-          `Booking confirmation email resent for booking: ${bookingWithDetails.confirmationNumber}`
-        );
-
-        res.json({
-          success: true,
-          message: 'Confirmation email sent successfully',
-          sentTo: bookingWithDetails.primaryGuestEmail,
-        });
+        if (success) {
+          console.log(`Booking confirmation email resent for booking: ${bookingWithDetails.confirmationNumber}`);
+          res.json({
+            success: true,
+            message: 'Confirmation email sent successfully',
+            sentTo: bookingWithDetails.primaryGuestEmail,
+          });
+        } else {
+          console.log(`Failed to send booking confirmation email for booking: ${bookingWithDetails.confirmationNumber}`);
+          res.status(500).json({ message: 'Failed to send confirmation email' });
+        }
       } catch (emailError) {
         console.error('Failed to send booking confirmation email:', emailError);
         res.status(500).json({ message: 'Failed to send confirmation email' });

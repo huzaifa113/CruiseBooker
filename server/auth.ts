@@ -2,6 +2,7 @@ import type { Express, RequestHandler } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { storage } from './storage';
+import { sendWelcomeEmail } from './emailService';
 import { config } from 'dotenv';
 config();
 
@@ -125,15 +126,13 @@ export function setupSimpleAuth(app: Express) {
 
       // Send welcome email notification (async, don't wait for it)
       try {
-        await fetch(`${process.env.BACKEND_URL || 'http://localhost:5000'}/api/notify-signup`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_id: user.id,
-            email: user.email,
-          }),
-        });
-        console.log(`Welcome email notification sent for user: ${user.email}`);
+        console.log(`Sending welcome email to ${user.email} for user ${user.id}`);
+        const success = await sendWelcomeEmail(user.email, user.id);
+        if (success) {
+          console.log(`Welcome email notification sent for user: ${user.email}`);
+        } else {
+          console.log(`Failed to send welcome email for user: ${user.email}`);
+        }
       } catch (error) {
         console.error('Failed to send welcome email notification:', error);
         // Don't fail registration if email notification fails
