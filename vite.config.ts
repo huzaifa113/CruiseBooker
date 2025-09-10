@@ -8,7 +8,6 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   plugins: [react()],
-  root: 'client',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'client/src'),
@@ -16,7 +15,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: 'dist',
+    outDir: 'client/dist',
     emptyOutDir: true,
     sourcemap: false,
     rollupOptions: {

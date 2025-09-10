@@ -49,7 +49,6 @@ Thumbs.db
 # Development specific
 server/*.ts
 !server/routes.ts
-client/src/
 
 # Test files
 *.test.js
