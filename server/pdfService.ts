@@ -22,42 +22,44 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
 
   try {
     const htmlContent = generateInvoiceHTML(invoiceData);
-    
+
     const options = {
       format: 'A4' as const,
       margin: {
         top: 20,
         right: 20,
         bottom: 20,
-        left: 20
+        left: 20,
       },
       printBackground: true,
       displayHeaderFooter: false,
       args: [
-        '--no-sandbox', 
-        '--disable-setuid-sandbox', 
-        '--disable-web-security', 
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-web-security',
         '--disable-dev-shm-usage',
         '--disable-gpu',
-        '--disable-features=VizDisplayCompositor'
-      ]
+        '--disable-features=VizDisplayCompositor',
+      ],
     };
 
     const file = { content: htmlContent };
     const pdfBuffer = await htmlPdf.generatePdf(file, options);
-    
+
     console.log('PDF invoice generated successfully');
     return pdfBuffer;
   } catch (error) {
     console.error('Error generating PDF invoice:', error);
-    console.log('PDF generation failed - system dependencies may be missing. Email will be sent without PDF attachment.');
+    console.log(
+      'PDF generation failed - system dependencies may be missing. Email will be sent without PDF attachment.'
+    );
     return null;
   }
 }
 
 function generateInvoiceHTML(invoiceData: InvoiceData): string {
   const { booking, cruise, cabinType, generatedAt, invoiceNumber } = invoiceData;
-  
+
   const formatCurrency = (amount: string | number, currency: string = 'USD') => {
     const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
     return new Intl.NumberFormat('en-US', {
@@ -70,7 +72,7 @@ function generateInvoiceHTML(invoiceData: InvoiceData): string {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
@@ -281,16 +283,24 @@ function generateInvoiceHTML(invoiceData: InvoiceData): string {
           <span class="detail-label">Total Guests:</span>
           <span class="detail-value">${booking.guestCount || 0}</span>
         </div>
-        ${booking.guests && booking.guests.length > 0 ? `
+        ${
+          booking.guests && booking.guests.length > 0
+            ? `
           <h4 style="margin: 15px 0 10px 0;">All Guests:</h4>
-          ${booking.guests.map((guest: any, index: number) => `
+          ${booking.guests
+            .map(
+              (guest: any, index: number) => `
             <div class="guest">
               <strong>Guest ${index + 1}:</strong> ${guest.firstName} ${guest.lastName}
               ${guest.age ? ` (Age: ${guest.age})` : ''}
               ${guest.passportNumber ? ` | Passport: ${guest.passportNumber}` : ''}
             </div>
-          `).join('')}
-        ` : ''}
+          `
+            )
+            .join('')}
+        `
+            : ''
+        }
       </div>
 
       <div class="price-breakdown">
@@ -299,15 +309,19 @@ function generateInvoiceHTML(invoiceData: InvoiceData): string {
           <span>Base Cruise Price:</span>
           <span>${formatCurrency(cruise?.basePrice || '0', booking.currency)}</span>
         </div>
-        ${cabinType?.priceModifier && parseFloat(cabinType.priceModifier) !== 1 ? `
+        ${
+          cabinType?.priceModifier && parseFloat(cabinType.priceModifier) !== 1
+            ? `
           <div class="price-row">
             <span>Cabin Upgrade (${cabinType.name}):</span>
-            <span>${formatCurrency((parseFloat(cruise?.basePrice || '0') * (parseFloat(cabinType.priceModifier) - 1)), booking.currency)}</span>
+            <span>${formatCurrency(parseFloat(cruise?.basePrice || '0') * (parseFloat(cabinType.priceModifier) - 1), booking.currency)}</span>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
         <div class="price-row">
           <span>Subtotal:</span>
-          <span>${formatCurrency((parseFloat(booking.totalAmount) - parseFloat(booking.taxAmount || '0') - parseFloat(booking.gratuityAmount || '0')), booking.currency)}</span>
+          <span>${formatCurrency(parseFloat(booking.totalAmount) - parseFloat(booking.taxAmount || '0') - parseFloat(booking.gratuityAmount || '0'), booking.currency)}</span>
         </div>
         <div class="price-row">
           <span>Taxes & Fees:</span>

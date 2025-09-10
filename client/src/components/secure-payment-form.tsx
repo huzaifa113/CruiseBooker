@@ -13,11 +13,11 @@ interface SecurePaymentFormProps {
   onPaymentSuccess: (paymentIntentId: string) => void;
 }
 
-export default function SecurePaymentForm({ 
-  booking, 
-  totalAmount, 
-  currency, 
-  onPaymentSuccess 
+export default function SecurePaymentForm({
+  booking,
+  totalAmount,
+  currency,
+  onPaymentSuccess,
 }: SecurePaymentFormProps) {
   const stripe = useStripe();
   const elements = useElements();
@@ -40,9 +40,9 @@ export default function SecurePaymentForm({
   const validatePaymentForm = async () => {
     if (!stripe || !elements) {
       toast({
-        title: "Payment System Error",
-        description: "Payment system is not ready. Please refresh the page.",
-        variant: "destructive"
+        title: 'Payment System Error',
+        description: 'Payment system is not ready. Please refresh the page.',
+        variant: 'destructive',
       });
       return false;
     }
@@ -51,9 +51,9 @@ export default function SecurePaymentForm({
     const { error: submitError } = await elements.submit();
     if (submitError) {
       toast({
-        title: "Payment Information Required",
-        description: submitError.message || "Please complete all required payment fields",
-        variant: "destructive"
+        title: 'Payment Information Required',
+        description: submitError.message || 'Please complete all required payment fields',
+        variant: 'destructive',
       });
       return false;
     }
@@ -63,7 +63,7 @@ export default function SecurePaymentForm({
 
   const processSecurePayment = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Step 1: Validate payment form
     const isValid = await validatePaymentForm();
     if (!isValid) return;
@@ -72,7 +72,7 @@ export default function SecurePaymentForm({
 
     try {
       // Step 2: Create secure payment intent
-      console.log("Creating payment intent for amount:", totalAmount, currency);
+      console.log('Creating payment intent for amount:', totalAmount, currency);
       const response = await fetch('/api/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -80,39 +80,41 @@ export default function SecurePaymentForm({
           amount: Math.round(totalAmount * 100), // Convert to cents
           currency: currency.toLowerCase(),
           bookingId: booking.id,
-          description: `Cruise booking ${booking.confirmationNumber}`
-        })
+          description: `Cruise booking ${booking.confirmationNumber}`,
+        }),
       });
-      
+
       const paymentData = await response.json();
       if (!paymentData.clientSecret) {
         throw new Error('Invalid payment setup');
       }
 
       // Step 3: Confirm payment with Stripe
-      console.log("Confirming payment with Stripe...");
+      console.log('Confirming payment with Stripe...');
       const { error, paymentIntent } = await stripe!.confirmPayment({
         elements: elements!,
         confirmParams: {
           return_url: `${window.location.origin}/confirmation/${booking.confirmationNumber}`,
         },
-        redirect: 'if_required'
+        redirect: 'if_required',
       });
 
       if (error) {
         console.error('Stripe payment error:', error);
         toast({
-          title: "Payment Failed",
-          description: error.message || "Your payment could not be processed. Please check your card details and try again.",
-          variant: "destructive"
+          title: 'Payment Failed',
+          description:
+            error.message ||
+            'Your payment could not be processed. Please check your card details and try again.',
+          variant: 'destructive',
         });
         return;
       }
 
       // Step 4: Verify payment success
       if (paymentIntent?.status === 'succeeded') {
-        console.log("Payment succeeded, confirming booking...");
-        
+        console.log('Payment succeeded, confirming booking...');
+
         // Step 5: Confirm booking with backend
         await fetch(`/api/bookings/${booking.id}/confirm-payment`, {
           method: 'POST',
@@ -121,35 +123,34 @@ export default function SecurePaymentForm({
             paymentIntentId: paymentIntent.id,
             amount: totalAmount,
             currency: currency,
-            paymentStatus: 'completed'
-          })
+            paymentStatus: 'completed',
+          }),
         });
-        
+
         toast({
-          title: "Payment Successful!",
+          title: 'Payment Successful!',
           description: `Your booking has been confirmed. Amount charged: ${formatCurrency(totalAmount, currency)}`,
         });
-        
+
         // Step 6: Redirect to confirmation success page
         onPaymentSuccess(paymentIntent.id);
         setLocation(`/confirmation-success/${booking.id}`);
-        
       } else if (paymentIntent?.status === 'requires_action') {
         toast({
-          title: "Additional Authentication Required",
-          description: "Please complete the additional authentication step.",
-          variant: "default"
+          title: 'Additional Authentication Required',
+          description: 'Please complete the additional authentication step.',
+          variant: 'default',
         });
       } else {
         throw new Error('Payment processing failed');
       }
-
     } catch (error: any) {
       console.error('Payment processing error:', error);
       toast({
-        title: "Payment Error",
-        description: error.message || "Failed to process payment. Please try again or contact support.",
-        variant: "destructive"
+        title: 'Payment Error',
+        description:
+          error.message || 'Failed to process payment. Please try again or contact support.',
+        variant: 'destructive',
       });
     } finally {
       setIsProcessing(false);
@@ -166,10 +167,10 @@ export default function SecurePaymentForm({
           {/* Payment Element */}
           <div className="space-y-4">
             <h3 className="font-medium">Payment Information</h3>
-            <PaymentElement 
+            <PaymentElement
               onReady={handlePaymentElementReady}
               options={{
-                layout: 'tabs'
+                layout: 'tabs',
               }}
             />
           </div>
@@ -185,7 +186,8 @@ export default function SecurePaymentForm({
               <span>{booking.confirmationNumber}</span>
             </div>
             <div className="text-xs text-gray-500 mt-2">
-              Your payment will be processed securely by Stripe. No payment will be charged until you click "Confirm Booking" below.
+              Your payment will be processed securely by Stripe. No payment will be charged until
+              you click "Confirm Booking" below.
             </div>
           </div>
 
@@ -207,9 +209,7 @@ export default function SecurePaymentForm({
           </Button>
 
           {!paymentReady && (
-            <div className="text-center text-sm text-gray-500">
-              Loading secure payment form...
-            </div>
+            <div className="text-center text-sm text-gray-500">Loading secure payment form...</div>
           )}
         </form>
       </CardContent>

@@ -19,8 +19,7 @@ export default function CabinCarousel({ isOpen, onClose, cabinType }: CabinCarou
   if (!cabinType) return null;
 
   const images = cabinType?.cabinImages || [];
-  
-  
+
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
   };
@@ -35,14 +34,19 @@ export default function CabinCarousel({ isOpen, onClose, cabinType }: CabinCarou
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl p-0 overflow-hidden" aria-describedby="cabin-carousel-description">
+      <DialogContent
+        className="max-w-4xl p-0 overflow-hidden"
+        aria-describedby="cabin-carousel-description"
+      >
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="text-2xl font-bold text-gray-900">
             {cabinType.name} - Interior Gallery
           </DialogTitle>
-          <p id="cabin-carousel-description" className="text-gray-600 mt-2">{cabinType.description}</p>
+          <p id="cabin-carousel-description" className="text-gray-600 mt-2">
+            {cabinType.description}
+          </p>
         </DialogHeader>
-        
+
         <div className="relative">
           {/* Main Image Display */}
           <div className="relative h-96 bg-gray-100 overflow-hidden">
@@ -57,7 +61,7 @@ export default function CabinCarousel({ isOpen, onClose, cabinType }: CabinCarou
                 No images available
               </div>
             )}
-            
+
             {/* Navigation Arrows */}
             {images.length > 1 && (
               <>
@@ -96,8 +100,8 @@ export default function CabinCarousel({ isOpen, onClose, cabinType }: CabinCarou
                   key={index}
                   onClick={() => goToImage(index)}
                   className={`w-16 h-12 rounded-lg overflow-hidden border-2 transition-all ${
-                    index === currentImageIndex 
-                      ? 'border-blue-500 ring-2 ring-blue-200' 
+                    index === currentImageIndex
+                      ? 'border-blue-500 ring-2 ring-blue-200'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >

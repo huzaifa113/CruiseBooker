@@ -1,12 +1,15 @@
-import { X, MapPin, Calendar, Printer, CalendarPlus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import type { Cruise } from "@shared/schema";
+import { X, MapPin, Calendar, Printer, CalendarPlus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import type { Cruise } from '@shared/schema';
 
 // Helper function to generate printable itinerary HTML
 function generatePrintableItinerary(cruise: Cruise): string {
-  const itineraryRows = cruise.itinerary?.map(day => `
+  const itineraryRows =
+    cruise.itinerary
+      ?.map(
+        (day) => `
     <tr>
       <td style="padding: 12px; border: 1px solid #ddd; font-weight: bold;">Day ${day.day}</td>
       <td style="padding: 12px; border: 1px solid #ddd;">${new Date(day.date).toLocaleDateString()}</td>
@@ -15,7 +18,9 @@ function generatePrintableItinerary(cruise: Cruise): string {
       <td style="padding: 12px; border: 1px solid #ddd;">${day.departure || 'At Sea'}</td>
       <td style="padding: 12px; border: 1px solid #ddd;">${day.description}</td>
     </tr>
-  `).join('') || '';
+  `
+      )
+      .join('') || '';
 
   return `
     <!DOCTYPE html>
@@ -74,9 +79,9 @@ function generateCruiseICalendar(cruise: Cruise): string {
     'VERSION:2.0',
     'PRODID:-//Phoenix Vacation Group//Cruise Itinerary//EN',
     'CALSCALE:GREGORIAN',
-    'METHOD:PUBLISH'
+    'METHOD:PUBLISH',
   ];
-  
+
   // Add main cruise event
   icalContent.push(
     'BEGIN:VEVENT',
@@ -90,17 +95,17 @@ function generateCruiseICalendar(cruise: Cruise): string {
     'STATUS:CONFIRMED',
     'END:VEVENT'
   );
-  
+
   // Add port calls if itinerary exists
   if (cruise.itinerary) {
     cruise.itinerary.forEach((day: any) => {
       if (day.port !== 'At Sea' && day.arrival) {
         const arrivalTime = day.arrival ? `${day.arrival}:00` : '09:00:00';
         const departureTime = day.departure ? `${day.departure}:00` : '17:00:00';
-        
+
         const eventStart = new Date(`${day.date}T${arrivalTime}`);
         const eventEnd = new Date(`${day.date}T${departureTime}`);
-        
+
         icalContent.push(
           'BEGIN:VEVENT',
           `UID:cruise-${cruise.id}-port-${day.day}@phoenixvacationgroup.com`,
@@ -116,7 +121,7 @@ function generateCruiseICalendar(cruise: Cruise): string {
       }
     });
   }
-  
+
   icalContent.push('END:VCALENDAR');
   return icalContent.join('\r\n');
 }
@@ -128,18 +133,23 @@ interface ItineraryModalProps {
   onBookCruise?: (cruise: Cruise) => void;
 }
 
-export default function ItineraryModal({ cruise, isOpen, onClose, onBookCruise }: ItineraryModalProps) {
+export default function ItineraryModal({
+  cruise,
+  isOpen,
+  onClose,
+  onBookCruise,
+}: ItineraryModalProps) {
   if (!cruise) return null;
 
   const handlePrint = () => {
     // Create a printable version of the itinerary
     const printContent = generatePrintableItinerary(cruise);
     const printWindow = window.open('', '_blank');
-    
+
     if (printWindow) {
       printWindow.document.write(printContent);
       printWindow.document.close();
-      
+
       // Wait for content to load then trigger print dialog
       printWindow.onload = () => {
         setTimeout(() => {
@@ -151,11 +161,11 @@ export default function ItineraryModal({ cruise, isOpen, onClose, onBookCruise }
 
   const handleExportCalendar = async () => {
     if (!cruise) return;
-    
+
     try {
       // Generate iCal content directly from cruise data
       const icalContent = generateCruiseICalendar(cruise);
-      
+
       // Create and download the .ics file
       const blob = new Blob([icalContent], { type: 'text/calendar' });
       const url = window.URL.createObjectURL(blob);
@@ -166,8 +176,8 @@ export default function ItineraryModal({ cruise, isOpen, onClose, onBookCruise }
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-      
-      console.log("Calendar exported successfully");
+
+      console.log('Calendar exported successfully');
     } catch (error) {
       console.error('Error exporting calendar:', error);
     }
@@ -175,42 +185,64 @@ export default function ItineraryModal({ cruise, isOpen, onClose, onBookCruise }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden" data-testid="modal-itinerary">
+      <DialogContent
+        className="max-w-4xl max-h-[90vh] overflow-hidden"
+        data-testid="modal-itinerary"
+      >
         <DialogHeader className="pb-6 border-b border-gray-200">
-          <DialogTitle className="text-2xl font-bold text-gray-900 pr-8" data-testid="text-cruise-name">
+          <DialogTitle
+            className="text-2xl font-bold text-gray-900 pr-8"
+            data-testid="text-cruise-name"
+          >
             {cruise.name}
           </DialogTitle>
           <p className="text-gray-600" data-testid="text-ship-duration">
             {cruise.ship} • {cruise.duration} Days
           </p>
         </DialogHeader>
-        
+
         <div className="overflow-y-auto max-h-[calc(90vh-240px)] px-1 py-2">
           <div className="space-y-6">
             {cruise.itinerary?.map((day, index) => (
-              <div key={index} className="flex flex-col sm:flex-row border-b border-gray-100 pb-6 last:border-b-0" data-testid={`itinerary-day-${day.day}`}>
+              <div
+                key={index}
+                className="flex flex-col sm:flex-row border-b border-gray-100 pb-6 last:border-b-0"
+                data-testid={`itinerary-day-${day.day}`}
+              >
                 <div className="w-full sm:w-20 flex-shrink-0 mb-4 sm:mb-0">
                   <div className="text-center sm:text-center">
-                    <div className="text-2xl font-bold text-ocean-600 inline sm:block" data-testid={`text-day-number-${day.day}`}>
+                    <div
+                      className="text-2xl font-bold text-ocean-600 inline sm:block"
+                      data-testid={`text-day-number-${day.day}`}
+                    >
                       Day {day.day.toString().padStart(2, '0')}
                     </div>
-                    <div className="text-sm text-gray-600 inline sm:block ml-2 sm:ml-0" data-testid={`text-day-date-${day.day}`}>
+                    <div
+                      className="text-sm text-gray-600 inline sm:block ml-2 sm:ml-0"
+                      data-testid={`text-day-date-${day.day}`}
+                    >
                       {day.date}
                     </div>
                   </div>
                 </div>
                 <div className="flex-1 sm:ml-6">
                   <div className="flex flex-col sm:flex-row sm:items-center mb-2 gap-2">
-                    <h3 className="text-lg font-semibold text-gray-900" data-testid={`text-port-name-${day.day}`}>
+                    <h3
+                      className="text-lg font-semibold text-gray-900"
+                      data-testid={`text-port-name-${day.day}`}
+                    >
                       {day.port}
                     </h3>
                     <div className="flex items-center gap-3">
                       {day.country && (
-                        <span className="text-sm text-gray-600" data-testid={`text-country-${day.day}`}>
+                        <span
+                          className="text-sm text-gray-600"
+                          data-testid={`text-country-${day.day}`}
+                        >
                           {day.country}
                         </span>
                       )}
-                      {day.port === "At Sea" && (
+                      {day.port === 'At Sea' && (
                         <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                           Cruising
                         </Badge>
@@ -219,19 +251,22 @@ export default function ItineraryModal({ cruise, isOpen, onClose, onBookCruise }
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-sm text-gray-600 mb-3">
                     <div>
-                      <span className="font-medium">Arrival:</span> 
+                      <span className="font-medium">Arrival:</span>
                       <span className="ml-1" data-testid={`text-arrival-${day.day}`}>
                         {day.arrival || '--'}
                       </span>
                     </div>
                     <div>
-                      <span className="font-medium">Departure:</span> 
+                      <span className="font-medium">Departure:</span>
                       <span className="ml-1" data-testid={`text-departure-${day.day}`}>
                         {day.departure || '--'}
                       </span>
                     </div>
                   </div>
-                  <p className="text-gray-700 text-sm sm:text-base" data-testid={`text-description-${day.day}`}>
+                  <p
+                    className="text-gray-700 text-sm sm:text-base"
+                    data-testid={`text-description-${day.day}`}
+                  >
                     {day.description}
                   </p>
                 </div>
@@ -239,7 +274,7 @@ export default function ItineraryModal({ cruise, isOpen, onClose, onBookCruise }
             ))}
           </div>
         </div>
-        
+
         <div className="bg-gray-50 -mx-6 -mb-6 p-6 border-t">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex flex-wrap gap-3">

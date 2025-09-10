@@ -1,19 +1,19 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
-import { apiRequest } from "@/lib/queryClient";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
-import Header from "@/components/header";
-import Footer from "@/components/footer";
-import CruiseCard from "@/components/cruise-card";
-import ItineraryModal from "@/components/itinerary-modal";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Heart, MapPin, Calendar, Users, Trash2, ExternalLink } from "lucide-react";
-import { Link } from "wouter";
-import type { Cruise } from "@shared/schema";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
+import { apiRequest } from '@/lib/queryClient';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import Header from '@/components/header';
+import Footer from '@/components/footer';
+import CruiseCard from '@/components/cruise-card';
+import ItineraryModal from '@/components/itinerary-modal';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Heart, MapPin, Calendar, Users, Trash2, ExternalLink } from 'lucide-react';
+import { Link } from 'wouter';
+import type { Cruise } from '@shared/schema';
 
 export default function Favorites() {
   const { user, isAuthenticated } = useAuth();
@@ -27,19 +27,23 @@ export default function Favorites() {
   useEffect(() => {
     if (!isAuthenticated && user === undefined) {
       toast({
-        title: "Authentication Required",
-        description: "Please log in to view your saved cruises.",
-        variant: "destructive",
+        title: 'Authentication Required',
+        description: 'Please log in to view your saved cruises.',
+        variant: 'destructive',
       });
       setTimeout(() => {
-        window.location.href = "/";
+        window.location.href = '/';
       }, 2000);
     }
   }, [isAuthenticated, user, toast]);
 
   // Fetch user's favorites
-  const { data: favorites, isLoading, error } = useQuery<any[]>({
-    queryKey: ["/api/favorites"],
+  const {
+    data: favorites,
+    isLoading,
+    error,
+  } = useQuery<any[]>({
+    queryKey: ['/api/favorites'],
     enabled: isAuthenticated,
     retry: false,
   });
@@ -62,20 +66,20 @@ export default function Favorites() {
   // Remove favorite mutation
   const removeFavoriteMutation = useMutation({
     mutationFn: async (cruiseId: string) => {
-      await apiRequest("DELETE", `/api/favorites/${cruiseId}`);
+      await apiRequest('DELETE', `/api/favorites/${cruiseId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
       toast({
-        title: "Removed from Favorites",
-        description: "Cruise has been removed from your saved cruises.",
+        title: 'Removed from Favorites',
+        description: 'Cruise has been removed from your saved cruises.',
       });
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: "Failed to remove cruise from favorites. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to remove cruise from favorites. Please try again.',
+        variant: 'destructive',
       });
     },
   });
@@ -87,9 +91,7 @@ export default function Favorites() {
           <CardHeader className="text-center">
             <Heart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <CardTitle>Authentication Required</CardTitle>
-            <CardDescription>
-              Please log in to view your saved cruises.
-            </CardDescription>
+            <CardDescription>Please log in to view your saved cruises.</CardDescription>
           </CardHeader>
           <CardContent>
             <Link href="/">
@@ -123,10 +125,7 @@ export default function Favorites() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button 
-              onClick={() => window.location.reload()} 
-              className="w-full"
-            >
+            <Button onClick={() => window.location.reload()} className="w-full">
               Retry
             </Button>
           </CardContent>
@@ -138,7 +137,7 @@ export default function Favorites() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
       <Header />
-      
+
       {/* Page Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -159,8 +158,8 @@ export default function Favorites() {
             <Heart className="w-16 h-16 text-gray-300 mx-auto mb-6" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No Saved Cruises</h3>
             <p className="text-gray-600 mb-6 max-w-md mx-auto">
-              You haven't saved any cruises yet. Start exploring our amazing cruise destinations 
-              and save the ones you love!
+              You haven't saved any cruises yet. Start exploring our amazing cruise destinations and
+              save the ones you love!
             </p>
             <Link href="/">
               <Button size="lg" className="gap-2">
@@ -196,7 +195,7 @@ export default function Favorites() {
                     >
                       <Trash2 className="w-4 h-4 text-red-500" />
                     </Button>
-                    
+
                     {/* Use same CruiseCard component as home page */}
                     <CruiseCard
                       cruise={cruise}

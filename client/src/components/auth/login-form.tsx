@@ -1,11 +1,12 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/hooks/useAuth";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Eye, EyeOff, Mail, Lock, LogIn } from "lucide-react";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/hooks/useAuth';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react';
+import { useLanguageContext } from '@/components/language-provider';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -13,25 +14,26 @@ interface LoginFormProps {
 }
 
 export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const { login, loginLoading, loginError } = useAuth();
+  const { t } = useLanguageContext();
 
   const validateForm = () => {
-    const newErrors: {[key: string]: string} = {};
-    
+    const newErrors: { [key: string]: string } = {};
+
     if (!email) {
-      newErrors.email = "Email is required";
+      newErrors.email = t('emailRequired');
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Please enter a valid email address";
+      newErrors.email = t('validEmailRequired');
     }
-    
+
     if (!password) {
-      newErrors.password = "Password is required";
+      newErrors.password = t('passwordRequired');
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -39,7 +41,7 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-    
+
     try {
       await login({ email, password });
       onSuccess?.();
@@ -54,23 +56,21 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
         <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-2">
           <LogIn className="w-6 h-6 text-white" />
         </div>
-        <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
-        <CardDescription className="text-gray-600">
-          Sign in to your account to manage bookings and get exclusive deals
-        </CardDescription>
+        <CardTitle className="text-2xl font-bold">{t('welcomeBack')}</CardTitle>
+        <CardDescription className="text-gray-600">{t('signInDescription')}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-5">
           {loginError && (
             <Alert variant="destructive" className="animate-in slide-in-from-top-2">
-              <AlertDescription>
-                {loginError?.message || "Login failed. Please try again."}
-              </AlertDescription>
+              <AlertDescription>{loginError?.message || t('loginFailed')}</AlertDescription>
             </Alert>
           )}
-          
+
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
+            <Label htmlFor="email" className="text-sm font-medium">
+              {t('emailAddress')}
+            </Label>
             <div className="relative">
               <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
@@ -79,31 +79,33 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
-                  if (errors.email) setErrors(prev => ({ ...prev, email: "" }));
+                  if (errors.email) setErrors((prev) => ({ ...prev, email: '' }));
                 }}
                 required
-                placeholder="Enter your email"
+                placeholder={t('enterYourEmail')}
                 className={`pl-10 transition-all duration-200 focus:ring-2 focus:ring-blue-500 ${errors.email ? 'border-red-500' : ''}`}
                 data-testid="input-email"
               />
             </div>
             {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+            <Label htmlFor="password" className="text-sm font-medium">
+              {t('password')}
+            </Label>
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
                 id="password"
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
-                  if (errors.password) setErrors(prev => ({ ...prev, password: "" }));
+                  if (errors.password) setErrors((prev) => ({ ...prev, password: '' }));
                 }}
                 required
-                placeholder="Enter your password"
+                placeholder={t('enterYourPassword')}
                 className={`pl-10 pr-10 transition-all duration-200 focus:ring-2 focus:ring-blue-500 ${errors.password ? 'border-red-500' : ''}`}
                 data-testid="input-password"
               />
@@ -117,9 +119,9 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
             </div>
             {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
           </div>
-          
-          <Button 
-            type="submit" 
+
+          <Button
+            type="submit"
             className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-2.5 rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
             disabled={loginLoading}
             data-testid="button-login"
@@ -127,24 +129,24 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
             {loginLoading ? (
               <div className="flex items-center space-x-2">
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Signing In...</span>
+                <span>{t('signingIn')}</span>
               </div>
             ) : (
-              "Sign In"
+              t('signIn')
             )}
           </Button>
         </form>
-        
+
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Don't have an account?{" "}
+            {t('dontHaveAccount')}{' '}
             <button
               type="button"
               onClick={onSwitchToRegister}
               className="text-blue-600 hover:text-blue-700 font-medium transition-colors hover:underline"
               data-testid="link-register"
             >
-              Sign up
+              {t('signUp')}
             </button>
           </p>
         </div>

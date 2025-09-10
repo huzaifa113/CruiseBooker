@@ -155,6 +155,7 @@ export const promotions = pgTable("promotions", {
     minGuests?: number;
     maxGuests?: number;
     earlyBookingDays?: number; // Days before departure required for booking
+    lastMinuteDays?: number; // Maximum days before departure for last-minute deals
     cruiseLines?: string[];
     destinations?: string[];
     cabinTypes?: string[];

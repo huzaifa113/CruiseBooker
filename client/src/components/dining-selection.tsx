@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { Clock, Users } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
+import { useState } from 'react';
+import { Clock, Users } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 
 interface DiningSelectionProps {
   selectedDiningTime: string | null;
@@ -17,33 +17,33 @@ export default function DiningSelection({
   selectedDiningTime,
   onDiningTimeSelect,
   onContinue,
-  onBack
+  onBack,
 }: DiningSelectionProps) {
   const diningOptions = [
     {
-      id: "early",
-      name: "Early Seating",
-      time: "5:30 PM - 7:30 PM",
-      description: "Traditional dining with fixed schedule",
-      capacity: "Available",
-      popular: false
+      id: 'early',
+      name: 'Early Seating',
+      time: '5:30 PM - 7:30 PM',
+      description: 'Traditional dining with fixed schedule',
+      capacity: 'Available',
+      popular: false,
     },
     {
-      id: "late",
-      name: "Late Seating", 
-      time: "8:00 PM - 10:00 PM",
-      description: "Traditional dining with fixed schedule",
-      capacity: "Limited",
-      popular: false
+      id: 'late',
+      name: 'Late Seating',
+      time: '8:00 PM - 10:00 PM',
+      description: 'Traditional dining with fixed schedule',
+      capacity: 'Limited',
+      popular: false,
     },
     {
-      id: "mytime",
-      name: "My Time Dining",
-      time: "5:30 PM - 9:30 PM",
-      description: "Flexible dining - arrive when you want",
-      capacity: "Available",
-      popular: true
-    }
+      id: 'mytime',
+      name: 'My Time Dining',
+      time: '5:30 PM - 9:30 PM',
+      description: 'Flexible dining - arrive when you want',
+      capacity: 'Available',
+      popular: true,
+    },
   ];
 
   return (
@@ -51,21 +51,18 @@ export default function DiningSelection({
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Select Your Dining Time</h2>
         <p className="text-gray-600 mb-8">
-          Choose your preferred dining schedule for the main dining room. You can always make changes later.
+          Choose your preferred dining schedule for the main dining room. You can always make
+          changes later.
         </p>
-        
-        <RadioGroup value={selectedDiningTime || ""} onValueChange={onDiningTimeSelect}>
+
+        <RadioGroup value={selectedDiningTime || ''} onValueChange={onDiningTimeSelect}>
           <div className="space-y-4">
             {diningOptions.map((option) => (
-              <Label
-                key={option.id}
-                htmlFor={option.id}
-                className="block cursor-pointer"
-              >
-                <Card 
+              <Label key={option.id} htmlFor={option.id} className="block cursor-pointer">
+                <Card
                   className={`transition-colors ${
-                    selectedDiningTime === option.id 
-                      ? 'border-ocean-300 bg-ocean-50' 
+                    selectedDiningTime === option.id
+                      ? 'border-ocean-300 bg-ocean-50'
                       : 'border-gray-200 hover:border-ocean-300'
                   }`}
                   data-testid={`dining-option-${option.id}`}
@@ -73,15 +70,18 @@ export default function DiningSelection({
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
-                        <RadioGroupItem 
-                          value={option.id} 
-                          id={option.id} 
+                        <RadioGroupItem
+                          value={option.id}
+                          id={option.id}
                           className="text-ocean-600"
                           data-testid={`radio-dining-${option.id}`}
                         />
                         <div>
                           <div className="flex items-center space-x-2">
-                            <h3 className="text-lg font-semibold text-gray-900" data-testid={`dining-name-${option.id}`}>
+                            <h3
+                              className="text-lg font-semibold text-gray-900"
+                              data-testid={`dining-name-${option.id}`}
+                            >
                               {option.name}
                             </h3>
                             {option.popular && (
@@ -94,17 +94,24 @@ export default function DiningSelection({
                             <Clock className="w-4 h-4 mr-2" />
                             <span data-testid={`dining-time-${option.id}`}>{option.time}</span>
                           </div>
-                          <p className="text-sm text-gray-600 mt-1" data-testid={`dining-description-${option.id}`}>
+                          <p
+                            className="text-sm text-gray-600 mt-1"
+                            data-testid={`dining-description-${option.id}`}
+                          >
                             {option.description}
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className={`flex items-center text-sm ${
-                          option.capacity === "Available" ? "text-green-600" : "text-orange-600"
-                        }`}>
+                        <div
+                          className={`flex items-center text-sm ${
+                            option.capacity === 'Available' ? 'text-green-600' : 'text-orange-600'
+                          }`}
+                        >
                           <Users className="w-4 h-4 mr-1" />
-                          <span data-testid={`dining-capacity-${option.id}`}>{option.capacity}</span>
+                          <span data-testid={`dining-capacity-${option.id}`}>
+                            {option.capacity}
+                          </span>
                         </div>
                       </div>
                     </div>

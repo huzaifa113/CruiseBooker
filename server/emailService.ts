@@ -4,7 +4,7 @@ import { config } from 'dotenv';
 config();
 
 if (!process.env.SENDGRID_API_KEY) {
-  throw new Error("SENDGRID_API_KEY environment variable must be set");
+  throw new Error('SENDGRID_API_KEY environment variable must be set');
 }
 
 const mailService = new MailService();
@@ -31,17 +31,17 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
       from: params.from,
       subject: params.subject,
     };
-    
+
     if (params.text) emailData.text = params.text;
     if (params.html) emailData.html = params.html;
     if (params.attachments) emailData.attachments = params.attachments;
-    
+
     // console.log('Sending email with data:', JSON.stringify({
     //   to: emailData.to,
     //   from: emailData.from,
     //   subject: emailData.subject
     // }, null, 2));
-    
+
     await mailService.send(emailData);
     console.log(`Email sent successfully to ${params.to}`);
     return true;
@@ -96,10 +96,15 @@ export const EmailTemplates = {
         </div>
       </div>
     `,
-    text: `Welcome to Phoenix Vacation Group! Your account has been created successfully. Email: ${userEmail}, Account ID: ${userId}. Start exploring cruises at ${process.env.FRONTEND_URL || 'http://localhost:5000'}`
+    text: `Welcome to Phoenix Vacation Group! Your account has been created successfully. Email: ${userEmail}, Account ID: ${userId}. Start exploring cruises at ${process.env.FRONTEND_URL || 'http://localhost:5000'}`,
   }),
 
-  paymentStatus: (amount: string, createdAt: string, status: string, confirmationNumber?: string) => ({
+  paymentStatus: (
+    amount: string,
+    createdAt: string,
+    status: string,
+    confirmationNumber?: string
+  ) => ({
     subject: `Payment ${status === 'paid' ? 'Confirmed' : 'Update'} - Phoenix Vacation Group`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
@@ -111,9 +116,13 @@ export const EmailTemplates = {
           </div>
           
           <p style="font-size: 16px; line-height: 1.6; color: #333;">
-            ${status === 'paid' ? 'Great news! Your payment has been successfully processed.' : 
-              status === 'failed' ? 'We encountered an issue processing your payment.' : 
-              'Your payment is currently being processed.'}
+            ${
+              status === 'paid'
+                ? 'Great news! Your payment has been successfully processed.'
+                : status === 'failed'
+                  ? 'We encountered an issue processing your payment.'
+                  : 'Your payment is currently being processed.'
+            }
           </p>
           
           <div style="background-color: #f0f7ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2563eb;">
@@ -126,19 +135,25 @@ export const EmailTemplates = {
             </p>
           </div>
           
-          ${status === 'paid' ? `
+          ${
+            status === 'paid'
+              ? `
             <p style="font-size: 16px; line-height: 1.6; color: #333;">
               Your cruise booking is now confirmed! You'll receive your detailed itinerary and boarding information shortly.
             </p>
-          ` : status === 'failed' ? `
+          `
+              : status === 'failed'
+                ? `
             <p style="font-size: 16px; line-height: 1.6; color: #333;">
               Please try a different payment method or contact our support team for assistance.
             </p>
-          ` : `
+          `
+                : `
             <p style="font-size: 16px; line-height: 1.6; color: #333;">
               We'll notify you once the payment is complete.
             </p>
-          `}
+          `
+          }
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="${process.env.FRONTEND_URL || 'http://localhost:5000'}/reservations" 
@@ -154,7 +169,7 @@ export const EmailTemplates = {
         </div>
       </div>
     `,
-    text: `Payment ${status} - Amount: $${amount}, Date: ${new Date(createdAt).toLocaleDateString()}, Status: ${status}${confirmationNumber ? `, Confirmation: ${confirmationNumber}` : ''}`
+    text: `Payment ${status} - Amount: $${amount}, Date: ${new Date(createdAt).toLocaleDateString()}, Status: ${status}${confirmationNumber ? `, Confirmation: ${confirmationNumber}` : ''}`,
   }),
 
   bookingStatus: (bookingDetails: any, status: string) => ({
@@ -169,9 +184,13 @@ export const EmailTemplates = {
           </div>
           
           <p style="font-size: 16px; line-height: 1.6; color: #333;">
-            ${status === 'confirmed' ? 'Congratulations! Your cruise booking has been confirmed.' : 
-              status === 'cancelled' ? 'Your booking has been cancelled as requested.' : 
-              'Your booking details have been updated.'}
+            ${
+              status === 'confirmed'
+                ? 'Congratulations! Your cruise booking has been confirmed.'
+                : status === 'cancelled'
+                  ? 'Your booking has been cancelled as requested.'
+                  : 'Your booking details have been updated.'
+            }
           </p>
           
           <div style="background-color: #f0f7ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2563eb;">
@@ -187,11 +206,15 @@ export const EmailTemplates = {
             </p>
           </div>
           
-          ${status === 'confirmed' ? `
+          ${
+            status === 'confirmed'
+              ? `
             <p style="font-size: 16px; line-height: 1.6; color: #333;">
               Get ready for an amazing cruise experience! We'll send you detailed boarding information as your departure date approaches.
             </p>
-          ` : ''}
+          `
+              : ''
+          }
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="${process.env.FRONTEND_URL || 'http://localhost:5000'}/reservations" 
@@ -207,8 +230,8 @@ export const EmailTemplates = {
         </div>
       </div>
     `,
-    text: `Booking ${status} - ${bookingDetails.cruise?.name || 'Your Cruise'}, Confirmation: ${bookingDetails.confirmationNumber || 'N/A'}, Status: ${status}`
-  })
+    text: `Booking ${status} - ${bookingDetails.cruise?.name || 'Your Cruise'}, Confirmation: ${bookingDetails.confirmationNumber || 'N/A'}, Status: ${status}`,
+  }),
 };
 
 // Get verified sender email - use environment variable or verified sender from account
@@ -223,19 +246,19 @@ export async function sendWelcomeEmail(userEmail: string, userId: string): Promi
     to: userEmail,
     from: {
       email: getVerifiedSender(),
-      name: 'Phoenix Vacation Group'
+      name: 'Phoenix Vacation Group',
     },
     subject: template.subject,
     html: template.html,
-    text: template.text
+    text: template.text,
   });
 }
 
 export async function sendPaymentStatusEmail(
-  userEmail: string, 
-  amount: string, 
-  createdAt: string, 
-  status: string, 
+  userEmail: string,
+  amount: string,
+  createdAt: string,
+  status: string,
   confirmationNumber?: string
 ): Promise<boolean> {
   const template = EmailTemplates.paymentStatus(amount, createdAt, status, confirmationNumber);
@@ -243,23 +266,23 @@ export async function sendPaymentStatusEmail(
     to: userEmail,
     from: {
       email: getVerifiedSender(),
-      name: 'Phoenix Vacation Group - Payments'
+      name: 'Phoenix Vacation Group - Payments',
     },
     subject: template.subject,
     html: template.html,
-    text: template.text
+    text: template.text,
   });
 }
 
 export async function sendBookingStatusEmail(
-  userEmail: string, 
-  bookingDetails: any, 
+  userEmail: string,
+  bookingDetails: any,
   status: string
 ): Promise<boolean> {
   const template = EmailTemplates.bookingStatus(bookingDetails, status);
-  
+
   let attachments: any[] = [];
-  
+
   // Generate PDF invoice for confirmed bookings
   if (status === 'confirmed' && bookingDetails) {
     try {
@@ -268,34 +291,36 @@ export async function sendBookingStatusEmail(
         cruise: bookingDetails.cruise,
         cabinType: bookingDetails.cabinType,
         generatedAt: new Date().toISOString(),
-        invoiceNumber: `INV-${bookingDetails.confirmationNumber}-${Date.now()}`
+        invoiceNumber: `INV-${bookingDetails.confirmationNumber}-${Date.now()}`,
       };
-      
+
       const pdfBuffer = await generateInvoicePDF(invoiceData);
       if (pdfBuffer) {
         attachments.push({
           content: pdfBuffer.toString('base64'),
           filename: `invoice-${bookingDetails.confirmationNumber}.pdf`,
           type: 'application/pdf',
-          disposition: 'attachment'
+          disposition: 'attachment',
         });
-        console.log(`PDF invoice attached to email for booking: ${bookingDetails.confirmationNumber}`);
+        console.log(
+          `PDF invoice attached to email for booking: ${bookingDetails.confirmationNumber}`
+        );
       }
     } catch (error) {
       console.error('Failed to generate PDF invoice for email:', error);
       // Continue sending email without attachment if PDF generation fails
     }
   }
-  
+
   return await sendEmail({
     to: userEmail,
     from: {
       email: getVerifiedSender(),
-      name: 'Phoenix Vacation Group - Bookings'
+      name: 'Phoenix Vacation Group - Bookings',
     },
     subject: template.subject,
     html: template.html,
     text: template.text,
-    attachments: attachments.length > 0 ? attachments : undefined
+    attachments: attachments.length > 0 ? attachments : undefined,
   });
 }

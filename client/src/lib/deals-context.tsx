@@ -46,7 +46,7 @@ export function DealsProvider({ children }: DealsProviderProps) {
         const selectedTime = new Date(deal.selectedAt);
         const now = new Date();
         const hoursDiff = (now.getTime() - selectedTime.getTime()) / (1000 * 60 * 60);
-        
+
         if (hoursDiff < 24) {
           setSelectedDealState(deal);
         } else {
@@ -78,11 +78,12 @@ export function DealsProvider({ children }: DealsProviderProps) {
 
   const getDealText = () => {
     if (!selectedDeal) return '';
-    
-    const discountText = selectedDeal.discountType === 'percentage' 
-      ? `${selectedDeal.discountValue}% OFF`
-      : `$${selectedDeal.discountValue} OFF`;
-    
+
+    const discountText =
+      selectedDeal.discountType === 'percentage'
+        ? `${selectedDeal.discountValue}% OFF`
+        : `$${selectedDeal.discountValue} OFF`;
+
     return `${selectedDeal.name} (${discountText})`;
   };
 

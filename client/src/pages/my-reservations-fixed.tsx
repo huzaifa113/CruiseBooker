@@ -18,36 +18,38 @@ export default function MyReservations() {
   const handleSearch = async () => {
     if (!confirmationNumber.trim() || !lastName.trim()) {
       toast({
-        title: "Missing Information",
-        description: "Please enter both confirmation number and last name",
-        variant: "destructive"
+        title: 'Missing Information',
+        description: 'Please enter both confirmation number and last name',
+        variant: 'destructive',
       });
       return;
     }
 
     setIsSearching(true);
     try {
-      const response = await fetch(`/api/bookings/lookup?confirmationNumber=${confirmationNumber.trim().toUpperCase()}&lastName=${lastName.trim()}`);
+      const response = await fetch(
+        `/api/bookings/lookup?confirmationNumber=${confirmationNumber.trim().toUpperCase()}&lastName=${lastName.trim()}`
+      );
       if (response.ok) {
         const booking = await response.json();
         setLookedUpBooking(booking);
         toast({
-          title: "Reservation Found",
-          description: "Your booking details are displayed below"
+          title: 'Reservation Found',
+          description: 'Your booking details are displayed below',
         });
       } else {
         toast({
-          title: "Reservation Not Found",
-          description: "Please check your confirmation number and last name",
-          variant: "destructive"
+          title: 'Reservation Not Found',
+          description: 'Please check your confirmation number and last name',
+          variant: 'destructive',
         });
         setLookedUpBooking(null);
       }
     } catch (error) {
       toast({
-        title: "Search Error",
-        description: "Unable to search for reservation. Please try again.",
-        variant: "destructive"
+        title: 'Search Error',
+        description: 'Unable to search for reservation. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setIsSearching(false);
@@ -67,19 +69,19 @@ export default function MyReservations() {
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
-        
+
         toast({
-          title: "Calendar Downloaded",
-          description: "Your cruise itinerary has been added to your calendar app"
+          title: 'Calendar Downloaded',
+          description: 'Your cruise itinerary has been added to your calendar app',
         });
       } else {
         throw new Error('Failed to download calendar');
       }
     } catch (error) {
       toast({
-        title: "Download Failed",
-        description: "Unable to download calendar. Please try again later.",
-        variant: "destructive"
+        title: 'Download Failed',
+        description: 'Unable to download calendar. Please try again later.',
+        variant: 'destructive',
       });
     }
   };
@@ -97,7 +99,9 @@ export default function MyReservations() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Find Your Reservation</h1>
-          <p className="text-gray-600">Enter your confirmation number and last name to view your booking details</p>
+          <p className="text-gray-600">
+            Enter your confirmation number and last name to view your booking details
+          </p>
         </div>
 
         <Card className="mb-8">
@@ -107,7 +111,10 @@ export default function MyReservations() {
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="confirmation" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="confirmation"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Confirmation Number
                 </label>
                 <input
@@ -136,13 +143,13 @@ export default function MyReservations() {
               </div>
             </div>
 
-            <Button 
+            <Button
               onClick={handleSearch}
               disabled={isSearching}
               className="w-full md:w-auto"
               data-testid="button-search"
             >
-              {isSearching ? "Searching..." : "Find My Reservation"}
+              {isSearching ? 'Searching...' : 'Find My Reservation'}
             </Button>
           </CardContent>
         </Card>
@@ -162,7 +169,10 @@ export default function MyReservations() {
               <CardContent className="space-y-4">
                 <div className="bg-ocean-50 p-4 rounded-lg">
                   <div className="text-sm text-ocean-700 mb-1">Confirmation Number</div>
-                  <div className="text-xl font-bold text-ocean-900" data-testid="confirmation-display">
+                  <div
+                    className="text-xl font-bold text-ocean-900"
+                    data-testid="confirmation-display"
+                  >
                     {lookedUpBooking.confirmationNumber}
                   </div>
                 </div>
@@ -174,8 +184,13 @@ export default function MyReservations() {
                       <span className="font-semibold">Cruise Details</span>
                     </div>
                     <div className="text-gray-600 space-y-1">
-                      <div className="font-medium">{lookedUpBooking.cruise?.name || 'Cruise Name Not Available'}</div>
-                      <div>{lookedUpBooking.cruise?.ship || 'Ship'} • {lookedUpBooking.cruise?.cruiseLine || 'Cruise Line'}</div>
+                      <div className="font-medium">
+                        {lookedUpBooking.cruise?.name || 'Cruise Name Not Available'}
+                      </div>
+                      <div>
+                        {lookedUpBooking.cruise?.ship || 'Ship'} •{' '}
+                        {lookedUpBooking.cruise?.cruiseLine || 'Cruise Line'}
+                      </div>
                       <div>{lookedUpBooking.cruise?.duration || 'N/A'} days</div>
                     </div>
                   </div>
@@ -186,8 +201,18 @@ export default function MyReservations() {
                       <span className="font-semibold">Travel Dates</span>
                     </div>
                     <div className="text-gray-600 space-y-1">
-                      <div>Departure: {lookedUpBooking.cruise?.departureDate ? new Date(lookedUpBooking.cruise.departureDate).toLocaleDateString() : 'Date TBD'}</div>
-                      <div>Return: {lookedUpBooking.cruise?.returnDate ? new Date(lookedUpBooking.cruise.returnDate).toLocaleDateString() : 'Date TBD'}</div>
+                      <div>
+                        Departure:{' '}
+                        {lookedUpBooking.cruise?.departureDate
+                          ? new Date(lookedUpBooking.cruise.departureDate).toLocaleDateString()
+                          : 'Date TBD'}
+                      </div>
+                      <div>
+                        Return:{' '}
+                        {lookedUpBooking.cruise?.returnDate
+                          ? new Date(lookedUpBooking.cruise.returnDate).toLocaleDateString()
+                          : 'Date TBD'}
+                      </div>
                       <div>From: {lookedUpBooking.cruise?.departurePort || 'Port TBD'}</div>
                     </div>
                   </div>
@@ -212,7 +237,9 @@ export default function MyReservations() {
                     <div className="text-gray-600 space-y-1">
                       <div>{lookedUpBooking.primaryGuestName}</div>
                       <div>{lookedUpBooking.primaryGuestEmail}</div>
-                      {lookedUpBooking.primaryGuestPhone && <div>{lookedUpBooking.primaryGuestPhone}</div>}
+                      {lookedUpBooking.primaryGuestPhone && (
+                        <div>{lookedUpBooking.primaryGuestPhone}</div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -224,19 +251,24 @@ export default function MyReservations() {
                     <CreditCard className="w-4 h-4 text-gray-400" />
                     <span className="font-semibold">Payment Summary</span>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span>Total Amount Paid</span>
                       <span className="font-semibold">
-                        {formatCurrency(parseFloat(lookedUpBooking.totalAmount || '0'), lookedUpBooking.currency || 'USD')}
+                        {formatCurrency(
+                          parseFloat(lookedUpBooking.totalAmount || '0'),
+                          lookedUpBooking.currency || 'USD'
+                        )}
                       </span>
                     </div>
                     {lookedUpBooking.extras && lookedUpBooking.extras.length > 0 && (
                       <div className="text-sm text-gray-600">
                         <div className="font-medium mb-1">Included Extras:</div>
                         {lookedUpBooking.extras.map((extra: any, index: number) => (
-                          <div key={index}>• {extra.name} (×{extra.quantity})</div>
+                          <div key={index}>
+                            • {extra.name} (×{extra.quantity})
+                          </div>
                         ))}
                       </div>
                     )}
@@ -244,7 +276,7 @@ export default function MyReservations() {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <Button 
+                  <Button
                     onClick={() => downloadCalendar(lookedUpBooking.id)}
                     variant="outline"
                     className="flex items-center space-x-2"
@@ -252,7 +284,7 @@ export default function MyReservations() {
                     <Download className="w-4 h-4" />
                     <span>Download Itinerary</span>
                   </Button>
-                  
+
                   <Button
                     onClick={() => {
                       setConfirmationNumber('');

@@ -1,39 +1,44 @@
-import { useState } from "react";
-import { useLocation } from "wouter";
-import { Search, SlidersHorizontal, Users, Plus, Minus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { useToast } from "@/hooks/use-toast";
-import type { SearchFormData } from "@/lib/types";
+import { useState } from 'react';
+import { useLocation } from 'wouter';
+import { Search, SlidersHorizontal, Users, Plus, Minus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { useToast } from '@/hooks/use-toast';
+import type { SearchFormData } from '@/lib/types';
 
 export default function HeroSearch() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [formData, setFormData] = useState<SearchFormData>({
-    destination: "",
-    departureDate: "",
-    returnDate: "",
-    guestCount: ""
+    destination: '',
+    departureDate: '',
+    returnDate: '',
+    guestCount: '',
   });
-  
+
   const [guestDetails, setGuestDetails] = useState({
     adults: 2,
     children: 0,
-    seniors: 0
+    seniors: 0,
   });
-  
+
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   const totalGuests = guestDetails.adults + guestDetails.children + guestDetails.seniors;
-  
-  
+
   const updateGuestCount = (type: 'adults' | 'children' | 'seniors', increment: boolean) => {
-    setGuestDetails(prev => {
+    setGuestDetails((prev) => {
       const newValue = increment ? prev[type] + 1 : Math.max(0, prev[type] - 1);
       if (type === 'adults' && newValue < 1) return prev; // At least 1 adult required
       return { ...prev, [type]: newValue };
@@ -42,12 +47,17 @@ export default function HeroSearch() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.destination || !formData.departureDate || !formData.returnDate || totalGuests === 0) {
+
+    if (
+      !formData.destination ||
+      !formData.departureDate ||
+      !formData.returnDate ||
+      totalGuests === 0
+    ) {
       toast({
-        title: "Required fields missing",
-        description: "Please fill in all required fields to search for cruises.",
-        variant: "destructive"
+        title: 'Required fields missing',
+        description: 'Please fill in all required fields to search for cruises.',
+        variant: 'destructive',
       });
       return;
     }
@@ -59,7 +69,7 @@ export default function HeroSearch() {
       guestCount: totalGuests.toString(),
       adults: guestDetails.adults.toString(),
       children: guestDetails.children.toString(),
-      seniors: guestDetails.seniors.toString()
+      seniors: guestDetails.seniors.toString(),
     });
 
     setLocation(`/search?${params.toString()}`);
@@ -68,13 +78,14 @@ export default function HeroSearch() {
   return (
     <section className="relative bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
       <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center opacity-60"
         style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=2070&h=1080&fit=crop&crop=center')"
+          backgroundImage:
+            "url('https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=2070&h=1080&fit=crop&crop=center')",
         }}
       />
-      
+
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
@@ -89,10 +100,18 @@ export default function HeroSearch() {
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               <div>
-                <Label htmlFor="destination" className="block text-sm font-medium text-gray-700 mb-2">
+                <Label
+                  htmlFor="destination"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Destination
                 </Label>
-                <Select value={formData.destination} onValueChange={(value) => setFormData(prev => ({ ...prev, destination: value }))}>
+                <Select
+                  value={formData.destination}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, destination: value }))
+                  }
+                >
                   <SelectTrigger data-testid="select-destination">
                     <SelectValue placeholder="Select destination" />
                   </SelectTrigger>
@@ -105,9 +124,12 @@ export default function HeroSearch() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div>
-                <Label htmlFor="departureDate" className="block text-sm font-medium text-gray-700 mb-2">
+                <Label
+                  htmlFor="departureDate"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Departure Date
                 </Label>
                 <Input
@@ -116,11 +138,14 @@ export default function HeroSearch() {
                   value={formData.departureDate}
                   onChange={(e) => {
                     const newDepartureDate = e.target.value;
-                    setFormData(prev => ({ 
-                      ...prev, 
+                    setFormData((prev) => ({
+                      ...prev,
                       departureDate: newDepartureDate,
                       // Clear return date if it's before the new departure date
-                      returnDate: prev.returnDate && prev.returnDate <= newDepartureDate ? "" : prev.returnDate
+                      returnDate:
+                        prev.returnDate && prev.returnDate <= newDepartureDate
+                          ? ''
+                          : prev.returnDate,
                     }));
                   }}
                   min={new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]} // Tomorrow
@@ -129,26 +154,32 @@ export default function HeroSearch() {
                   data-testid="input-departure-date"
                 />
               </div>
-              
+
               <div>
-                <Label htmlFor="returnDate" className="block text-sm font-medium text-gray-700 mb-2">
+                <Label
+                  htmlFor="returnDate"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Return Date
                 </Label>
                 <Input
                   id="returnDate"
                   type="date"
                   value={formData.returnDate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, returnDate: e.target.value }))}
-                  min={formData.departureDate ? 
-                    new Date(new Date(formData.departureDate).getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0] : 
-                    new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // Day after departure or day after tomorrow
+                  onChange={(e) => setFormData((prev) => ({ ...prev, returnDate: e.target.value }))}
+                  min={
+                    formData.departureDate
+                      ? new Date(new Date(formData.departureDate).getTime() + 24 * 60 * 60 * 1000)
+                          .toISOString()
+                          .split('T')[0]
+                      : new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // Day after departure or day after tomorrow
                   }
                   max={new Date(new Date().getFullYear() + 2, 11, 31).toISOString().split('T')[0]} // 2 years from now
                   className="focus:ring-2 focus:ring-ocean-500 focus:border-ocean-500"
                   data-testid="input-return-date"
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="guests" className="block text-sm font-medium text-gray-700 mb-2">
                   Guests
@@ -165,7 +196,8 @@ export default function HeroSearch() {
                         <Users className="w-4 h-4 text-gray-500" />
                         <span>
                           {totalGuests} Guest{totalGuests !== 1 ? 's' : ''}
-                          {guestDetails.children > 0 && ` (${guestDetails.children} Child${guestDetails.children > 1 ? 'ren' : ''})`}
+                          {guestDetails.children > 0 &&
+                            ` (${guestDetails.children} Child${guestDetails.children > 1 ? 'ren' : ''})`}
                         </span>
                       </div>
                     </Button>
@@ -188,7 +220,9 @@ export default function HeroSearch() {
                           >
                             <Minus className="w-4 h-4" />
                           </Button>
-                          <span className="text-sm font-medium w-6 text-center">{guestDetails.adults}</span>
+                          <span className="text-sm font-medium w-6 text-center">
+                            {guestDetails.adults}
+                          </span>
                           <Button
                             type="button"
                             variant="outline"
@@ -200,7 +234,7 @@ export default function HeroSearch() {
                           </Button>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center justify-between">
                         <div>
                           <span className="text-sm font-medium">Children</span>
@@ -217,7 +251,9 @@ export default function HeroSearch() {
                           >
                             <Minus className="w-4 h-4" />
                           </Button>
-                          <span className="text-sm font-medium w-6 text-center">{guestDetails.children}</span>
+                          <span className="text-sm font-medium w-6 text-center">
+                            {guestDetails.children}
+                          </span>
                           <Button
                             type="button"
                             variant="outline"
@@ -229,7 +265,7 @@ export default function HeroSearch() {
                           </Button>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center justify-between">
                         <div>
                           <span className="text-sm font-medium">Seniors</span>
@@ -246,7 +282,9 @@ export default function HeroSearch() {
                           >
                             <Minus className="w-4 h-4" />
                           </Button>
-                          <span className="text-sm font-medium w-6 text-center">{guestDetails.seniors}</span>
+                          <span className="text-sm font-medium w-6 text-center">
+                            {guestDetails.seniors}
+                          </span>
                           <Button
                             type="button"
                             variant="outline"
@@ -263,7 +301,7 @@ export default function HeroSearch() {
                 </Popover>
               </div>
             </div>
-            
+
             <div className="flex justify-center">
               <Button
                 type="submit"

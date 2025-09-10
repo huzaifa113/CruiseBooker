@@ -1,15 +1,38 @@
-import { cruises, cabinTypes, bookings, extras, users, cabinHolds, promotions, calendarEvents, payments, favorites, type Cruise, type CabinType, type Booking, type Extra, type User, type UpsertUser, type InsertCruise, type InsertCabinType, type InsertBooking, type InsertExtra, type Favorite, type InsertFavorite } from "@shared/schema";
-import { db } from "./db";
-import { eq, and, gte, lte, ilike, sql, desc, asc } from "drizzle-orm";
-import { randomUUID } from "crypto";
+import {
+  cruises,
+  cabinTypes,
+  bookings,
+  extras,
+  users,
+  cabinHolds,
+  promotions,
+  calendarEvents,
+  payments,
+  favorites,
+  type Cruise,
+  type CabinType,
+  type Booking,
+  type Extra,
+  type User,
+  type UpsertUser,
+  type InsertCruise,
+  type InsertCabinType,
+  type InsertBooking,
+  type InsertExtra,
+  type Favorite,
+  type InsertFavorite,
+} from '@shared/schema';
+import { db } from './db';
+import { eq, and, gte, lte, ilike, sql, desc, asc, inArray } from 'drizzle-orm';
+import { randomUUID } from 'crypto';
 import { config } from 'dotenv';
 config();
 
 export interface SearchFilters {
   destination?: string;
   departurePort?: string;
-  departureDate?: Date;
-  returnDate?: Date;
+  departureDate?: string | Date;
+  returnDate?: string | Date;
   minPrice?: number;
   maxPrice?: number;
   duration?: number[];
@@ -26,49 +49,66 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: UpsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
-  
+
   // Cruises
   getCruises(filters?: SearchFilters): Promise<Cruise[]>;
   getCruise(id: string): Promise<Cruise | undefined>;
   createCruise(cruise: InsertCruise): Promise<Cruise>;
-  
+
   // Cabin Types
   getCabinTypesByCruise(cruiseId: string): Promise<CabinType[]>;
   getCabinType(id: string): Promise<CabinType | undefined>;
   createCabinType(cabinType: InsertCabinType): Promise<CabinType>;
-  
+
   // Bookings
   getBooking(id: string): Promise<Booking | undefined>;
-  getBookingByConfirmation(confirmationNumber: string, lastName: string): Promise<Booking | undefined>;
+  getBookingByConfirmation(
+    confirmationNumber: string,
+    lastName: string
+  ): Promise<Booking | undefined>;
   createBooking(booking: InsertBooking): Promise<Booking>;
-  updateBookingPaymentStatus(id: string, status: string, stripePaymentIntentId?: string): Promise<Booking>;
-  
+  updateBookingPaymentStatus(
+    id: string,
+    status: string,
+    stripePaymentIntentId?: string
+  ): Promise<Booking>;
+
   // Payments
   createPaymentRecord(paymentData: any): Promise<any>;
   getPaymentsByBooking(bookingId: string): Promise<any[]>;
-  
+
   // Extras
   getExtras(): Promise<Extra[]>;
   getExtrasByCategory(category: string): Promise<Extra[]>;
   createExtra(extra: InsertExtra): Promise<Extra>;
-  
+
   // Inventory Holds
-  createCabinHold(cruiseId: string, cabinTypeId: string, quantity: number, userId?: string, sessionId?: string): Promise<any>;
+  createCabinHold(
+    cruiseId: string,
+    cabinTypeId: string,
+    quantity: number,
+    userId?: string,
+    sessionId?: string
+  ): Promise<any>;
   releaseCabinHold(holdId: string): Promise<void>;
   releaseExpiredHolds(): Promise<void>;
   checkCabinAvailability(cruiseId: string, cabinTypeId: string, quantity: number): Promise<boolean>;
-  
+
   // Promotions
   getActivePromotions(): Promise<any[]>;
-  applyPromotion(bookingAmount: number, promotionIds: string[], bookingData: any): Promise<{ discountAmount: number; appliedPromotions: any[] }>;
+  applyPromotion(
+    bookingAmount: number,
+    promotionIds: string[],
+    bookingData: any
+  ): Promise<{ discountAmount: number; appliedPromotions: any[] }>;
   createPromotion(promotionData: any): Promise<any>;
   updatePromotion(id: string, updateData: any): Promise<any>;
   getPromotionStats(): Promise<any>;
-  
+
   // Calendar Events
   createCalendarEvent(bookingId: string, eventData: any): Promise<any>;
   getCalendarEventsByBooking(bookingId: string): Promise<any[]>;
-  
+
   // Favorites
   addFavorite(userId: string, cruiseId: string): Promise<any>;
   removeFavorite(userId: string, cruiseId: string): Promise<void>;
@@ -109,20 +149,42 @@ export class DatabaseStorage implements IStorage {
   }
   async getCruises(filters?: SearchFilters): Promise<Cruise[]> {
     let query = db.select().from(cruises);
-    
     if (filters) {
       const conditions: any[] = [];
-      
-      // Simplified destination-only filtering
-      if (filters.destination) {
-        conditions.push(sql`LOWER(${cruises.destination}) = LOWER(${filters.destination})`);
+
+      // Simplified search: Only filter by destination
+      if (filters.destination && filters.destination.trim() !== '') {
+        conditions.push(sql`LOWER(${cruises.destination}) = LOWER(${filters.destination.trim()})`);
       }
-      
+
+      // NOTE: Date and guest count filters are ignored for simplified search
+
+      // Sidebar filters
+      if (typeof filters.minPrice === 'number' && filters.minPrice !== 500) {
+        conditions.push(gte(cruises.basePrice, filters.minPrice.toString()));
+      }
+      if (typeof filters.maxPrice === 'number' && filters.maxPrice !== 5000) {
+        conditions.push(lte(cruises.basePrice, filters.maxPrice.toString()));
+      }
+      if (filters.duration && filters.duration.length > 0) {
+        // Use Drizzle's inArray function for safe IN queries
+        conditions.push(inArray(cruises.duration, filters.duration));
+      }
+      if (filters.cruiseLines && filters.cruiseLines.length > 0) {
+        // Use Drizzle's inArray function for safe IN queries
+        conditions.push(inArray(cruises.cruiseLine, filters.cruiseLines));
+      }
+      // Only apply cabinType filter if field exists
+      if (filters.cabinTypes && filters.cabinTypes.length > 0 && 'cabinType' in cruises) {
+        conditions.push(
+          sql`${(cruises as any).cabinType} IN (${filters.cabinTypes.map((t) => `'${t}'`).join(',')})`
+        );
+      }
+
       if (conditions.length > 0) {
         query = query.where(and(...conditions)) as any;
       }
-      
-      // Apply sorting
+      // Sorting untouched
       if (filters.sortBy) {
         const order = filters.sortOrder === 'desc' ? desc : asc;
         switch (filters.sortBy) {
@@ -135,17 +197,21 @@ export class DatabaseStorage implements IStorage {
           case 'duration':
             query = query.orderBy(order(cruises.duration)) as any;
             break;
+          case 'departure':
+            query = query.orderBy(order(cruises.departureDate)) as any;
+            break;
           default:
             query = query.orderBy(desc(cruises.rating)) as any;
         }
       } else {
         query = query.orderBy(desc(cruises.rating)) as any;
       }
+      const results = await query;
+      return results;
     } else {
       query = query.orderBy(desc(cruises.rating)) as any;
+      return await query;
     }
-    
-    return await query;
   }
 
   async getCruise(id: string): Promise<Cruise | undefined> {
@@ -184,41 +250,55 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(cruises, eq(bookings.cruiseId, cruises.id))
       .leftJoin(cabinTypes, eq(bookings.cabinTypeId, cabinTypes.id))
       .where(eq(bookings.id, bookingId));
-    
+
     if (!booking) return null;
-    
+
     return {
       ...booking.bookings,
       cruise: booking.cruises,
-      cabinType: booking.cabin_types
+      cabinType: booking.cabin_types,
     };
   }
 
-  async getBookingByConfirmation(confirmationNumber: string, lastName: string): Promise<Booking | undefined> {
-    const [booking] = await db.select().from(bookings).where(
-      and(
-        eq(bookings.confirmationNumber, confirmationNumber),
-        ilike(bookings.primaryGuestName, `%${lastName}%`)
-      )
-    );
+  async getBookingByConfirmation(
+    confirmationNumber: string,
+    lastName: string
+  ): Promise<Booking | undefined> {
+    const [booking] = await db
+      .select()
+      .from(bookings)
+      .where(
+        and(
+          eq(bookings.confirmationNumber, confirmationNumber),
+          ilike(bookings.primaryGuestName, `%${lastName}%`)
+        )
+      );
     return booking || undefined;
   }
 
   async createBooking(booking: InsertBooking): Promise<Booking> {
     const confirmationNumber = this.generateConfirmationNumber();
-    const [newBooking] = await db.insert(bookings).values({
-      ...booking,
-      confirmationNumber
-    }).returning();
+    const [newBooking] = await db
+      .insert(bookings)
+      .values({
+        ...booking,
+        confirmationNumber,
+      })
+      .returning();
     return newBooking;
   }
 
-  async updateBookingPaymentStatus(id: string, status: string, stripePaymentIntentId?: string): Promise<Booking> {
-    const [updatedBooking] = await db.update(bookings)
-      .set({ 
+  async updateBookingPaymentStatus(
+    id: string,
+    status: string,
+    stripePaymentIntentId?: string
+  ): Promise<Booking> {
+    const [updatedBooking] = await db
+      .update(bookings)
+      .set({
         paymentStatus: status,
         stripePaymentIntentId,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
       .where(eq(bookings.id, id))
       .returning();
@@ -242,13 +322,16 @@ export class DatabaseStorage implements IStorage {
     return newExtra;
   }
 
-  async updateBookingPayment(bookingId: string, paymentData: {
-    paymentIntentId: string;
-    paymentStatus: string;
-    paidAmount: number;
-    paidCurrency: string;
-    paidAt: Date;
-  }): Promise<Booking> {
+  async updateBookingPayment(
+    bookingId: string,
+    paymentData: {
+      paymentIntentId: string;
+      paymentStatus: string;
+      paidAmount: number;
+      paidCurrency: string;
+      paidAt: Date;
+    }
+  ): Promise<Booking> {
     const [booking] = await db
       .update(bookings)
       .set({
@@ -261,156 +344,204 @@ export class DatabaseStorage implements IStorage {
     return booking;
   }
 
-
   // Inventory Hold System
-  async createCabinHold(cruiseId: string, cabinTypeId: string, quantity: number, userId?: string, sessionId?: string): Promise<any> {
+  async createCabinHold(
+    cruiseId: string,
+    cabinTypeId: string,
+    quantity: number,
+    userId?: string,
+    sessionId?: string
+  ): Promise<any> {
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + 15); // 15-minute hold
-    
-    const [hold] = await db.insert(cabinHolds).values({
-      cruiseId,
-      cabinTypeId,
-      userId,
-      sessionId,
-      quantity,
-      expiresAt
-    }).returning();
-    
+
+    const [hold] = await db
+      .insert(cabinHolds)
+      .values({
+        cruiseId,
+        cabinTypeId,
+        userId,
+        sessionId,
+        quantity,
+        expiresAt,
+      })
+      .returning();
+
     return hold;
   }
-  
+
   async releaseCabinHold(holdId: string): Promise<void> {
     await db.delete(cabinHolds).where(eq(cabinHolds.id, holdId));
   }
-  
+
   async releaseExpiredHolds(): Promise<void> {
     const now = new Date();
     await db.delete(cabinHolds).where(sql`${cabinHolds.expiresAt} < ${now}`);
   }
-  
-  async checkCabinAvailability(cruiseId: string, cabinTypeId: string, quantity: number): Promise<boolean> {
+
+  async checkCabinAvailability(
+    cruiseId: string,
+    cabinTypeId: string,
+    quantity: number
+  ): Promise<boolean> {
     // Release expired holds first
     await this.releaseExpiredHolds();
-    
+
     // Get cabin type availability
-    const [cabinType] = await db.select().from(cabinTypes).where(
-      and(eq(cabinTypes.id, cabinTypeId), eq(cabinTypes.cruiseId, cruiseId))
-    );
-    
+    const [cabinType] = await db
+      .select()
+      .from(cabinTypes)
+      .where(and(eq(cabinTypes.id, cabinTypeId), eq(cabinTypes.cruiseId, cruiseId)));
+
     if (!cabinType) return false;
-    
+
     // Count current holds
-    const holds = await db.select().from(cabinHolds).where(
-      and(
-        eq(cabinHolds.cruiseId, cruiseId),
-        eq(cabinHolds.cabinTypeId, cabinTypeId),
-        sql`${cabinHolds.expiresAt} > ${new Date()}`
-      )
-    );
-    
+    const holds = await db
+      .select()
+      .from(cabinHolds)
+      .where(
+        and(
+          eq(cabinHolds.cruiseId, cruiseId),
+          eq(cabinHolds.cabinTypeId, cabinTypeId),
+          sql`${cabinHolds.expiresAt} > ${new Date()}`
+        )
+      );
+
     const heldQuantity = holds.reduce((sum, hold) => sum + hold.quantity, 0);
     const availableQuantity = cabinType.availableCount - heldQuantity;
-    
+
     return availableQuantity >= quantity;
   }
-  
+
   // Promotion System
   async getActivePromotions(): Promise<any[]> {
     const now = new Date();
-    return await db.select().from(promotions).where(
-      and(
-        eq(promotions.isActive, true),
-        sql`${promotions.validFrom} <= ${now}`,
-        sql`${promotions.validTo} >= ${now}`
-      )
-    );
+    return await db
+      .select()
+      .from(promotions)
+      .where(
+        and(
+          eq(promotions.isActive, true),
+          sql`${promotions.validFrom} <= ${now}`,
+          sql`${promotions.validTo} >= ${now}`
+        )
+      );
   }
-  
-  async applyPromotion(bookingAmount: number, promotionIds: string[], bookingData: any): Promise<{ discountAmount: number; appliedPromotions: any[] }> {
+
+  async applyPromotion(
+    bookingAmount: number,
+    promotionIds: string[],
+    bookingData: any
+  ): Promise<{ discountAmount: number; appliedPromotions: any[] }> {
     const appliedPromotions: any[] = [];
     let totalDiscount = 0;
-    
+
     for (const promotionId of promotionIds) {
       const [promotion] = await db.select().from(promotions).where(eq(promotions.id, promotionId));
-      
+
       if (!promotion || !promotion.isActive) continue;
-      
+
       // Check promotion conditions
       const conditions = promotion.conditions as any;
       let eligible = true;
       let eligibilityReason = '';
-      
+
       // Basic amount conditions
       if (conditions?.minBookingAmount && bookingAmount < conditions.minBookingAmount) {
         eligible = false;
         eligibilityReason = `Minimum booking amount of $${conditions.minBookingAmount} required`;
       }
-      
+
       if (conditions?.maxBookingAmount && bookingAmount > conditions.maxBookingAmount) {
         eligible = false;
         eligibilityReason = `Booking amount exceeds maximum of $${conditions.maxBookingAmount}`;
       }
-      
+
       // Guest count conditions
       if (conditions?.minGuests && bookingData.guestCount < conditions.minGuests) {
         eligible = false;
         eligibilityReason = `Minimum ${conditions.minGuests} guests required`;
       }
-      
+
       if (conditions?.maxGuests && bookingData.guestCount > conditions.maxGuests) {
         eligible = false;
         eligibilityReason = `Maximum ${conditions.maxGuests} guests allowed`;
       }
-      
+
       // Early booking condition
       if (conditions?.earlyBookingDays && bookingData.departureDate) {
         const departureDate = new Date(bookingData.departureDate);
         const bookingDate = new Date();
-        const daysUntilDeparture = Math.ceil((departureDate.getTime() - bookingDate.getTime()) / (1000 * 60 * 60 * 24));
-        
+        const daysUntilDeparture = Math.ceil(
+          (departureDate.getTime() - bookingDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
         if (daysUntilDeparture < conditions.earlyBookingDays) {
           eligible = false;
           eligibilityReason = `Must book at least ${conditions.earlyBookingDays} days before departure`;
         }
       }
-      
+
+      // Last-minute booking condition
+      if (conditions?.lastMinuteDays && bookingData.departureDate) {
+        const departureDate = new Date(bookingData.departureDate);
+        const bookingDate = new Date();
+        const daysUntilDeparture = Math.ceil(
+          (departureDate.getTime() - bookingDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        if (daysUntilDeparture > conditions.lastMinuteDays) {
+          eligible = false;
+          eligibilityReason = `Must book within ${conditions.lastMinuteDays} days of departure`;
+        }
+      }
+
       // Age-based conditions
       if (conditions?.ageRequirements) {
-        if (conditions.ageRequirements.minSeniors && bookingData.seniorCount < conditions.ageRequirements.minSeniors) {
+        if (
+          conditions.ageRequirements.minSeniors &&
+          bookingData.seniorCount < conditions.ageRequirements.minSeniors
+        ) {
           eligible = false;
           eligibilityReason = `Minimum ${conditions.ageRequirements.minSeniors} senior guests required`;
         }
-        
-        if (conditions.ageRequirements.maxChildren && bookingData.childCount > conditions.ageRequirements.maxChildren) {
+
+        if (
+          conditions.ageRequirements.maxChildren &&
+          bookingData.childCount > conditions.ageRequirements.maxChildren
+        ) {
           eligible = false;
           eligibilityReason = `Maximum ${conditions.ageRequirements.maxChildren} children allowed`;
         }
       }
-      
+
       // Cruise line restrictions
       if (conditions?.cruiseLines && !conditions.cruiseLines.includes(bookingData.cruiseLine)) {
         eligible = false;
         eligibilityReason = `Only valid for ${conditions.cruiseLines.join(', ')} cruise lines`;
       }
-      
+
       // Destination restrictions
       if (conditions?.destinations && !conditions.destinations.includes(bookingData.destination)) {
         eligible = false;
         eligibilityReason = `Only valid for ${conditions.destinations.join(', ')} destinations`;
       }
-      
+
       // Cabin type restrictions
       if (conditions?.cabinTypes && !conditions.cabinTypes.includes(bookingData.cabinType)) {
         eligible = false;
         eligibilityReason = `Only valid for ${conditions.cabinTypes.join(', ')} cabin types`;
       }
-      
+
       // Coupon code requirement (if promotion requires specific coupon)
-      if (conditions?.requiredCouponCode && bookingData.couponCode !== conditions.requiredCouponCode) {
+      if (
+        conditions?.requiredCouponCode &&
+        bookingData.couponCode !== conditions.requiredCouponCode
+      ) {
         eligible = false;
         eligibilityReason = `Requires coupon code: ${conditions.requiredCouponCode}`;
       }
-      
+
       if (eligible) {
         let discount = 0;
         if (promotion.discountType === 'percentage') {
@@ -418,17 +549,18 @@ export class DatabaseStorage implements IStorage {
         } else {
           discount = parseFloat(promotion.discountValue);
         }
-        
+
         totalDiscount += discount;
         appliedPromotions.push({
           ...promotion,
           eligibilityChecked: true,
           eligibilityReason: null,
-          discountAmount: discount
+          discountAmount: discount,
         });
-        
+
         // Update usage count
-        await db.update(promotions)
+        await db
+          .update(promotions)
           .set({ currentUses: sql`${promotions.currentUses} + 1` })
           .where(eq(promotions.id, promotionId));
       } else {
@@ -436,15 +568,19 @@ export class DatabaseStorage implements IStorage {
         console.log(`Promotion ${promotion.name} not eligible: ${eligibilityReason}`);
       }
     }
-    
-    return { 
-      discountAmount: totalDiscount, 
-      appliedPromotions
+
+    return {
+      discountAmount: totalDiscount,
+      appliedPromotions,
     };
   }
 
   // Check promotion eligibility without applying (for admin/preview purposes)
-  async checkPromotionEligibility(bookingAmount: number, promotionIds: string[], bookingData: any): Promise<{
+  async checkPromotionEligibility(
+    bookingAmount: number,
+    promotionIds: string[],
+    bookingData: any
+  ): Promise<{
     eligiblePromotions: any[];
     ineligiblePromotions: any[];
     totalPotentialDiscount: number;
@@ -452,74 +588,92 @@ export class DatabaseStorage implements IStorage {
     const eligiblePromotions: any[] = [];
     const ineligiblePromotions: any[] = [];
     let totalPotentialDiscount = 0;
-    
+
     for (const promotionId of promotionIds) {
       const [promotion] = await db.select().from(promotions).where(eq(promotions.id, promotionId));
-      
+
       if (!promotion || !promotion.isActive) {
         ineligiblePromotions.push({
           ...promotion,
-          reason: 'Promotion not found or inactive'
+          reason: 'Promotion not found or inactive',
         });
         continue;
       }
-      
+
       const conditions = promotion.conditions as any;
       let eligible = true;
       let eligibilityReason = '';
-      
+
       // Same condition checking logic as applyPromotion
       if (conditions?.minBookingAmount && bookingAmount < conditions.minBookingAmount) {
         eligible = false;
         eligibilityReason = `Minimum booking amount of $${conditions.minBookingAmount} required`;
       }
-      
+
       if (conditions?.maxBookingAmount && bookingAmount > conditions.maxBookingAmount) {
         eligible = false;
         eligibilityReason = `Booking amount exceeds maximum of $${conditions.maxBookingAmount}`;
       }
-      
+
       if (conditions?.minGuests && bookingData.guestCount < conditions.minGuests) {
         eligible = false;
         eligibilityReason = `Minimum ${conditions.minGuests} guests required`;
       }
-      
+
       if (conditions?.maxGuests && bookingData.guestCount > conditions.maxGuests) {
         eligible = false;
         eligibilityReason = `Maximum ${conditions.maxGuests} guests allowed`;
       }
-      
+
       if (conditions?.earlyBookingDays && bookingData.departureDate) {
         const departureDate = new Date(bookingData.departureDate);
         const bookingDate = new Date();
-        const daysUntilDeparture = Math.ceil((departureDate.getTime() - bookingDate.getTime()) / (1000 * 60 * 60 * 24));
-        
+        const daysUntilDeparture = Math.ceil(
+          (departureDate.getTime() - bookingDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
         if (daysUntilDeparture < conditions.earlyBookingDays) {
           eligible = false;
           eligibilityReason = `Must book at least ${conditions.earlyBookingDays} days before departure`;
         }
       }
-      
+
+      if (conditions?.lastMinuteDays && bookingData.departureDate) {
+        const departureDate = new Date(bookingData.departureDate);
+        const bookingDate = new Date();
+        const daysUntilDeparture = Math.ceil(
+          (departureDate.getTime() - bookingDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        if (daysUntilDeparture > conditions.lastMinuteDays) {
+          eligible = false;
+          eligibilityReason = `Must book within ${conditions.lastMinuteDays} days of departure`;
+        }
+      }
+
       if (conditions?.cruiseLines && !conditions.cruiseLines.includes(bookingData.cruiseLine)) {
         eligible = false;
         eligibilityReason = `Only valid for ${conditions.cruiseLines.join(', ')} cruise lines`;
       }
-      
+
       if (conditions?.destinations && !conditions.destinations.includes(bookingData.destination)) {
         eligible = false;
         eligibilityReason = `Only valid for ${conditions.destinations.join(', ')} destinations`;
       }
-      
+
       if (conditions?.cabinTypes && !conditions.cabinTypes.includes(bookingData.cabinType)) {
         eligible = false;
         eligibilityReason = `Only valid for ${conditions.cabinTypes.join(', ')} cabin types`;
       }
-      
-      if (conditions?.requiredCouponCode && bookingData.couponCode !== conditions.requiredCouponCode) {
+
+      if (
+        conditions?.requiredCouponCode &&
+        bookingData.couponCode !== conditions.requiredCouponCode
+      ) {
         eligible = false;
         eligibilityReason = `Requires coupon code: ${conditions.requiredCouponCode}`;
       }
-      
+
       if (eligible) {
         let discount = 0;
         if (promotion.discountType === 'percentage') {
@@ -527,36 +681,39 @@ export class DatabaseStorage implements IStorage {
         } else {
           discount = parseFloat(promotion.discountValue);
         }
-        
+
         eligiblePromotions.push({
           ...promotion,
-          potentialDiscount: discount
+          potentialDiscount: discount,
         });
         totalPotentialDiscount += discount;
       } else {
         ineligiblePromotions.push({
           ...promotion,
-          reason: eligibilityReason
+          reason: eligibilityReason,
         });
       }
     }
-    
+
     return {
       eligiblePromotions,
       ineligiblePromotions,
-      totalPotentialDiscount
+      totalPotentialDiscount,
     };
   }
-  
+
   // Calendar Events
   async createCalendarEvent(bookingId: string, eventData: any): Promise<any> {
-    const [event] = await db.insert(calendarEvents).values({
-      bookingId,
-      ...eventData
-    }).returning();
+    const [event] = await db
+      .insert(calendarEvents)
+      .values({
+        bookingId,
+        ...eventData,
+      })
+      .returning();
     return event;
   }
-  
+
   async getCalendarEventsByBooking(bookingId: string): Promise<any[]> {
     return await db.select().from(calendarEvents).where(eq(calendarEvents.bookingId, bookingId));
   }
@@ -571,19 +728,22 @@ export class DatabaseStorage implements IStorage {
     stripePaymentIntentId?: string;
     transactionId?: string;
   }): Promise<any> {
-    const [payment] = await db.insert(payments).values({
-      bookingId: paymentData.bookingId,
-      amount: paymentData.amount.toString(),
-      currency: paymentData.currency,
-      status: paymentData.status,
-      paymentMethod: paymentData.paymentMethod,
-      stripePaymentIntentId: paymentData.stripePaymentIntentId,
-      transactionId: paymentData.transactionId,
-      processedAt: new Date()
-    }).returning();
+    const [payment] = await db
+      .insert(payments)
+      .values({
+        bookingId: paymentData.bookingId,
+        amount: paymentData.amount.toString(),
+        currency: paymentData.currency,
+        status: paymentData.status,
+        paymentMethod: paymentData.paymentMethod,
+        stripePaymentIntentId: paymentData.stripePaymentIntentId,
+        transactionId: paymentData.transactionId,
+        processedAt: new Date(),
+      })
+      .returning();
     return payment;
   }
-  
+
   async getPaymentsByBooking(bookingId: string): Promise<any[]> {
     return await db.select().from(payments).where(eq(payments.bookingId, bookingId));
   }
@@ -591,10 +751,13 @@ export class DatabaseStorage implements IStorage {
   // Favorites operations
   async addFavorite(userId: string, cruiseId: string): Promise<any> {
     try {
-      const [favorite] = await db.insert(favorites).values({
-        userId,
-        cruiseId
-      }).returning();
+      const [favorite] = await db
+        .insert(favorites)
+        .values({
+          userId,
+          cruiseId,
+        })
+        .returning();
       return favorite;
     } catch (error) {
       // Handle duplicate favorite (user already favorited this cruise)
@@ -603,12 +766,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async removeFavorite(userId: string, cruiseId: string): Promise<void> {
-    await db.delete(favorites).where(
-      and(
-        eq(favorites.userId, userId),
-        eq(favorites.cruiseId, cruiseId)
-      )
-    );
+    await db
+      .delete(favorites)
+      .where(and(eq(favorites.userId, userId), eq(favorites.cruiseId, cruiseId)));
   }
 
   async getUserFavorites(userId: string): Promise<any[]> {
@@ -617,7 +777,7 @@ export class DatabaseStorage implements IStorage {
         id: favorites.id,
         cruiseId: favorites.cruiseId,
         createdAt: favorites.createdAt,
-        cruise: cruises
+        cruise: cruises,
       })
       .from(favorites)
       .innerJoin(cruises, eq(favorites.cruiseId, cruises.id))
@@ -629,18 +789,23 @@ export class DatabaseStorage implements IStorage {
     const [favorite] = await db
       .select()
       .from(favorites)
-      .where(
-        and(
-          eq(favorites.userId, userId),
-          eq(favorites.cruiseId, cruiseId)
-        )
-      );
+      .where(and(eq(favorites.userId, userId), eq(favorites.cruiseId, cruiseId)));
     return !!favorite;
   }
 
   // Admin promotion management methods
   async createPromotion(promotionData: any): Promise<any> {
+    console.log(
+      '📦 STORAGE: Creating promotion with data:',
+      JSON.stringify(promotionData, null, 2)
+    );
+    console.log('🎯 STORAGE: Conditions being saved:', promotionData.conditions);
+
     const [promotion] = await db.insert(promotions).values(promotionData).returning();
+
+    console.log('✅ STORAGE: Promotion created successfully:', promotion.id);
+    console.log('📋 STORAGE: Saved conditions:', promotion.conditions);
+
     return promotion;
   }
 
@@ -665,24 +830,28 @@ export class DatabaseStorage implements IStorage {
         isActive: promotions.isActive,
         validFrom: promotions.validFrom,
         validTo: promotions.validTo,
-        conditions: promotions.conditions
+        conditions: promotions.conditions,
       })
       .from(promotions);
-    
+
     // Calculate usage statistics
     const stats = {
       totalPromotions: allPromotions.length,
-      activePromotions: allPromotions.filter(p => p.isActive).length,
-      inactivePromotions: allPromotions.filter(p => !p.isActive).length,
+      activePromotions: allPromotions.filter((p) => p.isActive).length,
+      inactivePromotions: allPromotions.filter((p) => !p.isActive).length,
       totalUses: allPromotions.reduce((sum, p) => sum + (p.currentUses || 0), 0),
-      promotions: allPromotions.map(p => ({
+      promotions: allPromotions.map((p) => ({
         ...p,
-        usageRate: p.maxUses ? ((p.currentUses || 0) / p.maxUses * 100).toFixed(1) + '%' : 'Unlimited',
+        usageRate: p.maxUses
+          ? (((p.currentUses || 0) / p.maxUses) * 100).toFixed(1) + '%'
+          : 'Unlimited',
         isExpired: new Date() > new Date(p.validTo),
-        daysRemaining: Math.ceil((new Date(p.validTo).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
-      }))
+        daysRemaining: Math.ceil(
+          (new Date(p.validTo).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+        ),
+      })),
     };
-    
+
     return stats;
   }
 

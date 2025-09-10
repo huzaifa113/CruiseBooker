@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { Check } from 'lucide-react';
 
 interface BookingProgressProps {
   currentStep: number;
@@ -15,22 +15,22 @@ export default function BookingProgress({ currentStep, steps }: BookingProgressP
             const stepNumber = index + 1;
             const isActive = stepNumber === currentStep;
             const isCompleted = stepNumber < currentStep;
-            
+
             return (
               <div key={step} className="flex items-center">
-                <div 
+                <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    isCompleted 
-                      ? 'bg-green-600 text-white' 
-                      : isActive 
-                      ? 'bg-blue-600 text-white' 
-                      : 'bg-gray-300 text-gray-600'
+                    isCompleted
+                      ? 'bg-green-600 text-white'
+                      : isActive
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-300 text-gray-600'
                   }`}
                   data-testid={`step-${stepNumber}`}
                 >
                   {isCompleted ? <Check className="w-4 h-4" /> : stepNumber}
                 </div>
-                <span 
+                <span
                   className={`ml-3 text-sm ${
                     isActive ? 'font-medium text-blue-600' : 'text-gray-600'
                   }`}
@@ -51,23 +51,23 @@ export default function BookingProgress({ currentStep, steps }: BookingProgressP
             const stepNumber = index + 1;
             const isActive = stepNumber === currentStep;
             const isCompleted = stepNumber < currentStep;
-            
+
             return (
               <div key={step} className="flex items-center">
                 <div className="flex items-center">
-                  <div 
+                  <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                      isCompleted 
-                        ? 'bg-green-600 text-white' 
-                        : isActive 
-                        ? 'bg-blue-600 text-white' 
-                        : 'bg-gray-300 text-gray-600'
+                      isCompleted
+                        ? 'bg-green-600 text-white'
+                        : isActive
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-300 text-gray-600'
                     }`}
                     data-testid={`step-${stepNumber}`}
                   >
                     {isCompleted ? <Check className="w-4 h-4" /> : stepNumber}
                   </div>
-                  <span 
+                  <span
                     className={`ml-2 text-sm ${
                       isActive ? 'font-medium text-blue-600' : 'text-gray-600'
                     }`}
@@ -77,10 +77,8 @@ export default function BookingProgress({ currentStep, steps }: BookingProgressP
                   </span>
                 </div>
                 {index < steps.length - 1 && (
-                  <div 
-                    className={`w-12 h-px mx-4 ${
-                      isCompleted ? 'bg-green-600' : 'bg-gray-300'
-                    }`}
+                  <div
+                    className={`w-12 h-px mx-4 ${isCompleted ? 'bg-green-600' : 'bg-gray-300'}`}
                   />
                 )}
               </div>

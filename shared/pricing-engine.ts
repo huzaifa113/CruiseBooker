@@ -26,7 +26,8 @@ export interface DiscountConditions {
   maxGuests?: number;
   minBookingAmount?: number;
   maxBookingAmount?: number;
-  earlyBookingDays?: number; // Days before departure
+  earlyBookingDays?: number; // Days before departure for early booking
+  lastMinuteDays?: number; // Maximum days before departure for last-minute deals
   groupSize?: number; // Minimum group size
   cruiseLines?: string[];
   destinations?: string[];
@@ -147,6 +148,14 @@ export class PricingEngine {
           (new Date(bookingData.departureDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
         );
         if (daysUntilDeparture < conditions.earlyBookingDays) return false;
+      }
+
+      // Check last-minute booking conditions (within 30 days)
+      if (conditions.lastMinuteDays) {
+        const daysUntilDeparture = Math.ceil(
+          (new Date(bookingData.departureDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        if (daysUntilDeparture > conditions.lastMinuteDays) return false;
       }
       
       // Check group size conditions

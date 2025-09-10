@@ -14,7 +14,11 @@ interface PromotionsProps {
   bookingData?: any;
 }
 
-export default function PromotionsSection({ bookingAmount, onPromotionApplied, bookingData }: PromotionsProps) {
+export default function PromotionsSection({
+  bookingAmount,
+  onPromotionApplied,
+  bookingData,
+}: PromotionsProps) {
   const { toast } = useToast();
   const [promoCode, setPromoCode] = useState('');
   const [appliedPromotions, setAppliedPromotions] = useState<any[]>([]);
@@ -22,7 +26,7 @@ export default function PromotionsSection({ bookingAmount, onPromotionApplied, b
   // Fetch active promotions
   const { data: promotions = [], isLoading } = useQuery({
     queryKey: ['/api/promotions'],
-    enabled: bookingAmount > 0
+    enabled: bookingAmount > 0,
   });
 
   // Apply promotion mutation
@@ -34,40 +38,40 @@ export default function PromotionsSection({ bookingAmount, onPromotionApplied, b
         body: JSON.stringify({
           bookingAmount,
           promotionIds,
-          bookingData: bookingData || {}
-        })
+          bookingData: bookingData || {},
+        }),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to apply promotion');
       }
-      
+
       return response.json();
     },
     onSuccess: (data) => {
       setAppliedPromotions(data.appliedPromotions);
       onPromotionApplied(data.discountAmount, data.appliedPromotions);
-      
+
       if (data.appliedPromotions.length > 0) {
         toast({
-          title: "Promotion Applied!",
+          title: 'Promotion Applied!',
           description: `You saved $${data.discountAmount.toFixed(2)} with ${data.appliedPromotions.length} promotion(s)`,
         });
       } else {
         toast({
-          title: "No Eligible Promotions",
-          description: "The selected promotions are not applicable to this booking",
-          variant: "destructive"
+          title: 'No Eligible Promotions',
+          description: 'The selected promotions are not applicable to this booking',
+          variant: 'destructive',
         });
       }
     },
     onError: (error: any) => {
       toast({
-        title: "Promotion Error",
+        title: 'Promotion Error',
         description: error.message,
-        variant: "destructive"
+        variant: 'destructive',
       });
-    }
+    },
   });
 
   const handleApplyPromotion = (promotionId: string) => {
@@ -75,45 +79,52 @@ export default function PromotionsSection({ bookingAmount, onPromotionApplied, b
   };
 
   const handleApplyPromoCode = () => {
-    const promotion = (promotions as any[]).find((p: any) => 
-      p.name.toLowerCase().includes(promoCode.toLowerCase()) ||
-      p.id.toLowerCase() === promoCode.toLowerCase()
+    const promotion = (promotions as any[]).find(
+      (p: any) =>
+        p.name.toLowerCase().includes(promoCode.toLowerCase()) ||
+        p.id.toLowerCase() === promoCode.toLowerCase()
     );
-    
+
     if (promotion) {
       handleApplyPromotion(promotion.id);
       setPromoCode('');
     } else {
       toast({
-        title: "Invalid Promo Code",
-        description: "The promo code you entered is not valid or has expired",
-        variant: "destructive"
+        title: 'Invalid Promo Code',
+        description: 'The promo code you entered is not valid or has expired',
+        variant: 'destructive',
       });
     }
   };
 
   const isPromotionEligible = (promotion: any) => {
     if (!promotion.conditions) return true;
-    
+
     const conditions = promotion.conditions;
-    
+
     // Check minimum booking amount
     if (conditions.minBookingAmount && bookingAmount < conditions.minBookingAmount) {
       return false;
     }
-    
+
     // Check cruise lines
-    if (conditions.cruiseLines && bookingData?.cruiseLine && 
-        !conditions.cruiseLines.includes(bookingData.cruiseLine)) {
+    if (
+      conditions.cruiseLines &&
+      bookingData?.cruiseLine &&
+      !conditions.cruiseLines.includes(bookingData.cruiseLine)
+    ) {
       return false;
     }
-    
+
     // Check destinations
-    if (conditions.destinations && bookingData?.destination && 
-        !conditions.destinations.includes(bookingData.destination)) {
+    if (
+      conditions.destinations &&
+      bookingData?.destination &&
+      !conditions.destinations.includes(bookingData.destination)
+    ) {
       return false;
     }
-    
+
     return true;
   };
 
@@ -151,7 +162,7 @@ export default function PromotionsSection({ bookingAmount, onPromotionApplied, b
               onChange={(e) => setPromoCode(e.target.value)}
               data-testid="input-promo-code"
             />
-            <Button 
+            <Button
               onClick={handleApplyPromoCode}
               disabled={!promoCode.trim() || applyPromotionMutation.isPending}
               data-testid="button-apply-promo"
@@ -172,8 +183,8 @@ export default function PromotionsSection({ bookingAmount, onPromotionApplied, b
             </p>
           ) : (
             eligiblePromotions.map((promotion: any) => {
-              const isApplied = appliedPromotions.some(p => p.id === promotion.id);
-              
+              const isApplied = appliedPromotions.some((p) => p.id === promotion.id);
+
               return (
                 <div key={promotion.id} className="border rounded-lg p-3 space-y-2">
                   <div className="flex items-start justify-between gap-3">
@@ -181,9 +192,13 @@ export default function PromotionsSection({ bookingAmount, onPromotionApplied, b
                       <Tag className="h-4 w-4 text-blue-600 flex-shrink-0" />
                       <span className="font-medium text-sm sm:text-base">{promotion.name}</span>
                       {promotion.discountType === 'percentage' ? (
-                        <Badge variant="secondary" className="flex-shrink-0">{promotion.discountValue}% OFF</Badge>
+                        <Badge variant="secondary" className="flex-shrink-0">
+                          {promotion.discountValue}% OFF
+                        </Badge>
                       ) : (
-                        <Badge variant="secondary" className="flex-shrink-0">${promotion.discountValue} OFF</Badge>
+                        <Badge variant="secondary" className="flex-shrink-0">
+                          ${promotion.discountValue} OFF
+                        </Badge>
                       )}
                     </div>
                     {isApplied ? (
@@ -202,10 +217,8 @@ export default function PromotionsSection({ bookingAmount, onPromotionApplied, b
                       </Button>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {promotion.description}
-                  </p>
-                  
+                  <p className="text-sm text-muted-foreground">{promotion.description}</p>
+
                   {/* Promotion conditions */}
                   {promotion.conditions && (
                     <div className="text-xs text-muted-foreground">
@@ -236,10 +249,9 @@ export default function PromotionsSection({ bookingAmount, onPromotionApplied, b
                 <div key={promotion.id} className="flex justify-between text-sm">
                   <span>{promotion.name}</span>
                   <span className="text-green-600">
-                    {promotion.discountType === 'percentage' 
+                    {promotion.discountType === 'percentage'
                       ? `-${promotion.discountValue}%`
-                      : `-$${promotion.discountValue}`
-                    }
+                      : `-$${promotion.discountValue}`}
                   </span>
                 </div>
               ))}

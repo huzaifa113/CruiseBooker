@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Slider } from "@/components/ui/slider";
-import type { FilterState } from "@/lib/types";
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Slider } from '@/components/ui/slider';
+import type { FilterState } from '@/lib/types';
 
 interface FilterSidebarProps {
   filters: FilterState;
@@ -17,40 +17,40 @@ export default function FilterSidebar({ filters, onFiltersChange }: FilterSideba
     onFiltersChange({
       ...filters,
       minPrice: values[0],
-      maxPrice: values[1]
+      maxPrice: values[1],
     });
   };
 
   const handleDurationChange = (duration: number, checked: boolean) => {
     const newDuration = checked
       ? [...filters.duration, duration]
-      : filters.duration.filter(d => d !== duration);
-    
+      : filters.duration.filter((d) => d !== duration);
+
     onFiltersChange({
       ...filters,
-      duration: newDuration
+      duration: newDuration,
     });
   };
 
   const handleCruiseLineChange = (line: string, checked: boolean) => {
     const newLines = checked
       ? [...filters.cruiseLines, line]
-      : filters.cruiseLines.filter(l => l !== line);
-    
+      : filters.cruiseLines.filter((l) => l !== line);
+
     onFiltersChange({
       ...filters,
-      cruiseLines: newLines
+      cruiseLines: newLines,
     });
   };
 
   const handleCabinTypeChange = (type: string, checked: boolean) => {
     const newTypes = checked
       ? [...filters.cabinTypes, type]
-      : filters.cabinTypes.filter(t => t !== type);
-    
+      : filters.cabinTypes.filter((t) => t !== type);
+
     onFiltersChange({
       ...filters,
-      cabinTypes: newTypes
+      cabinTypes: newTypes,
     });
   };
 
@@ -85,10 +85,10 @@ export default function FilterSidebar({ filters, onFiltersChange }: FilterSideba
           <h4 className="font-medium text-gray-900 mb-3">Duration</h4>
           <div className="space-y-2">
             {[
-              { range: [3, 5], label: "3-5 days", value: 4 },
-              { range: [6, 8], label: "6-8 days", value: 7 },
-              { range: [9, 14], label: "9-14 days", value: 11 },
-              { range: [15, 30], label: "15+ days", value: 20 }
+              { range: [3, 5], label: '3-5 days', value: 4 },
+              { range: [6, 8], label: '6-8 days', value: 7 },
+              { range: [9, 14], label: '9-14 days', value: 11 },
+              { range: [15, 30], label: '15+ days', value: 20 },
             ].map(({ range, label, value }) => (
               <label key={value} className="flex items-center">
                 <Checkbox
@@ -107,12 +107,7 @@ export default function FilterSidebar({ filters, onFiltersChange }: FilterSideba
         <div>
           <h4 className="font-medium text-gray-900 mb-3">Cruise Lines</h4>
           <div className="space-y-2">
-            {[
-              "Royal Caribbean",
-              "Norwegian",
-              "Princess",
-              "Celebrity"
-            ].map((line) => (
+            {['Royal Caribbean', 'Norwegian', 'Princess', 'Celebrity'].map((line) => (
               <label key={line} className="flex items-center">
                 <Checkbox
                   checked={filters.cruiseLines.includes(line)}
@@ -130,12 +125,7 @@ export default function FilterSidebar({ filters, onFiltersChange }: FilterSideba
         <div>
           <h4 className="font-medium text-gray-900 mb-3">Cabin Type</h4>
           <div className="space-y-2">
-            {[
-              "Interior",
-              "Ocean View",
-              "Balcony",
-              "Suite"
-            ].map((type) => (
+            {['Interior', 'Ocean View', 'Balcony', 'Suite'].map((type) => (
               <label key={type} className="flex items-center">
                 <Checkbox
                   checked={filters.cabinTypes.includes(type)}

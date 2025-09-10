@@ -1,8 +1,8 @@
-import express, { type Request, Response, NextFunction } from "express";
+import express, { type Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
-import { enhancedSeedDatabase } from "./enhanced-seed";
+import { registerRoutes } from './routes';
+import { setupVite, serveStatic, log } from './vite';
+import { enhancedSeedDatabase } from './enhanced-seed';
 import { config } from 'dotenv';
 config();
 
@@ -10,18 +10,24 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Export for Vercel serverless
-export default registerRoutes(app);
 
 // CORS configuration
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? [process.env.FRONTEND_URL || 'https://your-domain.com']
-    : ['http://localhost:5000', 'http://localhost:3000', 'http://127.0.0.1:5000'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? [
+      process.env.FRONTEND_URL,
+      process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+      'https://cruise-booker.vercel.app' // Default Vercel domain
+    ].filter(Boolean)
+  : ['http://localhost:5000', 'http://localhost:3000', 'http://127.0.0.1:5000'];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -37,16 +43,16 @@ app.use((req, res, next) => {
     return originalResJson.apply(res, [bodyJson, ...args]);
   };
 
-  res.on("finish", () => {
+  res.on('finish', () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
+    if (path.startsWith('/api')) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
 
       if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
+        logLine = logLine.slice(0, 79) + '…';
       }
 
       log(logLine);
@@ -61,14 +67,14 @@ app.use((req, res, next) => {
   try {
     await enhancedSeedDatabase();
   } catch (error) {
-    console.error("Database seeding failed:", error);
+    console.error('Database seeding failed:', error);
   }
 
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    const message = err.message || 'Internal Server Error';
 
     res.status(status).json({ message });
     throw err;
@@ -77,7 +83,7 @@ app.use((req, res, next) => {
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
+  if (app.get('env') === 'development') {
     await setupVite(app, server);
   } else {
     serveStatic(app);
@@ -88,21 +94,26 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
-  
-  server.listen({
-    port,
-    host: "0.0.0.0",
-  }, () => {
-    log(`serving on port ${port}`);
-  }).on('error', (err: any) => {
-    if (err.code === 'EADDRINUSE') {
-      log(`Port ${port} is already in use. Please stop the existing server first.`);
-      process.exit(1);
-    } else {
-      log(`Server error: ${err.message}`);
-      process.exit(1);
-    }
-  });
+
+  server
+    .listen(
+      {
+        port,
+        host: '0.0.0.0',
+      },
+      () => {
+        log(`serving on port ${port}`);
+      }
+    )
+    .on('error', (err: any) => {
+      if (err.code === 'EADDRINUSE') {
+        log(`Port ${port} is already in use. Please stop the existing server first.`);
+        process.exit(1);
+      } else {
+        log(`Server error: ${err.message}`);
+        process.exit(1);
+      }
+    });
 
   // Graceful shutdown handling
   process.on('SIGTERM', () => {
@@ -121,4 +132,3 @@ app.use((req, res, next) => {
     });
   });
 })();
-

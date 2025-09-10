@@ -1,49 +1,54 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
-import { Search, Download, Mail, Edit } from "lucide-react";
-import Header from "@/components/header";
-import Footer from "@/components/footer";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
+import { Search, Download, Mail, Edit } from 'lucide-react';
+import Header from '@/components/header';
+import Footer from '@/components/footer';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Reservations() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [lookupForm, setLookupForm] = useState({
-    confirmationNumber: "",
-    lastName: ""
+    confirmationNumber: '',
+    lastName: '',
   });
   const [shouldLookup, setShouldLookup] = useState(false);
 
   // Fetch booking details when lookup is triggered
-  const { data: booking, isLoading, error, refetch } = useQuery({
-    queryKey: ["/api/bookings", "lookup", lookupForm.confirmationNumber, lookupForm.lastName],
+  const {
+    data: booking,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ['/api/bookings', 'lookup', lookupForm.confirmationNumber, lookupForm.lastName],
     queryFn: async () => {
       const response = await fetch(
         `/api/bookings/lookup?confirmationNumber=${lookupForm.confirmationNumber}&lastName=${lookupForm.lastName}`
       );
       if (!response.ok) {
-        throw new Error("Booking not found");
+        throw new Error('Booking not found');
       }
       return response.json();
     },
-    enabled: shouldLookup && !!lookupForm.confirmationNumber && !!lookupForm.lastName
+    enabled: shouldLookup && !!lookupForm.confirmationNumber && !!lookupForm.lastName,
   });
 
   const handleLookup = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!lookupForm.confirmationNumber || !lookupForm.lastName) {
       toast({
-        title: "Required fields missing",
-        description: "Please enter both confirmation number and last name.",
-        variant: "destructive"
+        title: 'Required fields missing',
+        description: 'Please enter both confirmation number and last name.',
+        variant: 'destructive',
       });
       return;
     }
@@ -55,47 +60,47 @@ export default function Reservations() {
   const handleDownloadInvoice = () => {
     // TODO: Implement PDF invoice download
     toast({
-      title: "Download Started",
-      description: "Your invoice download will begin shortly.",
+      title: 'Download Started',
+      description: 'Your invoice download will begin shortly.',
     });
   };
 
   const handleEmailConfirmation = async () => {
     if (!booking?.id) {
       toast({
-        title: "Error",
-        description: "No booking found to send confirmation.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'No booking found to send confirmation.',
+        variant: 'destructive',
       });
       return;
     }
-    
+
     try {
       const response = await fetch(`/api/bookings/${booking.id}/resend-email`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
-      
+
       const result = await response.json();
-      
+
       if (response.ok) {
         toast({
-          title: "Email Sent Successfully!",
+          title: 'Email Sent Successfully!',
           description: `Confirmation details have been sent to ${result.sentTo}`,
         });
       } else {
         toast({
-          title: "Email Send Failed",
-          description: result.message || "Failed to send confirmation email.",
-          variant: "destructive"
+          title: 'Email Send Failed',
+          description: result.message || 'Failed to send confirmation email.',
+          variant: 'destructive',
         });
       }
     } catch (error) {
       console.error('Error sending confirmation email:', error);
       toast({
-        title: "Email Send Failed",
-        description: "Failed to send confirmation email. Please try again.",
-        variant: "destructive"
+        title: 'Email Send Failed',
+        description: 'Failed to send confirmation email. Please try again.',
+        variant: 'destructive',
       });
     }
   };
@@ -103,9 +108,9 @@ export default function Reservations() {
   const handleManageBooking = () => {
     if (!booking?.cruiseId) {
       toast({
-        title: "Error",
-        description: "Unable to edit booking - missing cruise information.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Unable to edit booking - missing cruise information.',
+        variant: 'destructive',
       });
       return;
     }
@@ -118,14 +123,14 @@ export default function Reservations() {
       cabinType: booking.cabinTypeId || '',
       guestCount: booking.guestCount?.toString() || '2',
       diningTime: booking.diningTime || '',
-      extras: JSON.stringify(booking.extras || [])
+      extras: JSON.stringify(booking.extras || []),
     });
 
     setLocation(`/booking/${booking.cruiseId}?${editParams.toString()}`);
-    
+
     toast({
-      title: "Redirecting to Edit Booking",
-      description: "Loading your existing booking details for editing...",
+      title: 'Redirecting to Edit Booking',
+      description: 'Loading your existing booking details for editing...',
     });
   };
 
@@ -140,14 +145,14 @@ export default function Reservations() {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">My Reservations</h1>
@@ -172,10 +177,12 @@ export default function Reservations() {
                     type="text"
                     placeholder="ABC123456"
                     value={lookupForm.confirmationNumber}
-                    onChange={(e) => setLookupForm(prev => ({ 
-                      ...prev, 
-                      confirmationNumber: e.target.value.toUpperCase() 
-                    }))}
+                    onChange={(e) =>
+                      setLookupForm((prev) => ({
+                        ...prev,
+                        confirmationNumber: e.target.value.toUpperCase(),
+                      }))
+                    }
                     className="focus:ring-2 focus:ring-ocean-500 focus:border-ocean-500"
                     data-testid="input-confirmation-number"
                   />
@@ -187,10 +194,12 @@ export default function Reservations() {
                     type="text"
                     placeholder="Smith"
                     value={lookupForm.lastName}
-                    onChange={(e) => setLookupForm(prev => ({ 
-                      ...prev, 
-                      lastName: e.target.value 
-                    }))}
+                    onChange={(e) =>
+                      setLookupForm((prev) => ({
+                        ...prev,
+                        lastName: e.target.value,
+                      }))
+                    }
                     className="focus:ring-2 focus:ring-ocean-500 focus:border-ocean-500"
                     data-testid="input-last-name"
                   />
@@ -202,7 +211,7 @@ export default function Reservations() {
                 className="bg-ocean-600 text-white hover:bg-ocean-700 font-semibold"
                 data-testid="button-lookup"
               >
-                {isLoading ? "Searching..." : "Look Up Reservation"}
+                {isLoading ? 'Searching...' : 'Look Up Reservation'}
               </Button>
             </form>
           </CardContent>
@@ -215,11 +224,9 @@ export default function Reservations() {
               <div className="text-red-600 mb-4">
                 <i className="fas fa-search text-4xl"></i>
               </div>
-              <h3 className="text-lg font-semibold text-red-900 mb-2">
-                Reservation Not Found
-              </h3>
+              <h3 className="text-lg font-semibold text-red-900 mb-2">Reservation Not Found</h3>
               <p className="text-red-700 mb-4">
-                We couldn't find a reservation with the provided confirmation number and last name. 
+                We couldn't find a reservation with the provided confirmation number and last name.
                 Please check your information and try again.
               </p>
               <div className="text-sm text-red-600 space-y-1">
@@ -247,7 +254,7 @@ export default function Reservations() {
                     Confirmation: {booking.confirmationNumber}
                   </p>
                 </div>
-                <Badge 
+                <Badge
                   variant={booking.paymentStatus === 'paid' ? 'default' : 'secondary'}
                   className={booking.paymentStatus === 'paid' ? 'bg-green-600' : ''}
                   data-testid="status-badge"
@@ -295,11 +302,15 @@ export default function Reservations() {
                       <span className="text-gray-600">Cruise Fare:</span>
                       <span data-testid="cruise-fare-amount">
                         {formatCurrency(
-                          (parseFloat(booking.totalAmount) - parseFloat(booking.taxAmount) - parseFloat(booking.gratuityAmount)).toString()
+                          (
+                            parseFloat(booking.totalAmount) -
+                            parseFloat(booking.taxAmount) -
+                            parseFloat(booking.gratuityAmount)
+                          ).toString()
                         )}
                       </span>
                     </div>
-                    
+
                     {booking.extras && booking.extras.length > 0 && (
                       <>
                         {booking.extras.map((extra: any, index: number) => (
@@ -312,14 +323,16 @@ export default function Reservations() {
                         ))}
                       </>
                     )}
-                    
+
                     <div className="flex justify-between">
                       <span className="text-gray-600">Taxes & Fees:</span>
                       <span data-testid="tax-amount">{formatCurrency(booking.taxAmount)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Gratuities:</span>
-                      <span data-testid="gratuity-amount">{formatCurrency(booking.gratuityAmount)}</span>
+                      <span data-testid="gratuity-amount">
+                        {formatCurrency(booking.gratuityAmount)}
+                      </span>
                     </div>
                     <Separator className="my-2" />
                     <div className="flex justify-between font-semibold">

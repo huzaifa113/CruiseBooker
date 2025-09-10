@@ -34,15 +34,10 @@ export default function SearchResults() {
     duration: searchParams.get('duration')
       ? searchParams.get('duration')!.split(',').map(Number)
       : [],
-    cruiseLines: searchParams.get('cruiseLines')
-      ? searchParams.get('cruiseLines')!.split(',')
-      : [],
-    cabinTypes: searchParams.get('cabinTypes')
-      ? searchParams.get('cabinTypes')!.split(',')
-      : [],
+    cruiseLines: searchParams.get('cruiseLines') ? searchParams.get('cruiseLines')!.split(',') : [],
+    cabinTypes: searchParams.get('cabinTypes') ? searchParams.get('cabinTypes')!.split(',') : [],
     sortBy: (searchParams.get('sortBy') as FilterState['sortBy']) || 'price',
-    sortOrder:
-      (searchParams.get('sortOrder') as FilterState['sortOrder']) || 'asc',
+    sortOrder: (searchParams.get('sortOrder') as FilterState['sortOrder']) || 'asc',
   };
 
   const [filters, setFilters] = useState<FilterState>(initialFilters);
@@ -51,33 +46,30 @@ export default function SearchResults() {
   const buildQueryParams = () => {
     const params = new URLSearchParams();
 
-    // Add search criteria from URL
-    if (searchParams.get('destination'))
-      params.append('destination', searchParams.get('destination')!);
-    if (searchParams.get('departurePort'))
-      params.append('departurePort', searchParams.get('departurePort')!);
-    if (searchParams.get('departureDate'))
-      params.append('departureDate', searchParams.get('departureDate')!);
-    if (searchParams.get('returnDate'))
-      params.append('returnDate', searchParams.get('returnDate')!);
-    if (searchParams.get('guestCount'))
-      params.append('guestCount', searchParams.get('guestCount')!);
-    if (searchParams.get('promotion'))
-      params.append('promotion', searchParams.get('promotion')!); // Add promotion parameter
+    // Only add non-empty search criteria from URL
+    const keys = [
+      'destination',
+      'departurePort',
+      'departureDate',
+      'returnDate',
+      'guestCount',
+      'promotion',
+    ];
+    keys.forEach((key) => {
+      const value = searchParams.get(key);
+      if (value && value.trim() !== '') {
+        params.append(key, value);
+      }
+    });
 
     // Add filter criteria
-    if (filters.minPrice !== 500)
-      params.append('minPrice', filters.minPrice.toString());
-    if (filters.maxPrice !== 5000)
-      params.append('maxPrice', filters.maxPrice.toString());
+    if (filters.minPrice !== 500) params.append('minPrice', filters.minPrice.toString());
+    if (filters.maxPrice !== 5000) params.append('maxPrice', filters.maxPrice.toString());
     if (filters.duration.length > 0) {
-      // Send duration as individual parameters for proper array handling
       filters.duration.forEach((d) => params.append('duration', d.toString()));
     }
-    if (filters.cruiseLines.length > 0)
-      params.append('cruiseLines', filters.cruiseLines.join(','));
-    if (filters.cabinTypes.length > 0)
-      params.append('cabinTypes', filters.cabinTypes.join(','));
+    if (filters.cruiseLines.length > 0) params.append('cruiseLines', filters.cruiseLines.join(','));
+    if (filters.cabinTypes.length > 0) params.append('cabinTypes', filters.cabinTypes.join(','));
     params.append('sortBy', filters.sortBy);
     params.append('sortOrder', filters.sortOrder);
 
@@ -156,9 +148,7 @@ export default function SearchResults() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900">
-                Cruise Search Results
-              </h1>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900">Cruise Search Results</h1>
               <div className="flex flex-wrap gap-2 mt-2 text-xs md:text-sm text-gray-600">
                 {searchCriteria.destination && (
                   <span className="bg-ocean-100 text-ocean-800 px-2 py-1 rounded-full">
@@ -167,10 +157,7 @@ export default function SearchResults() {
                 )}
                 {searchCriteria.departureDate && (
                   <span className="bg-ocean-100 text-ocean-800 px-2 py-1 rounded-full">
-                    Departs:{' '}
-                    {new Date(
-                      searchCriteria.departureDate
-                    ).toLocaleDateString()}
+                    Departs: {new Date(searchCriteria.departureDate).toLocaleDateString()}
                   </span>
                 )}
                 {searchCriteria.guestCount && (
@@ -195,19 +182,13 @@ export default function SearchResults() {
         <div className="flex flex-col lg:flex-row gap-4 md:gap-8">
           {/* Filter Sidebar */}
           <div className="lg:w-1/4">
-            <FilterSidebar
-              filters={filters}
-              onFiltersChange={handleFiltersChange}
-            />
+            <FilterSidebar filters={filters} onFiltersChange={handleFiltersChange} />
           </div>
 
           {/* Main Results */}
           <div className="lg:w-3/4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 gap-4">
-              <p
-                className="text-sm md:text-base text-gray-600"
-                data-testid="results-count"
-              >
+              <p className="text-sm md:text-base text-gray-600" data-testid="results-count">
                 {isLoading ? (
                   <Skeleton className="h-4 w-32" />
                 ) : error ? (
@@ -228,18 +209,10 @@ export default function SearchResults() {
                   <SelectContent>
                     <SelectItem value="price-asc">Lowest Price</SelectItem>
                     <SelectItem value="price-desc">Highest Price</SelectItem>
-                    <SelectItem value="departure-asc">
-                      Soonest Departure
-                    </SelectItem>
-                    <SelectItem value="departure-desc">
-                      Latest Departure
-                    </SelectItem>
-                    <SelectItem value="duration-asc">
-                      Shortest Duration
-                    </SelectItem>
-                    <SelectItem value="duration-desc">
-                      Longest Duration
-                    </SelectItem>
+                    <SelectItem value="departure-asc">Soonest Departure</SelectItem>
+                    <SelectItem value="departure-desc">Latest Departure</SelectItem>
+                    <SelectItem value="duration-asc">Shortest Duration</SelectItem>
+                    <SelectItem value="duration-desc">Longest Duration</SelectItem>
                     <SelectItem value="rating-desc">Best Rating</SelectItem>
                   </SelectContent>
                 </Select>
@@ -252,10 +225,7 @@ export default function SearchResults() {
                 {Array(5)
                   .fill(0)
                   .map((_, index) => (
-                    <div
-                      key={index}
-                      className="bg-white rounded-xl shadow-sm overflow-hidden"
-                    >
+                    <div key={index} className="bg-white rounded-xl shadow-sm overflow-hidden">
                       <div className="flex flex-col lg:flex-row">
                         <div className="lg:w-1/3">
                           <Skeleton className="w-full h-48 lg:h-full" />
@@ -295,17 +265,12 @@ export default function SearchResults() {
                 <div className="text-red-600 mb-4">
                   <i className="fas fa-exclamation-triangle text-4xl"></i>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Search Error
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Search Error</h3>
                 <p className="text-gray-600 mb-4">
-                  We encountered an error while searching for cruises. Please
-                  try again or modify your search criteria.
+                  We encountered an error while searching for cruises. Please try again or modify
+                  your search criteria.
                 </p>
-                <Button
-                  onClick={() => window.location.reload()}
-                  data-testid="button-retry-search"
-                >
+                <Button onClick={() => window.location.reload()} data-testid="button-retry-search">
                   Try Again
                 </Button>
               </div>
@@ -317,12 +282,10 @@ export default function SearchResults() {
                 <div className="text-gray-400 mb-4">
                   <i className="fas fa-search text-4xl"></i>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  No Cruises Found
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Cruises Found</h3>
                 <p className="text-gray-600 mb-4">
-                  We couldn't find any cruises matching your search criteria.
-                  Try adjusting your filters or search terms.
+                  We couldn't find any cruises matching your search criteria. Try adjusting your
+                  filters or search terms.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Button
@@ -342,10 +305,7 @@ export default function SearchResults() {
                   >
                     Clear All Filters
                   </Button>
-                  <Button
-                    onClick={() => setLocation('/')}
-                    data-testid="button-new-search"
-                  >
+                  <Button onClick={() => setLocation('/')} data-testid="button-new-search">
                     Start New Search
                   </Button>
                 </div>
@@ -382,42 +342,31 @@ export default function SearchResults() {
                         <ChevronLeft className="w-4 h-4" />
                       </Button>
 
-                      {Array.from(
-                        { length: Math.min(5, totalPages) },
-                        (_, i) => {
-                          let pageNumber;
-                          if (totalPages <= 5) {
-                            pageNumber = i + 1;
-                          } else if (currentPage <= 3) {
-                            pageNumber = i + 1;
-                          } else if (currentPage >= totalPages - 2) {
-                            pageNumber = totalPages - 4 + i;
-                          } else {
-                            pageNumber = currentPage - 2 + i;
-                          }
-
-                          return (
-                            <Button
-                              key={pageNumber}
-                              variant={
-                                currentPage === pageNumber
-                                  ? 'default'
-                                  : 'outline'
-                              }
-                              size="sm"
-                              onClick={() => handlePageChange(pageNumber)}
-                              className={
-                                currentPage === pageNumber
-                                  ? 'bg-ocean-600 text-white'
-                                  : ''
-                              }
-                              data-testid={`button-page-${pageNumber}`}
-                            >
-                              {pageNumber}
-                            </Button>
-                          );
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNumber;
+                        if (totalPages <= 5) {
+                          pageNumber = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNumber = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNumber = totalPages - 4 + i;
+                        } else {
+                          pageNumber = currentPage - 2 + i;
                         }
-                      )}
+
+                        return (
+                          <Button
+                            key={pageNumber}
+                            variant={currentPage === pageNumber ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => handlePageChange(pageNumber)}
+                            className={currentPage === pageNumber ? 'bg-ocean-600 text-white' : ''}
+                            data-testid={`button-page-${pageNumber}`}
+                          >
+                            {pageNumber}
+                          </Button>
+                        );
+                      })}
 
                       {totalPages > 5 && currentPage < totalPages - 2 && (
                         <>

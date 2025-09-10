@@ -1,22 +1,35 @@
-import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
-import { CheckCircle, Download, Mail, Calendar, MapPin, Ship, Users, CreditCard } from "lucide-react";
-import Header from "@/components/header";
-import Footer from "@/components/footer";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
+import {
+  CheckCircle,
+  Download,
+  Mail,
+  Calendar,
+  MapPin,
+  Ship,
+  Users,
+  CreditCard,
+} from 'lucide-react';
+import Header from '@/components/header';
+import Footer from '@/components/footer';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ConfirmationSuccess() {
   const [location] = useLocation();
   const bookingId = location.split('/')[2];
 
   // Fetch booking details by booking ID
-  const { data: booking, isLoading, error } = useQuery({
-    queryKey: ["/api/bookings", bookingId, "details"],
-    enabled: !!bookingId
+  const {
+    data: booking,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['/api/bookings', bookingId, 'details'],
+    enabled: !!bookingId,
   });
 
   const formatCurrency = (amount: number, currency: string) => {
@@ -30,7 +43,7 @@ export default function ConfirmationSuccess() {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
@@ -39,10 +52,10 @@ export default function ConfirmationSuccess() {
       const response = await fetch(`/api/bookings/${bookingId}/invoice-pdf`, {
         method: 'GET',
         headers: {
-          'Accept': 'application/pdf',
+          Accept: 'application/pdf',
         },
       });
-      
+
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -54,23 +67,23 @@ export default function ConfirmationSuccess() {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-        
-        console.log("Invoice downloaded successfully");
+
+        console.log('Invoice downloaded successfully');
       } else {
         // Fallback to print method if PDF endpoint not available
         const invoiceResponse = await fetch(`/api/bookings/${bookingId}/invoice`);
         if (invoiceResponse.ok) {
           const invoiceData = await invoiceResponse.json();
-          
+
           // Generate print-ready invoice HTML
           const invoiceHtml = generateInvoiceHTML(invoiceData);
-          
+
           // Create a new window for printing/PDF save
           const printWindow = window.open('', '_blank');
           if (printWindow) {
             printWindow.document.write(invoiceHtml);
             printWindow.document.close();
-            
+
             // Wait for content to load then trigger print dialog
             printWindow.onload = () => {
               setTimeout(() => {
@@ -84,8 +97,8 @@ export default function ConfirmationSuccess() {
         }
       }
     } catch (error) {
-      console.error("Error downloading invoice:", error);
-      alert("Failed to download invoice. Please try again later.");
+      console.error('Error downloading invoice:', error);
+      alert('Failed to download invoice. Please try again later.');
     }
   };
 
@@ -95,19 +108,21 @@ export default function ConfirmationSuccess() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        }
+        },
       });
-      
+
       if (response.ok) {
         const result = await response.json();
-        console.log("Email confirmation sent:", result);
-        alert(`Confirmation email sent successfully to ${result.sentTo || booking?.primaryGuestEmail}!`);
+        console.log('Email confirmation sent:', result);
+        alert(
+          `Confirmation email sent successfully to ${result.sentTo || booking?.primaryGuestEmail}!`
+        );
       } else {
         const errorResult = await response.json();
         throw new Error(errorResult.message || 'Failed to send email');
       }
     } catch (error) {
-      console.error("Error sending email:", error);
+      console.error('Error sending email:', error);
       alert(`Failed to send email confirmation: ${error.message}`);
     }
   };
@@ -125,13 +140,13 @@ export default function ConfirmationSuccess() {
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
-        
-        console.log("Calendar file downloaded successfully");
+
+        console.log('Calendar file downloaded successfully');
       } else {
         throw new Error('Failed to generate calendar');
       }
     } catch (error) {
-      console.error("Error downloading calendar:", error);
+      console.error('Error downloading calendar:', error);
     }
   };
 
@@ -207,13 +222,21 @@ export default function ConfirmationSuccess() {
                 <td>1</td>
                 <td>${formatCurrency(parseFloat(booking.totalAmount) - parseFloat(booking.taxAmount) - parseFloat(booking.gratuityAmount), booking.currency)}</td>
             </tr>
-            ${booking.extras && booking.extras.length > 0 ? booking.extras.map((extra: any) => `
+            ${
+              booking.extras && booking.extras.length > 0
+                ? booking.extras
+                    .map(
+                      (extra: any) => `
             <tr>
                 <td>${extra.name}</td>
                 <td>${extra.quantity}</td>
                 <td>${formatCurrency(extra.price * extra.quantity, booking.currency)}</td>
             </tr>
-            `).join('') : ''}
+            `
+                    )
+                    .join('')
+                : ''
+            }
             <tr>
                 <td>Taxes & Port Fees</td>
                 <td>1</td>
@@ -252,12 +275,14 @@ export default function ConfirmationSuccess() {
             </div>
             <Card>
               <CardContent className="p-8 space-y-6">
-                {Array(6).fill(0).map((_, i) => (
-                  <div key={i} className="flex justify-between">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-4 w-24" />
-                  </div>
-                ))}
+                {Array(6)
+                  .fill(0)
+                  .map((_, i) => (
+                    <div key={i} className="flex justify-between">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                  ))}
               </CardContent>
             </Card>
           </div>
@@ -279,14 +304,18 @@ export default function ConfirmationSuccess() {
               </div>
               <h1 className="text-3xl font-bold text-gray-900">Booking Not Found</h1>
               <p className="text-gray-600 max-w-md mx-auto">
-                We couldn't find the booking details. If you just completed a payment, please wait a moment and refresh the page.
+                We couldn't find the booking details. If you just completed a payment, please wait a
+                moment and refresh the page.
               </p>
             </div>
             <div className="space-y-4">
-              <Button onClick={() => window.location.reload()} className="bg-ocean-600 hover:bg-ocean-700">
+              <Button
+                onClick={() => window.location.reload()}
+                className="bg-ocean-600 hover:bg-ocean-700"
+              >
                 Refresh Page
               </Button>
-              <Button variant="outline" onClick={() => window.location.href = "/"}>
+              <Button variant="outline" onClick={() => (window.location.href = '/')}>
                 Return Home
               </Button>
             </div>
@@ -303,7 +332,7 @@ export default function ConfirmationSuccess() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="space-y-8">
           {/* Success Header */}
@@ -313,7 +342,8 @@ export default function ConfirmationSuccess() {
             </div>
             <h1 className="text-3xl font-bold text-gray-900">Booking Confirmed!</h1>
             <p className="text-gray-600 max-w-md mx-auto">
-              Thank you for your booking. Your cruise reservation has been confirmed and you'll receive a confirmation email shortly.
+              Thank you for your booking. Your cruise reservation has been confirmed and you'll
+              receive a confirmation email shortly.
             </p>
           </div>
 
@@ -323,7 +353,8 @@ export default function ConfirmationSuccess() {
               <CardTitle className="flex items-center justify-between">
                 <span>Booking Details</span>
                 <Badge className="bg-green-100 text-green-800 border-green-200">
-                  {booking?.paymentStatus?.charAt(0).toUpperCase() + booking?.paymentStatus?.slice(1)}
+                  {booking?.paymentStatus?.charAt(0).toUpperCase() +
+                    booking?.paymentStatus?.slice(1)}
                 </Badge>
               </CardTitle>
             </CardHeader>
@@ -342,10 +373,12 @@ export default function ConfirmationSuccess() {
                   <Ship className="w-5 h-5 text-gray-400 mt-1" />
                   <div>
                     <div className="font-semibold">{cruise?.name}</div>
-                    <div className="text-gray-600">{cruise?.ship} • {cruise?.cruiseLine}</div>
+                    <div className="text-gray-600">
+                      {cruise?.ship} • {cruise?.cruiseLine}
+                    </div>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start space-x-4">
                   <MapPin className="w-5 h-5 text-gray-400 mt-1" />
                   <div>
@@ -359,11 +392,12 @@ export default function ConfirmationSuccess() {
                   <div>
                     <div className="font-semibold">Departure</div>
                     <div className="text-gray-600">
-                      {cruise?.departureDate && formatDate(cruise.departureDate)} from {cruise?.departurePort}
+                      {cruise?.departureDate && formatDate(cruise.departureDate)} from{' '}
+                      {cruise?.departurePort}
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start space-x-4">
                   <Users className="w-5 h-5 text-gray-400 mt-1" />
                   <div>
@@ -395,44 +429,68 @@ export default function ConfirmationSuccess() {
                   <CreditCard className="w-5 h-5 text-gray-400" />
                   <span className="font-semibold">Payment Summary</span>
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Cruise Fare</span>
-                    <span>{formatCurrency(
-                      parseFloat(booking?.totalAmount || '0') - 
-                      parseFloat(booking?.taxAmount || '0') - 
-                      parseFloat(booking?.gratuityAmount || '0'), 
-                      booking?.currency || 'USD'
-                    )}</span>
+                    <span>
+                      {formatCurrency(
+                        parseFloat(booking?.totalAmount || '0') -
+                          parseFloat(booking?.taxAmount || '0') -
+                          parseFloat(booking?.gratuityAmount || '0'),
+                        booking?.currency || 'USD'
+                      )}
+                    </span>
                   </div>
-                  
+
                   {booking?.extras && booking.extras.length > 0 && (
                     <>
                       {booking.extras.map((extra: any, index: number) => (
                         <div key={index} className="flex justify-between text-sm">
-                          <span>{extra.name} (×{extra.quantity})</span>
-                          <span>{formatCurrency(extra.price * extra.quantity, booking?.currency || 'USD')}</span>
+                          <span>
+                            {extra.name} (×{extra.quantity})
+                          </span>
+                          <span>
+                            {formatCurrency(
+                              extra.price * extra.quantity,
+                              booking?.currency || 'USD'
+                            )}
+                          </span>
                         </div>
                       ))}
                     </>
                   )}
-                  
+
                   <div className="flex justify-between text-sm">
                     <span>Taxes & Fees</span>
-                    <span>{formatCurrency(parseFloat(booking?.taxAmount || '0'), booking?.currency || 'USD')}</span>
+                    <span>
+                      {formatCurrency(
+                        parseFloat(booking?.taxAmount || '0'),
+                        booking?.currency || 'USD'
+                      )}
+                    </span>
                   </div>
-                  
+
                   <div className="flex justify-between text-sm">
                     <span>Gratuities</span>
-                    <span>{formatCurrency(parseFloat(booking?.gratuityAmount || '0'), booking?.currency || 'USD')}</span>
+                    <span>
+                      {formatCurrency(
+                        parseFloat(booking?.gratuityAmount || '0'),
+                        booking?.currency || 'USD'
+                      )}
+                    </span>
                   </div>
-                  
+
                   <Separator />
-                  
+
                   <div className="flex justify-between font-semibold text-lg">
                     <span>Total Paid</span>
-                    <span>{formatCurrency(parseFloat(booking?.totalAmount || '0'), booking?.currency || 'USD')}</span>
+                    <span>
+                      {formatCurrency(
+                        parseFloat(booking?.totalAmount || '0'),
+                        booking?.currency || 'USD'
+                      )}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -441,17 +499,29 @@ export default function ConfirmationSuccess() {
 
           {/* Action Buttons */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button variant="outline" onClick={handleDownloadInvoice} className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              onClick={handleDownloadInvoice}
+              className="flex items-center space-x-2"
+            >
               <Download className="w-4 h-4" />
               <span>Download Invoice</span>
             </Button>
-            
-            <Button variant="outline" onClick={handleEmailConfirmation} className="flex items-center space-x-2">
+
+            <Button
+              variant="outline"
+              onClick={handleEmailConfirmation}
+              className="flex items-center space-x-2"
+            >
               <Mail className="w-4 h-4" />
               <span>Email Confirmation</span>
             </Button>
-            
-            <Button variant="outline" onClick={handleAddToCalendar} className="flex items-center space-x-2">
+
+            <Button
+              variant="outline"
+              onClick={handleAddToCalendar}
+              className="flex items-center space-x-2"
+            >
               <Calendar className="w-4 h-4" />
               <span>Add to Calendar</span>
             </Button>
@@ -472,11 +542,12 @@ export default function ConfirmationSuccess() {
                   <li>Arrive at the port 2-3 hours before departure time</li>
                 </ul>
               </div>
-              
+
               <div>
                 <div className="font-semibold mb-2">Need Help?</div>
                 <p className="text-gray-600">
-                  Contact our customer service at support@phoenixvacationgroup.com or call 1-800-PHOENIX for assistance with your booking.
+                  Contact our customer service at support@phoenixvacationgroup.com or call
+                  1-800-PHOENIX for assistance with your booking.
                 </p>
               </div>
             </CardContent>
@@ -484,18 +555,21 @@ export default function ConfirmationSuccess() {
 
           {/* Navigation */}
           <div className="text-center space-y-4">
-            <Button onClick={() => window.location.href = "/my-reservations"} className="bg-ocean-600 hover:bg-ocean-700">
+            <Button
+              onClick={() => (window.location.href = '/my-reservations')}
+              className="bg-ocean-600 hover:bg-ocean-700"
+            >
               View My Reservations
             </Button>
             <div>
-              <Button variant="link" onClick={() => window.location.href = "/"}>
+              <Button variant="link" onClick={() => (window.location.href = '/')}>
                 Return to Home Page
               </Button>
             </div>
           </div>
         </div>
       </div>
-      
+
       <Footer />
     </div>
   );

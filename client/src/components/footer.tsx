@@ -1,5 +1,5 @@
-import { Ship, Facebook, Twitter, Instagram, Youtube, Phone, Mail, MapPin } from "lucide-react";
-import { Link } from "wouter";
+import { Ship, Facebook, Twitter, Instagram, Youtube, Phone, Mail, MapPin } from 'lucide-react';
+import { Link } from 'wouter';
 
 export default function Footer() {
   return (
@@ -15,35 +15,36 @@ export default function Footer() {
               <h3 className="text-white font-bold text-lg">Phoenix Vacation Group</h3>
             </div>
             <p className="text-sm text-gray-400 mb-4">
-              Creating unforgettable cruise experiences for over 25 years. Your luxury vacation starts here.
+              Creating unforgettable cruise experiences for over 25 years. Your luxury vacation
+              starts here.
             </p>
             <div className="flex space-x-4">
-              <a 
-                href="#" 
+              <a
+                href="#"
                 className="text-gray-400 hover:text-white transition-colors"
                 data-testid="link-facebook"
                 aria-label="Facebook"
               >
                 <Facebook className="w-5 h-5" />
               </a>
-              <a 
-                href="#" 
+              <a
+                href="#"
                 className="text-gray-400 hover:text-white transition-colors"
                 data-testid="link-twitter"
                 aria-label="Twitter"
               >
                 <Twitter className="w-5 h-5" />
               </a>
-              <a 
-                href="#" 
+              <a
+                href="#"
                 className="text-gray-400 hover:text-white transition-colors"
                 data-testid="link-instagram"
                 aria-label="Instagram"
               >
                 <Instagram className="w-5 h-5" />
               </a>
-              <a 
-                href="#" 
+              <a
+                href="#"
                 className="text-gray-400 hover:text-white transition-colors"
                 data-testid="link-youtube"
                 aria-label="YouTube"
@@ -52,28 +53,44 @@ export default function Footer() {
               </a>
             </div>
           </div>
-          
+
           {/* Cruise Destinations */}
           <div>
             <h4 className="text-white font-semibold mb-4">Cruise Destinations</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="#" className="hover:text-white transition-colors" data-testid="link-caribbean">
+                <a
+                  href="#"
+                  className="hover:text-white transition-colors"
+                  data-testid="link-caribbean"
+                >
                   Caribbean
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors" data-testid="link-mediterranean">
+                <a
+                  href="#"
+                  className="hover:text-white transition-colors"
+                  data-testid="link-mediterranean"
+                >
                   Mediterranean
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors" data-testid="link-alaska">
+                <a
+                  href="#"
+                  className="hover:text-white transition-colors"
+                  data-testid="link-alaska"
+                >
                   Alaska
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors" data-testid="link-northern-europe">
+                <a
+                  href="#"
+                  className="hover:text-white transition-colors"
+                  data-testid="link-northern-europe"
+                >
                   Northern Europe
                 </a>
               </li>
@@ -84,18 +101,26 @@ export default function Footer() {
               </li>
             </ul>
           </div>
-          
+
           {/* Support */}
           <div>
             <h4 className="text-white font-semibold mb-4">Support</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/reservations" className="hover:text-white transition-colors" data-testid="link-my-reservations">
+                <Link
+                  href="/reservations"
+                  className="hover:text-white transition-colors"
+                  data-testid="link-my-reservations"
+                >
                   My Reservations
                 </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors" data-testid="link-contact">
+                <a
+                  href="#"
+                  className="hover:text-white transition-colors"
+                  data-testid="link-contact"
+                >
                   Contact Us
                 </a>
               </li>
@@ -105,18 +130,26 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors" data-testid="link-travel-insurance">
+                <a
+                  href="#"
+                  className="hover:text-white transition-colors"
+                  data-testid="link-travel-insurance"
+                >
                   Travel Insurance
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors" data-testid="link-special-needs">
+                <a
+                  href="#"
+                  className="hover:text-white transition-colors"
+                  data-testid="link-special-needs"
+                >
                   Special Needs
                 </a>
               </li>
             </ul>
           </div>
-          
+
           {/* Contact Info */}
           <div>
             <h4 className="text-white font-semibold mb-4">Contact Info</h4>
@@ -132,27 +165,40 @@ export default function Footer() {
               <div className="flex items-start">
                 <MapPin className="w-4 h-4 mr-3 text-ocean-400 flex-shrink-0 mt-1" />
                 <span data-testid="contact-address">
-                  123 Silom Road<br />
+                  123 Silom Road
+                  <br />
                   Bangkok, Thailand 10500
                 </span>
               </div>
             </div>
           </div>
         </div>
-        
+
         {/* Footer Bottom */}
         <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-gray-400 mb-4 md:mb-0" data-testid="copyright">
             © 2024 Phoenix Vacation Group. All rights reserved.
           </p>
           <div className="flex space-x-6 text-sm">
-            <a href="#" className="text-gray-400 hover:text-white transition-colors" data-testid="link-privacy">
+            <a
+              href="#"
+              className="text-gray-400 hover:text-white transition-colors"
+              data-testid="link-privacy"
+            >
               Privacy Policy
             </a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors" data-testid="link-terms">
+            <a
+              href="#"
+              className="text-gray-400 hover:text-white transition-colors"
+              data-testid="link-terms"
+            >
               Terms of Service
             </a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors" data-testid="link-sitemap">
+            <a
+              href="#"
+              className="text-gray-400 hover:text-white transition-colors"
+              data-testid="link-sitemap"
+            >
               Sitemap
             </a>
           </div>

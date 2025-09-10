@@ -9,7 +9,11 @@ interface StripePaymentFormProps {
   onError: (error: string) => void;
 }
 
-export default function StripePaymentForm({ clientSecret, onSuccess, onError }: StripePaymentFormProps) {
+export default function StripePaymentForm({
+  clientSecret,
+  onSuccess,
+  onError,
+}: StripePaymentFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const { toast } = useToast();
@@ -37,23 +41,23 @@ export default function StripePaymentForm({ clientSecret, onSuccess, onError }: 
       if (error) {
         onError(error.message || 'Payment failed');
         toast({
-          title: "Payment Failed",
+          title: 'Payment Failed',
           description: error.message || 'Payment failed. Please try again.',
-          variant: "destructive"
+          variant: 'destructive',
         });
       } else {
         onSuccess();
         toast({
-          title: "Payment Successful",
-          description: "Your booking has been confirmed!",
+          title: 'Payment Successful',
+          description: 'Your booking has been confirmed!',
         });
       }
     } catch (err: any) {
       onError(err.message);
       toast({
-        title: "Payment Error",
+        title: 'Payment Error',
         description: err.message,
-        variant: "destructive"
+        variant: 'destructive',
       });
     } finally {
       setIsProcessing(false);
@@ -62,14 +66,14 @@ export default function StripePaymentForm({ clientSecret, onSuccess, onError }: 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <PaymentElement 
+      <PaymentElement
         options={{
-          layout: 'tabs'
+          layout: 'tabs',
         }}
       />
-      <Button 
-        type="submit" 
-        className="w-full" 
+      <Button
+        type="submit"
+        className="w-full"
         disabled={!stripe || isProcessing}
         data-testid="button-confirm-payment"
       >

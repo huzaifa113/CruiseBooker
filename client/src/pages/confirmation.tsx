@@ -1,46 +1,52 @@
-import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
-import { CheckCircle, Download, Mail, Calendar } from "lucide-react";
-import Header from "@/components/header";
-import Footer from "@/components/footer";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
+import { CheckCircle, Download, Mail, Calendar } from 'lucide-react';
+import Header from '@/components/header';
+import Footer from '@/components/footer';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Confirmation() {
   const [location, setLocation] = useLocation();
   const confirmationNumber = location.split('/')[2];
 
   // Fetch booking details by confirmation number
-  const { data: booking, isLoading, error } = useQuery({
-    queryKey: ["/api/bookings", "lookup", confirmationNumber],
+  const {
+    data: booking,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['/api/bookings', 'lookup', confirmationNumber],
     queryFn: async () => {
       // For demonstration, we'll need to extract last name from somewhere
       // In a real app, this would be handled differently
-      const response = await fetch(`/api/bookings/lookup?confirmationNumber=${confirmationNumber}&lastName=Guest`);
+      const response = await fetch(
+        `/api/bookings/lookup?confirmationNumber=${confirmationNumber}&lastName=Guest`
+      );
       if (!response.ok) {
-        throw new Error("Failed to fetch booking confirmation");
+        throw new Error('Failed to fetch booking confirmation');
       }
       return response.json();
     },
-    enabled: !!confirmationNumber
+    enabled: !!confirmationNumber,
   });
 
   const handleDownloadInvoice = () => {
     // TODO: Implement PDF invoice download
-    console.log("Download invoice functionality to be implemented");
+    console.log('Download invoice functionality to be implemented');
   };
 
   const handleEmailConfirmation = () => {
     // TODO: Implement email confirmation resend
-    console.log("Email confirmation functionality to be implemented");
+    console.log('Email confirmation functionality to be implemented');
   };
 
   const handleAddToCalendar = () => {
     // TODO: Implement add to calendar functionality
-    console.log("Add to calendar functionality to be implemented");
+    console.log('Add to calendar functionality to be implemented');
   };
 
   if (isLoading) {
@@ -56,12 +62,14 @@ export default function Confirmation() {
             </div>
             <Card>
               <CardContent className="p-8 space-y-6">
-                {Array(6).fill(0).map((_, i) => (
-                  <div key={i} className="flex justify-between">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-4 w-24" />
-                  </div>
-                ))}
+                {Array(6)
+                  .fill(0)
+                  .map((_, i) => (
+                    <div key={i} className="flex justify-between">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                  ))}
               </CardContent>
             </Card>
           </div>
@@ -80,12 +88,10 @@ export default function Confirmation() {
             <div className="text-red-600 mb-4">
               <i className="fas fa-exclamation-triangle text-4xl"></i>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              Confirmation Not Found
-            </h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Confirmation Not Found</h1>
             <p className="text-gray-600 mb-8">
-              We couldn't find a booking with confirmation number {confirmationNumber}.
-              Please check your confirmation number and try again.
+              We couldn't find a booking with confirmation number {confirmationNumber}. Please check
+              your confirmation number and try again.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
@@ -95,10 +101,7 @@ export default function Confirmation() {
               >
                 Look Up Reservation
               </Button>
-              <Button
-                onClick={() => setLocation('/')}
-                data-testid="button-home"
-              >
+              <Button onClick={() => setLocation('/')} data-testid="button-home">
                 Return Home
               </Button>
             </div>
@@ -121,23 +124,21 @@ export default function Confirmation() {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Success Header */}
         <div className="text-center mb-12">
           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle className="w-10 h-10 text-green-600" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Booking Confirmed!
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Booking Confirmed!</h1>
           <p className="text-xl text-gray-600 mb-2">
             Thank you for choosing Phoenix Vacation Group
           </p>
@@ -153,7 +154,7 @@ export default function Confirmation() {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 Booking Details
-                <Badge 
+                <Badge
                   variant={booking.paymentStatus === 'paid' ? 'default' : 'secondary'}
                   className={booking.paymentStatus === 'paid' ? 'bg-green-600' : ''}
                   data-testid="payment-status"
@@ -169,34 +170,36 @@ export default function Confirmation() {
                   {booking.confirmationNumber}
                 </span>
               </div>
-              
+
               <div className="flex justify-between">
                 <span className="text-gray-600">Booking Date:</span>
                 <span data-testid="booking-date">
                   {new Date(booking.createdAt).toLocaleDateString()}
                 </span>
               </div>
-              
+
               <div className="flex justify-between">
                 <span className="text-gray-600">Number of Guests:</span>
                 <span data-testid="guest-count">{booking.guestCount}</span>
               </div>
-              
+
               {booking.diningTime && (
                 <div className="flex justify-between">
                   <span className="text-gray-600">Dining Time:</span>
                   <span data-testid="dining-time">{booking.diningTime}</span>
                 </div>
               )}
-              
+
               <div className="flex justify-between">
                 <span className="text-gray-600">Primary Guest:</span>
                 <span data-testid="primary-guest">{booking.primaryGuestName}</span>
               </div>
-              
+
               <div className="flex justify-between">
                 <span className="text-gray-600">Email:</span>
-                <span className="text-sm" data-testid="guest-email">{booking.primaryGuestEmail}</span>
+                <span className="text-sm" data-testid="guest-email">
+                  {booking.primaryGuestEmail}
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -215,24 +218,24 @@ export default function Confirmation() {
                   Harmony of the Seas {/* This would come from cruise lookup */}
                 </p>
               </div>
-              
+
               <div className="flex justify-between">
                 <span className="text-gray-600">Departure:</span>
                 <span data-testid="departure-info">
                   Miami, FL - March 15, 2024 {/* This would come from cruise lookup */}
                 </span>
               </div>
-              
+
               <div className="flex justify-between">
                 <span className="text-gray-600">Duration:</span>
                 <span data-testid="duration">7 Days / 6 Nights</span>
               </div>
-              
+
               <div className="flex justify-between">
                 <span className="text-gray-600">Destination:</span>
                 <span data-testid="destination">Caribbean</span>
               </div>
-              
+
               <div className="flex justify-between">
                 <span className="text-gray-600">Cabin Type:</span>
                 <span data-testid="cabin-type">Balcony</span>
@@ -250,10 +253,16 @@ export default function Confirmation() {
             <div className="flex justify-between">
               <span>Cruise Fare:</span>
               <span data-testid="cruise-fare">
-                {formatCurrency((parseFloat(booking.totalAmount) - parseFloat(booking.taxAmount) - parseFloat(booking.gratuityAmount)).toString())}
+                {formatCurrency(
+                  (
+                    parseFloat(booking.totalAmount) -
+                    parseFloat(booking.taxAmount) -
+                    parseFloat(booking.gratuityAmount)
+                  ).toString()
+                )}
               </span>
             </div>
-            
+
             {booking.extras && booking.extras.length > 0 && (
               <>
                 <Separator />
@@ -261,7 +270,9 @@ export default function Confirmation() {
                   <div className="font-medium">Extras:</div>
                   {booking.extras.map((extra: any, index: number) => (
                     <div key={index} className="flex justify-between text-sm">
-                      <span>{extra.name} (x{extra.quantity})</span>
+                      <span>
+                        {extra.name} (x{extra.quantity})
+                      </span>
                       <span data-testid={`extra-${index}`}>
                         {formatCurrency((extra.price * extra.quantity).toString())}
                       </span>
@@ -270,7 +281,7 @@ export default function Confirmation() {
                 </div>
               </>
             )}
-            
+
             <Separator />
             <div className="flex justify-between">
               <span>Taxes & Fees:</span>
@@ -337,9 +348,7 @@ export default function Confirmation() {
 
         {/* Support Information */}
         <div className="mt-8 text-center">
-          <p className="text-gray-600 mb-4">
-            Need help or have questions about your booking?
-          </p>
+          <p className="text-gray-600 mb-4">Need help or have questions about your booking?</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <div className="flex items-center justify-center text-sm text-gray-600">
               <i className="fas fa-phone mr-2 text-ocean-600"></i>

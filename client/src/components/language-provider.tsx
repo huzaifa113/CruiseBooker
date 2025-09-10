@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { Language, useTranslation } from "@/lib/language";
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { Language, useTranslation } from '@/lib/language';
 
 interface LanguageContextType {
   language: Language;
@@ -17,7 +17,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   const [language, setLanguage] = useState<Language>(() => {
     // Get language from localStorage or default to 'EN'
     const saved = localStorage.getItem('language');
-    return (saved === 'TH' || saved === 'EN') ? saved as Language : 'EN';
+    return saved === 'TH' || saved === 'EN' ? (saved as Language) : 'EN';
   });
 
   const t = useTranslation(language);

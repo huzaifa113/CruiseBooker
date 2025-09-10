@@ -1,29 +1,31 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
-import { useDeals } from "@/lib/deals-context";
-import Header from "@/components/header";
-import Footer from "@/components/footer";
-import BookingProgress from "@/components/booking-progress";
-import CabinSelection from "@/components/cabin-selection";
-import DiningSelection from "@/components/dining-selection";
-import ExtrasSelection from "@/components/extras-selection";
-import GuestDetails from "@/components/guest-details";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { X, Tag } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { useCruiseId } from "@/hooks/use-route-params";
-import type { CabinType, Extra } from "@shared/schema";
-import type { BookingFormData, BookingExtra } from "@/lib/types";
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
+import { useDeals } from '@/lib/deals-context';
+import { useLanguageContext } from '@/components/language-provider';
+import Header from '@/components/header';
+import Footer from '@/components/footer';
+import BookingProgress from '@/components/booking-progress';
+import CabinSelection from '@/components/cabin-selection';
+import DiningSelection from '@/components/dining-selection';
+import ExtrasSelection from '@/components/extras-selection';
+import GuestDetails from '@/components/guest-details';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import { X, Tag } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { useCruiseId } from '@/hooks/use-route-params';
+import type { CabinType, Extra } from '@shared/schema';
+import type { BookingFormData, BookingExtra } from '@/lib/types';
 
 export default function Booking() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { t } = useLanguageContext();
   const cruiseId = useCruiseId();
   const { selectedDeal, getDealText, clearSelectedDeal } = useDeals();
-  
+
   const [currentStep, setCurrentStep] = useState(1);
   const [bookingData, setBookingData] = useState<Partial<BookingFormData>>({
     cruiseId: cruiseId || undefined,
@@ -31,47 +33,56 @@ export default function Booking() {
     adultCount: 2,
     childCount: 0,
     seniorCount: 0,
-    extras: []
+    extras: [],
   });
+  const [pendingProceedToCheckout, setPendingProceedToCheckout] = useState(false);
 
-  const steps = ["Cabin", "Dining", "Extras", "Guests"];
+  const steps = [
+    t('bookingSteps.selectCabin'),
+    t('bookingSteps.selectDining'),
+    t('bookingSteps.addExtras'),
+    t('bookingSteps.guestDetails'),
+  ];
 
   // Check for edit mode and pre-populate data
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const isEditMode = urlParams.get('edit') === 'true';
-    
+
     if (isEditMode) {
       const bookingId = urlParams.get('bookingId');
       const cabinType = urlParams.get('cabinType');
       const guestCount = urlParams.get('guestCount');
       const diningTime = urlParams.get('diningTime');
       const extrasParam = urlParams.get('extras');
-      
-      
+
       // Pre-populate booking data with existing values
-      setBookingData(prev => ({
+      setBookingData((prev) => ({
         ...prev,
         cabinTypeId: cabinType || undefined,
         guestCount: guestCount ? parseInt(guestCount) : 2,
         adultCount: guestCount ? parseInt(guestCount) : 2,
         diningTime: diningTime || undefined,
-        extras: extrasParam ? JSON.parse(extrasParam) : []
+        extras: extrasParam ? JSON.parse(extrasParam) : [],
       }));
-      
+
       toast({
-        title: "Edit Mode Active",
-        description: "Your existing booking details have been loaded for editing.",
+        title: 'Edit Mode Active',
+        description: 'Your existing booking details have been loaded for editing.',
       });
     }
   }, [toast]);
 
   // Fetch cruise details
-  const { data: cruise, isLoading: cruiseLoading, error: cruiseError } = useQuery({
-    queryKey: ["/api/cruises", cruiseId],
+  const {
+    data: cruise,
+    isLoading: cruiseLoading,
+    error: cruiseError,
+  } = useQuery({
+    queryKey: ['/api/cruises', cruiseId],
     queryFn: async () => {
       const response = await fetch(`/api/cruises/${cruiseId}`, {
-        credentials: "include"
+        credentials: 'include',
       });
       if (!response.ok) {
         const errorText = await response.text();
@@ -81,15 +92,19 @@ export default function Booking() {
     },
     enabled: !!cruiseId,
     retry: 3,
-    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000)
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   // Fetch cabin types
-  const { data: cabinTypes, isLoading: cabinsLoading, error: cabinsError } = useQuery({
-    queryKey: ["/api/cruises", cruiseId, "cabins"],
+  const {
+    data: cabinTypes,
+    isLoading: cabinsLoading,
+    error: cabinsError,
+  } = useQuery({
+    queryKey: ['/api/cruises', cruiseId, 'cabins'],
     queryFn: async () => {
       const response = await fetch(`/api/cruises/${cruiseId}/cabins`, {
-        credentials: "include"
+        credentials: 'include',
       });
       if (!response.ok) {
         const errorText = await response.text();
@@ -101,15 +116,19 @@ export default function Booking() {
     },
     enabled: !!cruiseId,
     retry: 3,
-    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000)
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   // Fetch extras
-  const { data: extras, isLoading: extrasLoading, error: extrasError } = useQuery({
-    queryKey: ["/api/extras"],
+  const {
+    data: extras,
+    isLoading: extrasLoading,
+    error: extrasError,
+  } = useQuery({
+    queryKey: ['/api/extras'],
     queryFn: async () => {
-      const response = await fetch("/api/extras", {
-        credentials: "include"
+      const response = await fetch('/api/extras', {
+        credentials: 'include',
       });
       if (!response.ok) {
         const errorText = await response.text();
@@ -118,49 +137,57 @@ export default function Booking() {
       return response.json();
     },
     retry: 3,
-    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000)
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   const handleCabinSelect = (cabinId: string) => {
-    setBookingData(prev => ({ ...prev, cabinTypeId: cabinId }));
+    setBookingData((prev) => ({ ...prev, cabinTypeId: cabinId }));
   };
 
   const handleDiningTimeSelect = (time: string) => {
-    setBookingData(prev => ({ ...prev, diningTime: time }));
+    setBookingData((prev) => ({ ...prev, diningTime: time }));
   };
 
   const handleExtrasChange = (selectedExtras: BookingExtra[]) => {
-    setBookingData(prev => ({ ...prev, extras: selectedExtras }));
+    setBookingData((prev) => ({ ...prev, extras: selectedExtras }));
   };
 
   const handleGuestCountChange = (adults: number, children: number, seniors: number) => {
-    setBookingData(prev => ({
+    setBookingData((prev) => ({
       ...prev,
       adultCount: adults,
       childCount: children,
       seniorCount: seniors,
-      guestCount: adults + children + seniors
+      guestCount: adults + children + seniors,
     }));
   };
 
   const handleGuestDetailsChange = (guestDetails: any) => {
-    setBookingData(prev => ({ ...prev, ...guestDetails }));
+    setBookingData((prev) => ({ ...prev, ...guestDetails }));
   };
+
+  // Handle proceeding to checkout after state updates
+  useEffect(() => {
+    if (pendingProceedToCheckout) {
+      setPendingProceedToCheckout(false);
+      proceedToCheckout();
+    }
+  }, [bookingData, pendingProceedToCheckout]);
 
   const handleStepContinue = () => {
     if (currentStep < steps.length) {
-      setCurrentStep(prev => prev + 1);
+      setCurrentStep((prev) => prev + 1);
       // Scroll to top of page on step change
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      // Proceed to checkout/payment
-      proceedToCheckout();
+      // For guest details step, set flag to proceed after state update
+      setPendingProceedToCheckout(true);
     }
   };
 
   const handleStepBack = () => {
     if (currentStep > 1) {
-      setCurrentStep(prev => prev - 1);
+      setCurrentStep((prev) => prev - 1);
       // Scroll to top of page on step change
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
@@ -174,9 +201,9 @@ export default function Booking() {
       // Validate required fields
       if (!bookingData.cabinTypeId) {
         toast({
-          title: "Cabin Required",
-          description: "Please select a cabin before proceeding.",
-          variant: "destructive"
+          title: 'Cabin Required',
+          description: 'Please select a cabin before proceeding.',
+          variant: 'destructive',
         });
         setCurrentStep(1);
         return;
@@ -184,22 +211,28 @@ export default function Booking() {
 
       if (!bookingData.primaryGuestName || !bookingData.primaryGuestEmail) {
         toast({
-          title: "Guest Details Required",
-          description: "Please complete all required guest information.",
-          variant: "destructive"
+          title: 'Guest Details Required',
+          description: 'Please complete all required guest information.',
+          variant: 'destructive',
         });
         setCurrentStep(4);
         return;
       }
 
       // Calculate total amount
-      const selectedCabin = cabinTypes?.find((cabin: CabinType) => cabin.id === bookingData.cabinTypeId);
+      const selectedCabin = cabinTypes?.find(
+        (cabin: CabinType) => cabin.id === bookingData.cabinTypeId
+      );
       if (!selectedCabin || !cruise) {
-        throw new Error("Missing cabin or cruise information");
+        throw new Error('Missing cabin or cruise information');
       }
 
-      const baseAmount = parseFloat(cruise.basePrice) * parseFloat(selectedCabin.priceModifier) * bookingData.guestCount!;
-      const extrasAmount = bookingData.extras?.reduce((total, extra) => total + (extra.price * extra.quantity), 0) || 0;
+      const baseAmount =
+        parseFloat(cruise.basePrice) *
+        parseFloat(selectedCabin.priceModifier) *
+        bookingData.guestCount!;
+      const extrasAmount =
+        bookingData.extras?.reduce((total, extra) => total + extra.price * extra.quantity, 0) || 0;
       const subtotal = baseAmount + extrasAmount;
       const taxAmount = subtotal * 0.1; // 10% tax
       const gratuityAmount = subtotal * 0.15; // 15% gratuity
@@ -218,8 +251,8 @@ export default function Booking() {
         totalAmount: totalAmount.toString(),
         taxAmount: taxAmount.toString(),
         gratuityAmount: gratuityAmount.toString(),
-        currency: "USD",
-        paymentStatus: "pending",
+        currency: 'USD',
+        paymentStatus: 'pending',
         primaryGuestName: bookingData.primaryGuestName!,
         primaryGuestEmail: bookingData.primaryGuestEmail!,
         primaryGuestPhone: bookingData.primaryGuestPhone,
@@ -230,16 +263,16 @@ export default function Booking() {
         // Include any coupon code for promotion validation
         couponCode: bookingData.couponCode,
         // Include user-entered departure date for promotion validation
-        departureDate: bookingData.departureDate
+        departureDate: bookingData.departureDate,
       };
 
-      const response = await fetch("/api/bookings", {
-        method: "POST",
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json"
+          'Content-Type': 'application/json',
         },
-        credentials: "include",
-        body: JSON.stringify(bookingRequest)
+        credentials: 'include',
+        body: JSON.stringify(bookingRequest),
       });
 
       if (!response.ok) {
@@ -248,16 +281,15 @@ export default function Booking() {
       }
 
       const booking = await response.json();
-      
+
       // Redirect to checkout
       setLocation(`/checkout/${booking.id}`);
-      
     } catch (error) {
-      console.error("Booking error:", error);
+      console.error('Booking error:', error);
       toast({
-        title: "Booking Error",
-        description: "There was an error creating your booking. Please try again.",
-        variant: "destructive"
+        title: 'Booking Error',
+        description: 'There was an error creating your booking. Please try again.',
+        variant: 'destructive',
       });
     }
   };
@@ -289,10 +321,18 @@ export default function Booking() {
     );
   }
 
-  // Show error state  
+  // Show error state
   if (cruiseError || cabinsError || extrasError || !cruise || !cruiseId) {
-    const errorMessage = cruiseError?.message || cabinsError?.message || extrasError?.message || 'Unknown error';
-    console.error('❌ Booking page error:', { cruiseError, cabinsError, extrasError, errorMessage, cruiseId, location });
+    const errorMessage =
+      cruiseError?.message || cabinsError?.message || extrasError?.message || 'Unknown error';
+    console.error('❌ Booking page error:', {
+      cruiseError,
+      cabinsError,
+      extrasError,
+      errorMessage,
+      cruiseId,
+      location,
+    });
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
@@ -305,16 +345,6 @@ export default function Booking() {
             <p className="text-gray-600 mb-4">
               The cruise you're looking for could not be found or is no longer available.
             </p>
-            {process.env.NODE_ENV === 'development' && (
-              <details className="text-left max-w-md mx-auto mb-8">
-                <summary className="text-sm text-gray-500 cursor-pointer">Debug Info</summary>
-                <pre className="text-xs text-red-600 mt-2 p-2 bg-red-50 rounded overflow-auto">
-                  Location: {typeof location === 'string' ? location : JSON.stringify(location)}
-                  Cruise ID: {cruiseId || 'null'}
-                  Error: {errorMessage}
-                </pre>
-              </details>
-            )}
             <button
               onClick={() => setLocation('/search')}
               className="bg-ocean-600 text-white px-6 py-3 rounded-lg hover:bg-ocean-700 transition-colors"
@@ -331,7 +361,7 @@ export default function Booking() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       {/* Cruise Summary Header */}
       <section className="bg-white border-b border-gray-200 py-4 md:py-6">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -368,11 +398,16 @@ export default function Booking() {
                     Deal Applied: {selectedDeal.name}
                   </h3>
                   <div className="mt-1 text-sm text-green-700">
-                    {selectedDeal.description} • Save {selectedDeal.discountType === 'percentage' ? `${selectedDeal.discountValue}%` : `$${selectedDeal.discountValue}`}
+                    {selectedDeal.description} • Save{' '}
+                    {selectedDeal.discountType === 'percentage'
+                      ? `${selectedDeal.discountValue}%`
+                      : `$${selectedDeal.discountValue}`}
                   </div>
                 </div>
                 <Badge variant="secondary" className="bg-green-100 text-green-800">
-                  {selectedDeal.discountType === 'percentage' ? `${selectedDeal.discountValue}% OFF` : `$${selectedDeal.discountValue} OFF`}
+                  {selectedDeal.discountType === 'percentage'
+                    ? `${selectedDeal.discountValue}% OFF`
+                    : `$${selectedDeal.discountValue} OFF`}
                 </Badge>
               </div>
               <button
@@ -392,13 +427,15 @@ export default function Booking() {
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </div>
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-blue-800">
-                  Edit Mode Active
-                </h3>
+                <h3 className="text-sm font-medium text-blue-800">Edit Mode Active</h3>
                 <div className="mt-1 text-sm text-blue-700">
                   You're editing an existing booking. Your previous selections have been loaded.
                 </div>
@@ -406,9 +443,9 @@ export default function Booking() {
             </div>
           </div>
         )}
-        
+
         <BookingProgress currentStep={currentStep} steps={steps} />
-        
+
         <Card className="shadow-sm border border-gray-200 mt-6">
           <CardContent className="p-4 md:p-6 lg:p-8">
             {currentStep === 1 && (
@@ -452,11 +489,15 @@ export default function Booking() {
                 onFormDataChange={handleGuestDetailsChange}
                 onContinue={handleStepContinue}
                 onBack={handleStepBack}
-                cruise={cruise ? {
-                  name: cruise.name,
-                  departureDate: cruise.departureDate,
-                  destination: cruise.destination
-                } : undefined}
+                cruise={
+                  cruise
+                    ? {
+                        name: cruise.name,
+                        departureDate: cruise.departureDate,
+                        destination: cruise.destination,
+                      }
+                    : undefined
+                }
               />
             )}
           </CardContent>

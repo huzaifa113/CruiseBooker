@@ -1,10 +1,10 @@
-import { Link, useLocation } from "wouter";
-import { Ship, Phone, Globe, Menu, MapPin, Tag, X, User, LogOut, Heart } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useState } from "react";
-import { useLanguageContext } from "@/components/language-provider";
-import { useAuth } from "@/hooks/useAuth";
+import { Link, useLocation } from 'wouter';
+import { Ship, Phone, Globe, Menu, MapPin, Tag, X, User, LogOut, Heart } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useState } from 'react';
+import { useLanguageContext } from '@/components/language-provider';
+import { useAuth } from '@/hooks/useAuth';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,9 +12,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import AuthModal from "./auth/auth-modal";
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import AuthModal from './auth/auth-modal';
 
 export default function Header() {
   const [location] = useLocation();
@@ -22,7 +22,7 @@ export default function Header() {
   const { language, setLanguage, t } = useLanguageContext();
   const { user, isAuthenticated, logout } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
 
   const handleDestinationsClick = () => {
     // Navigate to home page if not there, then scroll to destinations
@@ -49,12 +49,12 @@ export default function Header() {
   };
 
   const handleLoginClick = () => {
-    setAuthMode("login");
+    setAuthMode('login');
     setIsAuthModalOpen(true);
   };
 
   const handleRegisterClick = () => {
-    setAuthMode("register");
+    setAuthMode('register');
     setIsAuthModalOpen(true);
   };
 
@@ -63,9 +63,9 @@ export default function Header() {
   };
 
   const getUserInitials = () => {
-    if (!user) return "U";
-    const first = user.firstName?.charAt(0) || "";
-    const last = user.lastName?.charAt(0) || "";
+    if (!user) return 'U';
+    const first = user.firstName?.charAt(0) || '';
+    const last = user.lastName?.charAt(0) || '';
     return (first + last).toUpperCase() || user.email.charAt(0).toUpperCase();
   };
 
@@ -75,7 +75,10 @@ export default function Header() {
         <div className="flex justify-between items-center h-16 md:h-20">
           {/* Logo */}
           <Link href="/">
-            <div className="flex items-center space-x-2 md:space-x-3 cursor-pointer group" data-testid="link-home">
+            <div
+              className="flex items-center space-x-2 md:space-x-3 cursor-pointer group"
+              data-testid="link-home"
+            >
               <div className="w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform shadow-lg">
                 <Ship className="text-white text-sm md:text-xl" />
               </div>
@@ -83,7 +86,9 @@ export default function Header() {
                 <h1 className="text-base md:text-xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                   Phoenix Vacation Group
                 </h1>
-                <p className="text-xs md:text-sm text-gray-500 font-medium">Luxury Cruise Experiences</p>
+                <p className="text-xs md:text-sm text-gray-500 font-medium">
+                  Luxury Cruise Experiences
+                </p>
               </div>
               <div className="sm:hidden">
                 <h1 className="text-base font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
@@ -95,34 +100,40 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8">
-              <Link href="/">
-                <div className={`${location === '/' ? 'text-blue-600 font-semibold border-b-2 border-blue-600 pb-2' : 'text-gray-700 hover:text-blue-600'} transition-all duration-200 cursor-pointer h-10 flex items-center`} data-testid="link-cruises">
-                  {t('cruises')}
-                </div>
-              </Link>
-              <button
-                onClick={handleDestinationsClick}
-                className="text-gray-700 hover:text-blue-600 transition-all duration-200 flex items-center space-x-1 h-10"
-                data-testid="link-destinations"
+            <Link href="/">
+              <div
+                className={`${location === '/' ? 'text-blue-600 font-semibold border-b-2 border-blue-600 pb-2' : 'text-gray-700 hover:text-blue-600'} transition-all duration-200 cursor-pointer h-10 flex items-center`}
+                data-testid="link-cruises"
               >
-                <MapPin className="w-4 h-4" />
-                <span>{t('destinations')}</span>
-              </button>
-              <button
-                onClick={handleDealsClick}
-                className="text-gray-700 hover:text-blue-600 transition-all duration-200 flex items-center space-x-1 h-10"
-                data-testid="link-deals"
+                {t('cruises')}
+              </div>
+            </Link>
+            <button
+              onClick={handleDestinationsClick}
+              className="text-gray-700 hover:text-blue-600 transition-all duration-200 flex items-center space-x-1 h-10"
+              data-testid="link-destinations"
+            >
+              <MapPin className="w-4 h-4" />
+              <span>{t('destinations')}</span>
+            </button>
+            <button
+              onClick={handleDealsClick}
+              className="text-gray-700 hover:text-blue-600 transition-all duration-200 flex items-center space-x-1 h-10"
+              data-testid="link-deals"
+            >
+              <Tag className="w-4 h-4" />
+              <span>{t('deals')}</span>
+            </button>
+            <Link href="/reservations">
+              <div
+                className={`${location === '/reservations' ? 'text-blue-600 font-semibold border-b-2 border-blue-600 pb-2' : 'text-gray-700 hover:text-blue-600'} transition-all duration-200 cursor-pointer h-10 flex items-center`}
+                data-testid="link-reservations"
               >
-                <Tag className="w-4 h-4" />
-                <span>{t('deals')}</span>
-              </button>
-              <Link href="/reservations">
-                <div className={`${location === '/reservations' ? 'text-blue-600 font-semibold border-b-2 border-blue-600 pb-2' : 'text-gray-700 hover:text-blue-600'} transition-all duration-200 cursor-pointer h-10 flex items-center`} data-testid="link-reservations">
-                  {t('myReservations')}
-                </div>
-              </Link>
+                {t('myReservations')}
+              </div>
+            </Link>
           </nav>
-          
+
           {/* Right side actions */}
           <div className="flex items-center space-x-1 md:space-x-3 lg:space-x-4">
             {/* Phone number - hidden on mobile */}
@@ -130,17 +141,17 @@ export default function Header() {
               <Phone className="w-4 h-4 text-blue-600" />
               <span className="font-medium">+66 2 123 4567</span>
             </div>
-            
+
             {/* Language Toggle */}
             <div className="flex items-center space-x-1 bg-gray-50 rounded-lg p-1">
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setLanguage("EN")}
+                onClick={() => setLanguage('EN')}
                 className={`px-2 md:px-3 py-1 md:py-2 text-xs md:text-sm font-medium transition-all ${
-                  language === "EN"
-                    ? "bg-blue-600 text-white shadow-md"
-                    : "text-gray-600 hover:text-blue-600"
+                  language === 'EN'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-gray-600 hover:text-blue-600'
                 }`}
                 data-testid="button-lang-en"
               >
@@ -150,25 +161,32 @@ export default function Header() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setLanguage("TH")}
+                onClick={() => setLanguage('TH')}
                 className={`px-2 md:px-3 py-1 md:py-2 text-xs md:text-sm font-medium transition-all ${
-                  language === "TH"
-                    ? "bg-blue-600 text-white shadow-md"
-                    : "text-gray-600 hover:text-blue-600"
+                  language === 'TH'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-gray-600 hover:text-blue-600'
                 }`}
                 data-testid="button-lang-th"
               >
                 TH
               </Button>
             </div>
-            
+
             {/* User Menu - show on all screens */}
             {isAuthenticated && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full" data-testid="button-user-menu">
+                  <Button
+                    variant="ghost"
+                    className="relative h-10 w-10 rounded-full"
+                    data-testid="button-user-menu"
+                  >
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={user?.profileImageUrl || ''} alt={user?.firstName || 'User'} />
+                      <AvatarImage
+                        src={user?.profileImageUrl || ''}
+                        alt={user?.firstName || 'User'}
+                      />
                       <AvatarFallback className="bg-blue-600 text-white">
                         {getUserInitials()}
                       </AvatarFallback>
@@ -179,35 +197,35 @@ export default function Header() {
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">
-                        {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.email}
+                        {user?.firstName && user?.lastName
+                          ? `${user.firstName} ${user.lastName}`
+                          : user?.email}
                       </p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {user?.email}
-                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link href="/my-reservations" className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
-                      <span>My Reservations</span>
+                      <span>{t('myReservations')}</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/favorites" className="cursor-pointer">
                       <Heart className="mr-2 h-4 w-4" />
-                      <span>Saved Cruises</span>
+                      <span>{t('savedCruises')}</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
+                    <span>{t('logOut')}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button 
+              <Button
                 variant="ghost"
                 size="sm"
                 className="text-gray-600 hover:text-blue-600 font-medium"
@@ -217,18 +235,26 @@ export default function Header() {
                 {t('signIn')}
               </Button>
             )}
-            
+
             {/* Mobile menu */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="sm" className="lg:hidden" data-testid="button-mobile-menu">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="lg:hidden"
+                  data-testid="button-mobile-menu"
+                >
                   <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-80">
                 <div className="flex flex-col space-y-6 mt-6">
                   <Link href="/">
-                    <div className="text-gray-700 hover:text-blue-600 transition-colors font-medium" onClick={() => setMobileMenuOpen(false)}>
+                    <div
+                      className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
                       {t('cruises')}
                     </div>
                   </Link>
@@ -253,12 +279,15 @@ export default function Header() {
                     <span>{t('deals')}</span>
                   </button>
                   <Link href="/reservations">
-                    <div className="text-gray-700 hover:text-blue-600 transition-colors font-medium" onClick={() => setMobileMenuOpen(false)}>
+                    <div
+                      className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
                       {t('myReservations')}
                     </div>
                   </Link>
                   {!isAuthenticated ? (
-                    <Button 
+                    <Button
                       className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 font-semibold"
                       onClick={() => {
                         handleLoginClick();
@@ -271,19 +300,24 @@ export default function Header() {
                     <div className="space-y-3 pt-3 border-t">
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-10 w-10">
-                          <AvatarImage src={user?.profileImageUrl || ''} alt={user?.firstName || 'User'} />
+                          <AvatarImage
+                            src={user?.profileImageUrl || ''}
+                            alt={user?.firstName || 'User'}
+                          />
                           <AvatarFallback className="bg-blue-600 text-white">
                             {getUserInitials()}
                           </AvatarFallback>
                         </Avatar>
                         <div>
                           <p className="text-sm font-medium">
-                            {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.email}
+                            {user?.firstName && user?.lastName
+                              ? `${user.firstName} ${user.lastName}`
+                              : user?.email}
                           </p>
                           <p className="text-xs text-gray-500">{user?.email}</p>
                         </div>
                       </div>
-                      <Button 
+                      <Button
                         variant="outline"
                         className="w-full"
                         onClick={() => {
@@ -292,7 +326,7 @@ export default function Header() {
                         }}
                       >
                         <LogOut className="mr-2 h-4 w-4" />
-                        Log out
+                        {t('logOut')}
                       </Button>
                     </div>
                   )}
@@ -302,7 +336,7 @@ export default function Header() {
           </div>
         </div>
       </div>
-      
+
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}

@@ -8,14 +8,25 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   plugins: [react()],
-  root: 'client', // Set root to client/ directory
+  root: 'client',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'client/src'),
+      '@shared': path.resolve(__dirname, 'shared'),
     },
   },
   build: {
-    outDir: '../dist', // Output to project root dist/
+    outDir: 'dist',
+    emptyOutDir: true,
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+        },
+      },
+    },
   },
   server: {
     proxy: {
@@ -25,5 +36,8 @@ export default defineConfig({
         secure: false,
       },
     },
+  },
+  define: {
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
   },
 });
