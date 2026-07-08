@@ -235,10 +235,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - **Neon** for PostgreSQL hosting
 - **Vercel** for inspiration on modern web apps
 
-## 📧 Support
-
-For support, email support@yourdomain.com or open an issue on GitHub.
-
 ---
 
 Built with ❤️ using React, TypeScript, and Node.js
