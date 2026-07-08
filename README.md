@@ -1,5 +1,4 @@
 # 🚢 CruiseBooker - Luxury Cruise Booking Platform
-![Uploading 1.PNG…]()
 
 A modern, full-stack cruise booking application built with React, TypeScript, Node.js, and PostgreSQL. Features a comprehensive booking system with multi-language support (EN/TH), advanced discount validation, and secure payment processing.
 
